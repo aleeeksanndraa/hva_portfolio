@@ -41,6 +41,9 @@
   const MOVE_AMP_Y = 5;
   const MOVE_AMP_ROT = 1.2;
   const MOUSE_PARALLAX = 60;
+  const GLOBE_ROT_PER_VW = 68;
+  const GLOBE_MAX_ROT = 56;
+  const GLOBE_Z_PER_DEG = 4.2;
 
   let mouseX = 0;
   let mouseY = 0;
@@ -115,6 +118,16 @@
         const center = left + sec.offsetWidth / 2;
         const dist = Math.abs(center - vw / 2);
         if (dist < bestDist) { bestDist = dist; active = i; }
+
+        // globe/cylinder distortion — panels curve away like the surface of a
+        // sphere as they leave center, and the incoming one arrives already tilted
+        const signedOffset = center - vw / 2;
+        const rot = Math.max(-GLOBE_MAX_ROT, Math.min(GLOBE_MAX_ROT, (signedOffset / vw) * GLOBE_ROT_PER_VW));
+        const zPush = -Math.abs(rot) * GLOBE_Z_PER_DEG;
+        const curve = Math.abs(rot) / GLOBE_MAX_ROT;
+        const scale = 1 - curve * 0.16;
+        sec.style.transform = "rotateY(" + (-rot).toFixed(2) + "deg) translateZ(" + zPush.toFixed(1) + "px) scale(" + scale.toFixed(3) + ")";
+        sec.style.opacity = (1 - curve * 0.55).toFixed(3);
 
         // skip offscreen sections entirely — nothing visible to animate
         if (dist > vw * 1.2) return;

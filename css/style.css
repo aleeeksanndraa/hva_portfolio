@@ -90,7 +90,16 @@ a:hover { color: #6b6a64; }
   z-index: 5;
 }
 #home-view[hidden] { display: none; }
-#track-wrap { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; overflow: hidden; }
+#track-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
+}
 #track {
   position: absolute;
   top: 0;
@@ -99,6 +108,7 @@ a:hover { color: #6b6a64; }
   display: flex;
   align-items: stretch;
   will-change: transform;
+  transform-style: preserve-3d;
 }
 .screen {
   position: relative;
@@ -107,6 +117,8 @@ a:hover { color: #6b6a64; }
   padding: 0;
   display: flex;
   overflow: hidden;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .deco { position: absolute; pointer-events: none; }
 .deco.glyph { line-height: 1; color: #111110; }
