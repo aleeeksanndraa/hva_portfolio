@@ -121,11 +121,14 @@ a:hover { color: #6b6a64; }
   white-space: nowrap;
 }
 .workbook {
-  font-family: "Caveat", cursive;
-  font-weight: 700;
+  font-family: "Alex Brush", cursive;
+  font-weight: 400;
   transform: rotate(-3.5deg);
   transform-origin: 0 100%;
   margin-top: 0.05em;
+  -webkit-text-stroke: 12px #ffffff;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 3px 10px rgba(17, 17, 16, 0.18));
 }
 .screen-caption {
   position: absolute;
