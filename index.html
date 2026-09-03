@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sasha — Digital Design / Interaction Design</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Caveat:wght@700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="root">
+
+  <nav id="nav">
+    <div class="nav-top">
+      <div class="nav-logo" data-action="home">
+        <img src="assets/chrome-mark.png" alt="Sasha" width="30" height="30">
+      </div>
+      <div class="nav-links">
+        <div class="nav-link" data-action="projects">Projects</div>
+        <div class="nav-link" data-action="about">About</div>
+        <div class="nav-link" data-action="archive">Archive</div>
+      </div>
+    </div>
+    <div class="nav-footer">
+      <div>HvA</div>
+      <div>Digital Design</div>
+      <div>Interaction Design</div>
+      <div>2026</div>
+    </div>
+  </nav>
+
+  <!-- ============ HOME (horizontal scrolling canvas) ============ -->
+  <div id="home-view" class="view">
+    <div id="track-wrap">
+      <div id="track">
+
+        <section class="screen" id="screen-intro" style="width: calc(100vw * 1.28); flex-direction: column; justify-content: center;">
+          <img src="assets/chrome-cursor.png" alt="" class="deco" style="top: 24vh; left: calc(100vw * 0.68); width: 210px; transform: rotate(-14deg);">
+          <img src="assets/chrome-folder.png" alt="" class="deco" style="bottom: 9vh; left: calc(100vw * 0.78); width: 130px; transform: rotate(9deg);">
+          <img src="assets/chrome-tama.png" alt="" class="deco" style="bottom: 4vh; right: 2%; width: 200px; transform: rotate(12deg);">
+          <div class="deco glyph" style="top: 74vh; left: calc(100vw * 0.62); font-size: 46px;">✦</div>
+          <img src="assets/chrome-pin.png" alt="" class="deco" style="top: 58vh; right: 30%; width: 460px; z-index: 3; transform: rotate(-9deg);">
+          <div class="deco glyph" style="bottom: 22vh; left: calc(100vw * 0.26); font-size: 22px; color: #8a8880; transform: rotate(-12deg);">★</div>
+          <div class="deco glyph" style="top: 34vh; right: 12%; font-size: 30px; transform: rotate(14deg);">♥</div>
+          <div class="deco tag" style="top: 8vh; left: calc(100vw * 0.24); transform: rotate(-3deg);">✳ INDEX_00 / DESKTOP</div>
+          <div class="reveal" style="padding-left: 40px; width: 100%;">
+            <div class="eyebrow">SELECTED WORK &amp; PROCESS — 2026 →</div>
+            <div class="headline">
+              <div>DIGITAL DESIGN</div>
+              <div class="workbook">Workbook</div>
+            </div>
+          </div>
+          <div class="screen-caption"><div>AMSTERDAM</div></div>
+        </section>
+
+        <section class="screen" id="screen-p0" style="width: calc(100vw * 0.96); align-items: flex-start; padding: 16vh 0 0 9vw;">
+          <img src="assets/chrome-folder.png" alt="" class="deco" style="top: 9vh; right: calc(100vw * 0.12); width: 190px; transform: rotate(-7deg);">
+          <div class="deco glyph" style="bottom: 16vh; right: calc(100vw * 0.22); font-size: 56px; transform: rotate(11deg);">✦</div>
+          <div class="deco glyph" style="top: 52vh; right: calc(100vw * 0.06); font-size: 20px; color: #8a8880;">♥</div>
+          <div class="deco tag" style="bottom: 8vh; left: calc(100vw * 0.1); transform: rotate(2deg);">★ BADGE_TOOL.EXE</div>
+          <div class="reveal">
+            <div class="index-label">01</div>
+            <div class="proj-title" data-action="open-project" data-index="0">
+              <div>CUSTOM</div>
+              <div>BADGE</div>
+            </div>
+            <div class="proj-meta">
+              <div class="explore-label">explore</div>
+              <div class="proj-arrow" data-action="open-project" data-index="0">→</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="screen-about" style="width: 100vw; align-items: center; padding: 0 calc(100vw * 0.08) 0 calc(100vw * 0.05);">
+          <img src="assets/chrome-cursor.png" alt="" class="deco" style="top: 12vh; left: calc(100vw * 0.84); width: 160px; transform: rotate(8deg);">
+          <div class="deco glyph" style="top: 26vh; left: calc(100vw * 0.3); font-size: 30px; transform: rotate(-10deg);">♥</div>
+          <img src="assets/chrome-pin.png" alt="" class="deco" style="bottom: 10vh; left: calc(100vw * 0.74); width: 380px; transform: rotate(-5deg);">
+          <div class="deco glyph" style="bottom: 18vh; left: calc(100vw * 0.46); font-size: 22px; color: #8a8880;">★</div>
+          <div class="reveal about-grid">
+            <div class="about-text">Digital &amp; Product Designer with 4+ years across agency, product and freelance work — UI/UX, responsive design, brand and design systems for clients in fintech, gaming, real estate and editorial. Currently enrolled in the MA Digital Design / Interaction Design at HvA, using this site to sharpen the practice, communicate it clearly, and open the next role.</div>
+            <div class="about-contact">
+              <div class="about-contact-label">CONTACT</div>
+              <a href="mailto:aleksandraslahova88@gmail.com">aleksandraslahova88@gmail.com</a>
+              <a href="https://www.instagram.com/aleeeksanndraa/" target="_blank" rel="noopener">Instagram</a>
+              <a href="https://www.linkedin.com/in/aleksandra-slahova-461826264/" target="_blank" rel="noopener">LinkedIn</a>
+            </div>
+          </div>
+          <div class="deco about-watermark">ABOUT</div>
+        </section>
+
+      </div>
+    </div>
+
+    <div id="counter"><span id="counter-num">01</span> / 03</div>
+    <div id="progress"><div id="progress-bar"></div></div>
+  </div>
+
+  <!-- ============ PROJECT DETAIL ============ -->
+  <article id="project-view" class="view" hidden>
+    <header class="project-header">
+      <div class="back-link" data-action="home">← INDEX</div>
+      <div>
+        <div class="project-index" id="project-index"></div>
+        <h1 class="project-title-h1" id="project-title"></h1>
+      </div>
+      <div class="project-meta-row" id="project-meta"></div>
+    </header>
+    <div id="chapters"></div>
+    <footer class="project-footer">
+      <div class="back-link" data-action="home">← INDEX</div>
+    </footer>
+  </article>
+
+  <!-- ============ ARCHIVE / PROJECTS LIST ============ -->
+  <article id="archive-view" class="view" hidden>
+    <div class="back-link" data-action="home">← INDEX</div>
+    <h1 class="archive-title">PROJECTS</h1>
+    <div class="archive-list" id="archive-list"></div>
+    <div class="archive-note">MORE PROJECTS TO BE ADDED</div>
+  </article>
+
+</div>
+<script src="js/script.js"></script>
+</body>
+</html>
