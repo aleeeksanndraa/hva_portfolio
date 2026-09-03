@@ -66,6 +66,11 @@
       sec.style.perspectiveOrigin = "50% 60%";
       sec.__revealEl = sec.querySelector(".reveal");
       sec.__parallaxEls = Array.from(sec.querySelectorAll("[data-p]"));
+      sec.__swingEls = Array.from(sec.querySelectorAll("[data-swing]"));
+      sec.__swingEls.forEach((el) => {
+        if (el.dataset.phase === undefined) el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
+        di++;
+      });
       sec.__parallaxEls.forEach((el) => {
         if (el.dataset.rot === undefined) {
           const m = /rotate\((-?[\d.]+)deg\)/.exec(el.getAttribute("style") || "");
@@ -131,6 +136,15 @@
           const dy = Math.sin(now * 0.00033 + ph) * MOVE_AMP_Y;
           const dr = Math.sin(now * 0.00021 + ph * 1.3) * MOVE_AMP_ROT;
           el.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0) rotate(" + (rot + dr).toFixed(2) + "deg)";
+        }
+
+        // pendulum swing, pivoting from the top anchor (e.g. a keyring loop)
+        const swings = sec.__swingEls;
+        for (let k = 0; k < swings.length; k++) {
+          const el = swings[k];
+          const ph = parseFloat(el.dataset.phase || "0");
+          const swing = Math.sin(now * 0.0006 + ph) * 4.5;
+          el.style.transform = "rotate(" + swing.toFixed(2) + "deg)";
         }
       });
 
