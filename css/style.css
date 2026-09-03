@@ -129,6 +129,34 @@ a:hover { color: #6b6a64; }
   color: #b6b4ac;
   line-height: 1;
 }
+.tama-frame img { display: block; width: 100%; height: auto; }
+.tama-screen-fx {
+  position: absolute;
+  left: 32.1%;
+  top: 55.4%;
+  width: 36.6%;
+  height: 21.8%;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 2px;
+}
+.tama-screen-fx::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 220%;
+  height: 140%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='tn'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23tn)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+  animation: tama-noise-drift 0.5s steps(5) infinite;
+}
+@keyframes tama-noise-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-16%); }
+}
 .badge-frame {
   aspect-ratio: 917 / 838;
   overflow: hidden;
