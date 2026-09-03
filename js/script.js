@@ -269,18 +269,44 @@
     }
   });
 
+  let snapTimer = null;
+
+  function nearestSectionIndex(pos) {
+    let idx = 0;
+    let best = Infinity;
+    sections.forEach((sec, i) => {
+      const d = Math.abs(sec.offsetLeft - pos);
+      if (d < best) { best = d; idx = i; }
+    });
+    return idx;
+  }
+
+  function snapToNearest() {
+    if (!sections.length) return;
+    const idx = nearestSectionIndex(target);
+    target = Math.max(0, Math.min(max, sections[idx].offsetLeft));
+  }
+
   window.addEventListener("wheel", (e) => {
     if (view !== "home") return;
     e.preventDefault();
     const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     target = Math.max(0, Math.min(max, target + d * 1.15));
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(snapToNearest, 160);
   }, { passive: false });
 
   window.addEventListener("keydown", (e) => {
     if (view !== "home") return;
-    const step = vw * 0.8;
-    if (e.key === "ArrowRight") target = Math.min(max, target + step);
-    if (e.key === "ArrowLeft") target = Math.max(0, target - step);
+    clearTimeout(snapTimer);
+    if (e.key === "ArrowRight") {
+      const idx = Math.min(sections.length - 1, nearestSectionIndex(target) + 1);
+      target = sections[idx].offsetLeft;
+    }
+    if (e.key === "ArrowLeft") {
+      const idx = Math.max(0, nearestSectionIndex(target) - 1);
+      target = sections[idx].offsetLeft;
+    }
   });
 
   window.addEventListener("resize", () => {

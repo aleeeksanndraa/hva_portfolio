@@ -96,6 +96,7 @@ a:hover { color: #6b6a64; }
   height: 100vh;
   padding: 0;
   display: flex;
+  overflow: hidden;
 }
 .deco { position: absolute; pointer-events: none; }
 .deco.glyph { line-height: 1; color: #111110; }
