@@ -30,9 +30,16 @@
   let view = "home";
   let currentProject = 0;
   let target = 0;
+  let current = 0;
   let max = 0;
   let vw = window.innerWidth;
   let sections = [];
+  let raf = null;
+
+  const SCROLL_EASE = 0.1;
+  const MOVE_AMP_X = 4;
+  const MOVE_AMP_Y = 5;
+  const MOVE_AMP_ROT = 1.2;
 
   function setView(next) {
     if (view === next) return;
@@ -53,15 +60,30 @@
     vw = window.innerWidth;
     max = last ? Math.max(0, last.offsetLeft + last.offsetWidth - vw) : 0;
     sections = Array.from(track.children);
+    sections.forEach((sec) => {
+      sec.style.perspective = "1200px";
+      sec.style.perspectiveOrigin = "50% 60%";
+    });
+    let di = 0;
+    track.querySelectorAll("[data-p]").forEach((el) => {
+      if (el.dataset.rot === undefined) {
+        const m = /rotate\((-?[\d.]+)deg\)/.exec(el.getAttribute("style") || "");
+        el.dataset.rot = m ? m[1] : "0";
+        el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
+      }
+      di++;
+    });
     target = Math.min(target, max);
-    render();
+    current = target;
   }
 
-  function render() {
-    track.style.transform = "translate3d(" + (-target).toFixed(0) + "px,0,0)";
+  function tick(now) {
+    current += (target - current) * SCROLL_EASE;
+    if (Math.abs(target - current) < 0.05) current = target;
+    track.style.transform = "translate3d(" + (-current).toFixed(2) + "px,0,0)";
 
     if (progressBar) {
-      const p = max > 0 ? target / max : 0;
+      const p = max > 0 ? current / max : 0;
       progressBar.style.transform = "scaleX(" + p.toFixed(4) + ")";
     }
 
@@ -69,13 +91,47 @@
       let active = 0;
       let bestDist = Infinity;
       sections.forEach((sec, i) => {
-        const center = sec.offsetLeft - target + sec.offsetWidth / 2;
+        const left = sec.offsetLeft - current;
+        const center = left + sec.offsetWidth / 2;
         const dist = Math.abs(center - vw / 2);
         if (dist < bestDist) { bestDist = dist; active = i; }
+
+        // 3D appearance reveal for text blocks, once per section entry
+        const enter = Math.max(0, Math.min(1, (vw - left) / (vw * 0.65)));
+        const eased = enter * enter * (3 - 2 * enter);
+        const rev = sec.querySelector(".reveal");
+        if (rev) {
+          rev.style.opacity = "1";
+          const kids = rev.children;
+          for (let k = 0; k < kids.length; k++) {
+            const raw = (eased - k * 0.1) / 0.9;
+            const s = Math.max(0, Math.min(1, raw));
+            const se = s * s * (3 - 2 * s);
+            const el = kids[k];
+            el.style.opacity = (0.04 + 0.96 * se).toFixed(3);
+            el.style.transform =
+              "translate3d(0," + ((1 - se) * 28).toFixed(2) + "px," + ((1 - se) * -360).toFixed(1) +
+              "px) rotateX(" + ((1 - se) * 40).toFixed(2) + "deg)";
+          }
+        }
+
+        // small idle movement for decorative elements only (not text)
+        sec.querySelectorAll("[data-p]").forEach((el) => {
+          const f = parseFloat(el.getAttribute("data-p"));
+          const ph = parseFloat(el.dataset.phase || "0");
+          const rot = parseFloat(el.dataset.rot || "0");
+          const dx = (center - vw / 2) * f + Math.cos(now * 0.00025 + ph * 1.7) * MOVE_AMP_X;
+          const dy = Math.sin(now * 0.00033 + ph) * MOVE_AMP_Y;
+          const dr = Math.sin(now * 0.00021 + ph * 1.3) * MOVE_AMP_ROT;
+          el.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0) rotate(" + (rot + dr).toFixed(2) + "deg)";
+        });
       });
+
       const label = String(active + 1).padStart(2, "0");
       if (counterNum.textContent !== label) counterNum.textContent = label;
     }
+
+    raf = requestAnimationFrame(tick);
   }
 
   function scrollToSection(i) {
@@ -84,7 +140,6 @@
       measure();
       const sec = sections[i];
       if (sec) target = Math.max(0, Math.min(max, sec.offsetLeft));
-      render();
     });
   }
 
@@ -211,15 +266,14 @@
     if (view !== "home") return;
     e.preventDefault();
     const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    target = Math.max(0, Math.min(max, target + d));
-    render();
+    target = Math.max(0, Math.min(max, target + d * 1.15));
   }, { passive: false });
 
   window.addEventListener("keydown", (e) => {
     if (view !== "home") return;
     const step = vw * 0.8;
-    if (e.key === "ArrowRight") { target = Math.min(max, target + step); render(); }
-    if (e.key === "ArrowLeft") { target = Math.max(0, target - step); render(); }
+    if (e.key === "ArrowRight") target = Math.min(max, target + step);
+    if (e.key === "ArrowLeft") target = Math.max(0, target - step);
   });
 
   window.addEventListener("resize", () => {
@@ -228,4 +282,5 @@
 
   root.classList.add("is-scrolling");
   measure();
+  raf = requestAnimationFrame(tick);
 })();

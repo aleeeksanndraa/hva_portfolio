@@ -106,6 +106,12 @@ a:hover { color: #6b6a64; }
   color: #b6b4ac;
   line-height: 1;
 }
+.reveal { opacity: 0; }
+.reveal > * {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform-origin: 0% 100%;
+}
 .eyebrow {
   font-family: "Space Mono", monospace;
   font-size: 11px;
@@ -125,7 +131,6 @@ a:hover { color: #6b6a64; }
   width: 46vw;
   height: auto;
   margin-top: -1vh;
-  transform: rotate(-2deg);
   transform-origin: 0 100%;
 }
 .screen-caption {
