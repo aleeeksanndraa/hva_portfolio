@@ -40,6 +40,16 @@
   const MOVE_AMP_X = 4;
   const MOVE_AMP_Y = 5;
   const MOVE_AMP_ROT = 1.2;
+  const MOUSE_PARALLAX = 60;
+
+  let mouseX = 0;
+  let mouseY = 0;
+  let mouseXEased = 0;
+  let mouseYEased = 0;
+  window.addEventListener("mousemove", (e) => {
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+  });
 
   function setView(next) {
     if (view === next) return;
@@ -62,8 +72,8 @@
     sections = Array.from(track.children);
     let di = 0;
     sections.forEach((sec) => {
-      sec.style.perspective = "1200px";
-      sec.style.perspectiveOrigin = "50% 60%";
+      sec.style.perspective = "900px";
+      sec.style.perspectiveOrigin = "50% 55%";
       sec.__revealEl = sec.querySelector(".reveal");
       sec.__parallaxEls = Array.from(sec.querySelectorAll("[data-p]"));
       sec.__swingEls = Array.from(sec.querySelectorAll("[data-swing]"));
@@ -88,6 +98,9 @@
     current += (target - current) * SCROLL_EASE;
     if (Math.abs(target - current) < 0.05) current = target;
     track.style.transform = "translate3d(" + (-current).toFixed(2) + "px,0,0)";
+
+    mouseXEased += (mouseX - mouseXEased) * 0.06;
+    mouseYEased += (mouseY - mouseYEased) * 0.06;
 
     if (progressBar) {
       const p = max > 0 ? current / max : 0;
@@ -120,8 +133,8 @@
             const el = kids[k];
             el.style.opacity = (0.04 + 0.96 * se).toFixed(3);
             el.style.transform =
-              "translate3d(0," + ((1 - se) * 28).toFixed(2) + "px," + ((1 - se) * -360).toFixed(1) +
-              "px) rotateX(" + ((1 - se) * 40).toFixed(2) + "deg)";
+              "translate3d(0," + ((1 - se) * 34).toFixed(2) + "px," + ((1 - se) * -520).toFixed(1) +
+              "px) rotateX(" + ((1 - se) * 58).toFixed(2) + "deg)";
           }
         }
 
@@ -132,10 +145,11 @@
           const f = parseFloat(el.getAttribute("data-p"));
           const ph = parseFloat(el.dataset.phase || "0");
           const rot = parseFloat(el.dataset.rot || "0");
-          const dx = (center - vw / 2) * f + Math.cos(now * 0.00025 + ph * 1.7) * MOVE_AMP_X;
-          const dy = Math.sin(now * 0.00033 + ph) * MOVE_AMP_Y;
+          const dx = (center - vw / 2) * f + Math.cos(now * 0.00025 + ph * 1.7) * MOVE_AMP_X + mouseXEased * MOUSE_PARALLAX * f;
+          const dy = Math.sin(now * 0.00033 + ph) * MOVE_AMP_Y + mouseYEased * MOUSE_PARALLAX * f;
           const dr = Math.sin(now * 0.00021 + ph * 1.3) * MOVE_AMP_ROT;
-          el.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0) rotate(" + (rot + dr).toFixed(2) + "deg)";
+          const dz = f * 90;
+          el.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px," + dz.toFixed(1) + "px) rotate(" + (rot + dr).toFixed(2) + "deg)";
         }
 
         // pendulum swing, pivoting from the top anchor (e.g. a keyring loop)

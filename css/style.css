@@ -138,9 +138,9 @@ a:hover { color: #6b6a64; }
 }
 .workbook-img {
   display: block;
-  width: 46vw;
+  width: 58vw;
   height: auto;
-  margin-top: 5.08vh;
+  margin-top: -3vh;
   transform-origin: 0 100%;
 }
 .screen-caption {
@@ -227,7 +227,7 @@ a:hover { color: #6b6a64; }
   letter-spacing: -0.01em;
   color: #8a8880;
 }
-.about-contact-label { color: #111110; }
+.about-contact-label { color: #111110; font-weight: 700; }
 .about-watermark {
   left: 48.61vw;
   top: 68.89vh;
