@@ -60,18 +60,20 @@
     vw = window.innerWidth;
     max = last ? Math.max(0, last.offsetLeft + last.offsetWidth - vw) : 0;
     sections = Array.from(track.children);
+    let di = 0;
     sections.forEach((sec) => {
       sec.style.perspective = "1200px";
       sec.style.perspectiveOrigin = "50% 60%";
-    });
-    let di = 0;
-    track.querySelectorAll("[data-p]").forEach((el) => {
-      if (el.dataset.rot === undefined) {
-        const m = /rotate\((-?[\d.]+)deg\)/.exec(el.getAttribute("style") || "");
-        el.dataset.rot = m ? m[1] : "0";
-        el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
-      }
-      di++;
+      sec.__revealEl = sec.querySelector(".reveal");
+      sec.__parallaxEls = Array.from(sec.querySelectorAll("[data-p]"));
+      sec.__parallaxEls.forEach((el) => {
+        if (el.dataset.rot === undefined) {
+          const m = /rotate\((-?[\d.]+)deg\)/.exec(el.getAttribute("style") || "");
+          el.dataset.rot = m ? m[1] : "0";
+          el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
+        }
+        di++;
+      });
     });
     target = Math.min(target, max);
     current = target;
@@ -96,10 +98,13 @@
         const dist = Math.abs(center - vw / 2);
         if (dist < bestDist) { bestDist = dist; active = i; }
 
+        // skip offscreen sections entirely — nothing visible to animate
+        if (dist > vw * 1.2) return;
+
         // 3D appearance reveal for text blocks, once per section entry
         const enter = Math.max(0, Math.min(1, (vw - left) / (vw * 0.65)));
         const eased = enter * enter * (3 - 2 * enter);
-        const rev = sec.querySelector(".reveal");
+        const rev = sec.__revealEl;
         if (rev) {
           rev.style.opacity = "1";
           const kids = rev.children;
@@ -116,7 +121,9 @@
         }
 
         // small idle movement for decorative elements only (not text)
-        sec.querySelectorAll("[data-p]").forEach((el) => {
+        const els = sec.__parallaxEls;
+        for (let k = 0; k < els.length; k++) {
+          const el = els[k];
           const f = parseFloat(el.getAttribute("data-p"));
           const ph = parseFloat(el.dataset.phase || "0");
           const rot = parseFloat(el.dataset.rot || "0");
@@ -124,7 +131,7 @@
           const dy = Math.sin(now * 0.00033 + ph) * MOVE_AMP_Y;
           const dr = Math.sin(now * 0.00021 + ph * 1.3) * MOVE_AMP_ROT;
           el.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px,0) rotate(" + (rot + dr).toFixed(2) + "deg)";
-        });
+        }
       });
 
       const label = String(active + 1).padStart(2, "0");
