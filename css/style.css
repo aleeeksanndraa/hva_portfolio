@@ -174,30 +174,43 @@ a:hover { color: #6b6a64; }
 .proj-title.proj-title-lg { font-size: 13vw; line-height: 0.84; letter-spacing: -0.078em; white-space: nowrap; }
 .proj-title:hover { color: #6b6a64; }
 .proj-meta {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 3.5vw;
   margin-top: 6vh;
   width: 216px;
-  border-bottom: 1px solid #111110;
-  padding-bottom: 10px;
+  padding: 12px 20px;
+  border: 1px solid #111110;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-.proj-meta-right { justify-content: flex-end; }
+.proj-meta:hover {
+  background-color: #111110;
+}
 .proj-meta .year,
 .proj-meta .explore-label {
   font-family: "Space Mono", monospace;
   font-size: 11px;
   letter-spacing: 0.1em;
   color: #8a8880;
+  transition: color 0.3s ease;
+}
+.proj-meta:hover .year,
+.proj-meta:hover .explore-label {
+  color: #cfcdc5;
 }
 .proj-arrow {
-  font-size: 30px;
+  font-size: 22px;
   line-height: 1;
-  cursor: pointer;
-  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  color: #111110;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), color 0.3s ease;
 }
-.proj-arrow:hover { transform: translateX(14px); }
+.proj-meta:hover .proj-arrow {
+  color: #f2f1ee;
+  transform: translateX(8px);
+}
 
 .about-grid {
   display: grid;
