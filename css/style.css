@@ -28,7 +28,7 @@ a:hover { color: #6b6a64; }
   left: 0;
   width: 210px;
   height: 100vh;
-  padding: 34px 26px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -39,7 +39,7 @@ a:hover { color: #6b6a64; }
 .nav-top {
   display: flex;
   flex-direction: column;
-  gap: 46px;
+  gap: 40px;
   pointer-events: auto;
 }
 .nav-logo {
@@ -49,14 +49,14 @@ a:hover { color: #6b6a64; }
   align-items: flex-start;
   cursor: pointer;
 }
-.nav-logo img { display: block; }
+.nav-logo img { display: block; width: 32px; height: 32px; }
 .nav-links {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
   font-family: "Space Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
 }
 .nav-link { cursor: pointer; color: #111110; }
 .nav-link:hover { color: #8a8880; }
@@ -64,11 +64,10 @@ a:hover { color: #6b6a64; }
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 8px;
   font-family: "Space Mono", monospace;
-  font-size: 10px;
-  line-height: 1.7;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
   color: #8a8880;
 }
 
@@ -125,13 +124,13 @@ a:hover { color: #6b6a64; }
 }
 .eyebrow {
   font-family: "Space Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
   color: #8a8880;
-  margin-bottom: 44px;
+  margin-bottom: 4vh;
 }
 .headline {
-  font-size: 10.5vw;
+  font-size: 10.486vw;
   line-height: 0.84;
   font-weight: 700;
   letter-spacing: -0.075em;
@@ -141,7 +140,7 @@ a:hover { color: #6b6a64; }
   display: block;
   width: 46vw;
   height: auto;
-  margin-top: -1vh;
+  margin-top: 5.08vh;
   transform-origin: 0 100%;
 }
 .screen-caption {
@@ -152,98 +151,86 @@ a:hover { color: #6b6a64; }
   display: flex;
   justify-content: center;
   font-family: "Space Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
   color: #8a8880;
 }
 
 .index-label {
   font-family: "Space Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
   color: #8a8880;
-  margin-bottom: 5vh;
 }
 .proj-title {
-  cursor: pointer;
-  font-size: 11.5vw;
-  line-height: 0.85;
+  font-size: 10.486vw;
+  line-height: 0.84;
   font-weight: 700;
   letter-spacing: -0.075em;
 }
-.proj-title.proj-title-lg { font-size: 13vw; line-height: 0.84; letter-spacing: -0.078em; white-space: nowrap; }
-.proj-title:hover { color: #6b6a64; }
 .proj-meta {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 3.5vw;
-  margin-top: 6vh;
   width: 216px;
-  padding: 12px 20px;
-  border: 1px solid #111110;
-  border-radius: 999px;
+  height: 34px;
+  border-bottom: 1px solid #111110;
   cursor: pointer;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-.proj-meta:hover {
-  background-color: #111110;
 }
 .proj-meta .year,
 .proj-meta .explore-label {
   font-family: "Space Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
   color: #8a8880;
   transition: color 0.3s ease;
 }
-.proj-meta:hover .year,
-.proj-meta:hover .explore-label {
-  color: #cfcdc5;
-}
+.proj-meta:hover .explore-label { color: #111110; }
 .proj-arrow {
-  font-size: 22px;
+  font-size: 30px;
   line-height: 1;
+  font-weight: 700;
   color: #111110;
-  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), color 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
 }
 .proj-meta:hover .proj-arrow {
-  color: #f2f1ee;
   transform: translateX(8px);
 }
 
-.about-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6%;
-  align-items: flex-start;
-  width: 100%;
-  max-height: 76vh;
+.reveal.about-layer {
+  position: absolute;
+  inset: 0;
 }
 .about-text {
-  min-width: 0;
-  max-width: 34ch;
-  font-size: clamp(15px, 1.35vw, 21px);
-  line-height: 1.45;
+  position: absolute;
+  left: 5vw;
+  top: 45.11vh;
+  width: 38.89vw;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.1;
   letter-spacing: -0.01em;
-  text-wrap: pretty;
+  color: #111110;
 }
 .about-contact {
-  flex: 0 0 auto;
-  white-space: nowrap;
+  position: absolute;
+  left: 50.69vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14.58vw;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   font-family: "Space Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
   color: #8a8880;
-  padding-top: 6px;
 }
 .about-contact-label { color: #111110; }
 .about-watermark {
-  right: calc(100vw * -0.04);
-  bottom: -3vh;
+  left: 48.61vw;
+  top: 68.89vh;
   font-size: 20vw;
   font-weight: 700;
   letter-spacing: -0.085em;
@@ -253,16 +240,16 @@ a:hover { color: #6b6a64; }
 
 #counter {
   position: fixed;
-  top: 34px;
-  right: 30px;
+  top: 20px;
+  right: 20px;
   white-space: nowrap;
   font-family: "Space Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
   color: #8a8880;
   z-index: 40;
 }
-#counter-num { color: #111110; }
+#counter-num { color: #8a8880; }
 #progress {
   position: fixed;
   bottom: 0;
