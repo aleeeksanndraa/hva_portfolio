@@ -16,6 +16,17 @@
         { n: "OUTCOME", title: "Final outcome", text: "The bottle-opener notch never worked — acrylic that thin snaps before it opens anything. It's now where a hair scrunchie sits instead, which suits the badge better than the original idea did.", media: [{ label: "FIG. 14 — FINAL KEYCHAIN, PHOTO", kind: "wide", img: "assets/process-final-keychain-detail.png" }, { label: "FIG. 15 — FINAL KEYCHAIN, 3D-STYLE RENDER", kind: "tall", img: "assets/badge-tight.png" }] },
         { n: "REFLECTION", title: "Reflection", text: "The best part of the badge wasn't the plan, it was the pivot: acrylic reading as jelly, jelly reading as Y2K, Y2K reading as a keychain nobody else in class had. Next time I'd let the material talk earlier instead of designing the metal version first.", media: [] }
       ]
+    },
+    {
+      index: "02", title: "IN // BETWEEN", year: "2026", course: "Digital Design", role: "Group project — concept, spatial & interaction design", status: "Concept pitch",
+      chapters: [
+        { n: "OVERVIEW", title: "An experiential space for holographic fashion", text: "in//between is our concept pitch for Group 22 × Future Front Row 2026 — an installation that gives virtual fashion the materiality and presence it usually lacks. A holographic avatar stands on a central stage; the audience walks around it inside a room hung with fabric that catches projected light and the movement of the air itself. Made together with Norah, Nicole and Norton.", media: [] },
+        { n: "BRIEF", title: "Brief", text: "Future Front Row 2026 asked our group to design a spatial concept for showing virtual fashion. We started from a problem we kept running into in our research: virtual fashion exhibitions can read as flat and alienating — screens without a room around them — even though the format opens up storytelling a physical runway can't.", media: [] },
+        { n: "RESEARCH", title: "Research", text: "We looked at precedents for immersive, holographic and interactive exhibition environments — Sónar and Casa Batlló's \"Music:Response\" at The Cube in Barcelona, and \"UFO — Unidentified Fluid Other\" at the Nxt Museum in Amsterdam — alongside academic work on the sense of presence, or its absence, in virtual and phygital fashion shows. John Berger's line stuck with us: the meaning of an image changes with what you see beside it, or what comes after it.", media: [] },
+        { n: "CONCEPT", title: "Concept", text: "Our proposal: a central stage where the hologram is displayed through an inverted glass prism, letting the audience walk around it as it moves — sharing the space with the avatar rather than watching it on a screen. The surrounding area is hung in layers of fabric light enough to shift with the audience's own movement, giving the room a sense of organic, interactive motion.", media: [] },
+        { n: "EXPERIENCE", title: "Sound & projection", text: "Animations tied to the holographic look are projected onto the hanging fabric to carry the piece's emotional register, and the motion of both the hologram and the animations is set to music — so the room moves with the fashion instead of just displaying it.", media: [] },
+        { n: "NEXT STEPS", title: "Next steps", text: "This is a concept pitch, pending further research through prototyping. The next phase is testing the prism display and the fabric's response to real air movement, before we commit to a final material and spatial build for Future Front Row 2026.", media: [] }
+      ]
     }
   ];
 
