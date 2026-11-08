@@ -82,13 +82,13 @@
     const key = gx + ":" + gy;
     if (key === lastTrail) return;
     lastTrail = key;
-    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "255,255,255" : "124,91,200", snap: true });
+    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "255,255,255" : "247,180,220", snap: true });
   }
   function burst(x, y, n, color) {
     if (reduceMotion) return;
     for (let i = 0; i < (n || 14); i++) {
       const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
-      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : "164,136,203"), g: 0.25 });
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "247,180,220" : "35,38,79")), g: 0.25 });
     }
   }
   function drawPixels() {
@@ -408,7 +408,7 @@
         split.append(txt, img);
         n.appendChild(split);
         const tail = h("p", null, "\n\n\n\n");
-        tail.style.cssText = "margin-top:60vh;color:#b0afb9";
+        tail.style.cssText = "margin-top:60vh;color:#a9abc9";
         tail.append("psst. ", got.includes("readme") ? "you already found this one." : "");
         if (!got.includes("readme")) tail.appendChild(starPick("readme", "inside"));
         n.appendChild(tail);
@@ -533,10 +533,10 @@
       while (snake.some((s) => s.x === food.x && s.y === food.y));
     }
     function draw() {
-      x.fillStyle = "#cfc4e2"; x.fillRect(0, 0, cv.width, cv.height);
+      x.fillStyle = "#dfe3fd"; x.fillRect(0, 0, cv.width, cv.height);
       x.fillStyle = "rgba(63,40,113,0.08)";
       for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) x.fillRect(i * C + 1, j * C + 1, C - 2, C - 2);
-      x.fillStyle = "#3f2871";
+      x.fillStyle = "#23264f";
       const fx = food.x * C, fy = food.y * C, u = C / 4;
       x.fillRect(fx + u * 1.5, fy, u, C); x.fillRect(fx, fy + u * 1.5, C, u);
       snake.forEach((s, i) => { const p = i === 0 ? 0 : 1; x.fillRect(s.x * C + p, s.y * C + p, C - p * 2, C - p * 2); });
@@ -598,21 +598,23 @@
   /* ---------- welcome dialog (first visit) ---------- */
   function openWelcome() {
     createWin({
-      id: "welcome", title: "Welcome", w: 400, h: "auto", flat: true, dy: -80,
+      id: "welcome", title: "hello.exe", w: 380, h: "auto", flat: true, dy: -60,
       fill(body, w) {
         const d = h("div", "dialog");
+        const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-cutout.webp"; im.alt = ""; face.appendChild(im);
         const t = h("div");
-        t.append(h("b", null, "Welcome to Sasha OS"), h("br"),
-          "This is my process book. Spin the windows around my head and open a project. There are " + STARS.length + " ✦ stars hidden around — happy hunting.");
-        d.append(h("div", "d-ico", "✦"), t);
+        t.append(h("b", "d-big", "I am not a robot :)"),
+          "Welcome to Sasha OS, my process book. Spin the windows around my head and open a project. " + STARS.length + " ✦ are hidden around.");
+        d.append(face, t);
+        const bar = h("div", "loadbar"); bar.appendChild(h("i"));
         const act = h("div", "dialog-actions");
-        const snd = h("button", "btn98", "Sound on"); snd.type = "button";
-        const ok = h("button", "btn98", "OK"); ok.type = "button";
+        const snd = h("button", "btn98 primary", "sure ♪"); snd.type = "button"; snd.title = "Enter with sound on";
+        const ok = h("button", "btn98", "idk"); ok.type = "button"; ok.title = "Enter quietly";
         snd.addEventListener("click", () => { setSound(true); sfx.boot(); closeWin("welcome"); });
         ok.addEventListener("click", () => closeWin("welcome"));
         act.append(snd, ok);
-        body.append(d, act);
-        setTimeout(() => ok.focus(), 200);
+        body.append(d, bar, act);
+        setTimeout(() => snd.focus(), 200);
       }
     });
     store.set("welcomed", true);
@@ -654,8 +656,8 @@
   function shutDown() {
     sfx.close();
     const s = h("div");
-    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#040109;color:#a488cb;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
-    s.innerHTML = "It's now safe to close this tab.<br><span style='font-size:.6em;color:#8a8880'>(or click anywhere to start again)</span>";
+    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#9cbcf5;color:#23264f;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
+    s.innerHTML = "It's now safe to close this tab.<br><span style='font-size:.6em;color:#fff'>(or click anywhere to start again)</span>";
     s.addEventListener("click", () => { s.remove(); sfx.boot(); });
     document.body.appendChild(s);
   }
@@ -680,8 +682,8 @@
 
   function drawSnakeIcon(cv, w, hgt) {
     const x = cv.getContext("2d");
-    x.fillStyle = "#cfc4e2"; x.fillRect(0, 0, w, hgt);
-    x.fillStyle = "#3f2871";
+    x.fillStyle = "#dfe3fd"; x.fillRect(0, 0, w, hgt);
+    x.fillStyle = "#23264f";
     const oy = Math.floor((hgt - 8) / 2), ox = Math.floor((w - 13) / 2);
     [[0, 3], [1, 3], [2, 3], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [6, 6], [6, 7], [7, 7], [8, 7]].forEach(([a, b]) => x.fillRect(ox + a, oy + b, 1, 1));
     x.fillRect(ox + 11, oy, 1, 1); x.fillRect(ox + 10, oy + 1, 3, 1); x.fillRect(ox + 11, oy + 2, 1, 1);
@@ -700,9 +702,7 @@
     if (c.cover.img) { const im = h("img"); im.src = c.cover.img; im.alt = ""; body.appendChild(im); }
     else if (c.cover.snake) { const cv = h("canvas"); cv.width = 16; cv.height = 15; drawSnakeIcon(cv, 16, 15); body.appendChild(cv); }
     else { const t = h("div", "rc-type"); t.innerHTML = c.cover.type; body.appendChild(t); }
-    b.dataset.track = "";
-    const tl = h("span", "track-label", slug(c.title) + "_" + String(i).padStart(2, "0") + " · 0." + (91 + (i * 7) % 9));
-    b.append(bar, body, tl);
+    b.append(bar, body);
     ring.appendChild(b);
     cardEls.push(b);
   });
@@ -711,9 +711,9 @@
     const w = innerWidth, hh = innerHeight - 40, small = isSmall();
     const cw = Math.round(Math.max(96, Math.min(180, w * 0.13, hh * 0.21)));
     radius = small ? Math.min(w * 0.36, 200) : Math.min(w * 0.34, hh * 0.7, 540);
-    radiusY = hh * (small ? 0.26 : 0.3);
+    radiusY = hh * (small ? 0.27 : 0.315);
     document.documentElement.style.setProperty("--cw", cw + "px");
-    document.documentElement.style.setProperty("--fw", Math.round(Math.min(hh * 0.27, w * (small ? 0.4 : 0.17), 250)) + "px");
+    document.documentElement.style.setProperty("--fw", Math.round(Math.min(hh * 0.4, w * (small ? 0.56 : 0.24), 340)) + "px");
     sizePixels();
   }
 
@@ -724,9 +724,9 @@
       const depth = Math.cos(rad);
       const sc = 0.56 + 0.44 * ((depth + 1) / 2);
       el.style.transform = "translate(" + (Math.sin(rad) * radius).toFixed(1) + "px," + (depth * radiusY).toFixed(1) + "px) scale(" + sc.toFixed(3) + ") rotate(" + (Math.sin(rad) * -10).toFixed(2) + "deg)";
-      el.style.opacity = (0.4 + 0.6 * ((depth + 1) / 2)).toFixed(3);
+      el.style.opacity = depth > -0.05 ? "1" : (0.45 + 0.55 * (depth + 1)).toFixed(3);
       el.style.zIndex = String(Math.round((depth + 1) * 50));
-      el.style.filter = depth < -0.3 ? "grayscale(1) blur(1px)" : "none";
+      el.style.filter = depth < -0.3 ? "saturate(0.4) blur(1px)" : "none";
     });
     const f = ((Math.round(angle / STEP) % N) + N) % N;
     if (f !== front) {
@@ -783,29 +783,37 @@
   /* ---------- face ---------- */
   const faceWin = $("face-win");
   const faceBody = $("face");
-  const pupils = [$("pupil-l"), $("pupil-r")];
-  const eyes = [$("eye-l"), $("eye-r")];
+  const head = $("head");
+  const sheen = $("head-sheen");
+  const irises = [[$("iris-l"), 325], [$("iris-r"), 509]];
   let look = { x: innerWidth / 2, y: innerHeight };
-  let eyeX = 0, eyeY = 0, pokes = 0, pokeReset = null;
+  let eyeX = 0, eyeY = 0, tiltX = 0, tiltY = 0, pokes = 0, pokeReset = null;
   function blink() {
-    eyes.forEach((e) => e.classList.add("blink"));
-    setTimeout(() => eyes.forEach((e) => e.classList.remove("blink")), 130);
+    head.classList.add("blink");
+    setTimeout(() => head.classList.remove("blink"), 120);
   }
   (function blinkLoop() { setTimeout(() => { blink(); blinkLoop(); }, 2600 + Math.random() * 3200); })();
   function updateEyes() {
     const r = faceBody.getBoundingClientRect();
     if (!r.width) return;
-    const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.48);
-    const dist = Math.hypot(dx, dy) || 1, k = Math.min(1, dist / 260);
-    eyeX += ((dx / dist) * 14 * k - eyeX) * 0.2;
-    eyeY += ((dy / dist) * 7 * k - eyeY) * 0.2;
-    const t = "translate(" + eyeX.toFixed(2) + " " + eyeY.toFixed(2) + ")";
-    pupils.forEach((p) => p.setAttribute("transform", t));
+    const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.5);
+    const dist = Math.hypot(dx, dy) || 1, k = Math.min(1, dist / 320);
+    const ease = reduceMotion ? 1 : 0.16;
+    // irises move inside the eye (svg units of the 840px portrait)
+    eyeX += ((dx / dist) * 7 * k - eyeX) * ease;
+    eyeY += ((dy / dist) * 2.6 * k - eyeY) * ease;
+    irises.forEach(([el, x]) => { el.setAttribute("x", (x + eyeX).toFixed(2)); el.setAttribute("y", (423 + eyeY).toFixed(2)); });
+    // the whole head turns a little toward the cursor, lacquer sheen slides across
+    const nx = Math.max(-1, Math.min(1, dx / (innerWidth / 2))), ny = Math.max(-1, Math.min(1, dy / (innerHeight / 2)));
+    tiltX += (nx - tiltX) * (reduceMotion ? 1 : 0.08);
+    tiltY += (ny - tiltY) * (reduceMotion ? 1 : 0.08);
+    if (!reduceMotion) head.style.transform = "rotateY(" + (tiltX * 12).toFixed(2) + "deg) rotateX(" + (tiltY * -8).toFixed(2) + "deg) translate(" + (tiltX * 4).toFixed(1) + "px," + (tiltY * 3).toFixed(1) + "px)";
+    sheen.style.setProperty("--sheen-x", (50 - tiltX * 50).toFixed(1) + "%");
   }
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
     sfx.poke();
-    burst(e.clientX, e.clientY, 10, "164,136,203");
+    burst(e.clientX, e.clientY, 10, "247,180,220");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
     blink();
     pokes++;
@@ -872,6 +880,7 @@
    * Loop
    * ------------------------------------------------------------------ */
   const frameLabel = $("frame-label");
+  let wasSpinning = false;
   let lastNow = performance.now();
   function tick(now) {
     const dt = Math.min(64, now - lastNow);
@@ -881,7 +890,8 @@
     renderRing();
     updateEyes();
     if (snakeApi) snakeApi.tick(dt);
-    frameLabel.textContent = "frame " + String(Math.floor(now / 41.7) % 10000).padStart(4, "0") + " · " + (Math.abs(targetAngle - angle) > 0.5 ? "spinning" : "tracking");
+    const spinning = Math.abs(targetAngle - angle) > 0.5;
+    if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();
     requestAnimationFrame(tick);
   }

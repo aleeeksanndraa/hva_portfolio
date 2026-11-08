@@ -17,11 +17,18 @@
     <div class="wp-grid"></div>
     <img src="assets/chrome-cursor.png" alt="" class="wp-obj" style="right: 7vw; top: 9vh; width: 13vw; transform: rotate(14deg);">
     <img src="assets/pin-silver.png" alt="" class="wp-obj" style="right: 15vw; bottom: 14vh; width: 8vw; transform: rotate(-10deg);">
+    <i class="sparkle" style="left: 22%; top: 12%; font-size: 26px;">✦</i>
+    <i class="sparkle p" style="left: 74%; top: 22%; font-size: 18px; animation-delay: -1s;">✦</i>
+    <i class="sparkle" style="left: 84%; top: 58%; font-size: 30px; animation-delay: -2s;">✦</i>
+    <i class="sparkle n" style="left: 12%; top: 66%; font-size: 14px; animation-delay: -0.5s;">✦</i>
+    <i class="sparkle p" style="left: 30%; top: 80%; font-size: 22px; animation-delay: -1.7s;">✦</i>
+    <i class="sparkle" style="left: 63%; top: 8%; font-size: 12px; animation-delay: -2.6s;">✦</i>
+    <i class="sparkle n" style="left: 92%; top: 34%; font-size: 12px; animation-delay: -1.2s;">✦</i>
     <div class="wp-word">SASHA&nbsp;OS</div>
   </div>
   <canvas id="pixels" aria-hidden="true"></canvas>
-  <div class="corner-label" style="right: 16px; top: 14px;">// process book: sasha</div>
-  <div class="corner-label" id="frame-label" style="left: 16px; bottom: 52px;">frame 0000 · tracking</div>
+  <div class="corner-label" style="right: 16px; top: 14px;">✦ process book · sasha</div>
+  <div class="corner-label" id="frame-label" style="left: 16px; bottom: 56px;">♡ sasha os 2026 · online</div>
 
   <!-- desktop icons -->
   <nav id="icons" aria-label="Desktop">
@@ -37,37 +44,35 @@
     <div id="ring"></div>
     <div class="win face-win" id="face-win">
       <div class="win-bar"><span class="win-title">sasha.exe</span><span class="win-btns"><i>_</i><i>□</i><i>×</i></span></div>
-      <div class="win-body" id="face" role="img" aria-label="A porcelain face that watches your cursor">
-        <svg viewBox="0 0 300 380" class="face-svg" aria-hidden="true">
-          <defs>
-            <radialGradient id="porcelain" cx="42%" cy="34%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#f1efea"/><stop offset="1" stop-color="#cfccc4"/></radialGradient>
-            <radialGradient id="cheek" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#b5a0c9" stop-opacity="0.8"/><stop offset="1" stop-color="#b5a0c9" stop-opacity="0"/></radialGradient>
-            <radialGradient id="iris" cx="40%" cy="38%" r="65%"><stop offset="0" stop-color="#a488cb"/><stop offset="0.6" stop-color="#3f2871"/><stop offset="1" stop-color="#111110"/></radialGradient>
-            <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-            <clipPath id="eyeL"><ellipse cx="102" cy="178" rx="31" ry="17"/></clipPath>
-            <clipPath id="eyeR"><ellipse cx="198" cy="178" rx="31" ry="17"/></clipPath>
-          </defs>
-          <path d="M150 18 C 238 18 272 96 270 178 C 268 262 222 352 150 358 C 78 352 32 262 30 178 C 28 96 62 18 150 18 Z" fill="url(#porcelain)" stroke="#c9c6bd" stroke-width="1.2"/>
-          <path d="M92 52 C 118 34 168 30 196 44" fill="none" stroke="url(#gloss)" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
-          <path d="M238 74 L 226 104 L 236 118 L 219 150 L 228 164" fill="none" stroke="#9c998f" stroke-width="1.1" stroke-linejoin="round" opacity="0.55"/>
-          <path d="M70 140 C 86 128 116 126 132 136" fill="none" stroke="#8a8880" stroke-width="2.4" stroke-linecap="round"/>
-          <path d="M168 136 C 184 126 214 128 230 140" fill="none" stroke="#8a8880" stroke-width="2.4" stroke-linecap="round"/>
-          <g class="eye" id="eye-l">
-            <ellipse cx="102" cy="178" rx="31" ry="17" fill="#fbfaf7" stroke="#2a2a27" stroke-width="2"/>
-            <g clip-path="url(#eyeL)"><g id="pupil-l"><circle cx="102" cy="178" r="13" fill="url(#iris)"/><circle cx="102" cy="178" r="5.5" fill="#050505"/><circle cx="97" cy="173" r="3" fill="#fff"/></g></g>
-            <path d="M70 172 C 84 156 120 156 134 172" fill="none" stroke="#111110" stroke-width="3" stroke-linecap="round"/>
-          </g>
-          <g class="eye" id="eye-r">
-            <ellipse cx="198" cy="178" rx="31" ry="17" fill="#fbfaf7" stroke="#2a2a27" stroke-width="2"/>
-            <g clip-path="url(#eyeR)"><g id="pupil-r"><circle cx="198" cy="178" r="13" fill="url(#iris)"/><circle cx="198" cy="178" r="5.5" fill="#050505"/><circle cx="193" cy="173" r="3" fill="#fff"/></g></g>
-            <path d="M166 172 C 180 156 216 156 230 172" fill="none" stroke="#111110" stroke-width="3" stroke-linecap="round"/>
-          </g>
-          <path d="M150 196 C 146 220 140 238 146 246 C 150 250 156 249 160 246" fill="none" stroke="#b6b4ac" stroke-width="2" stroke-linecap="round"/>
-          <ellipse cx="88" cy="232" rx="30" ry="18" fill="url(#cheek)"/>
-          <ellipse cx="212" cy="232" rx="30" ry="18" fill="url(#cheek)"/>
-          <path d="M124 284 C 136 276 146 278 150 282 C 154 278 164 276 176 284 C 164 298 136 298 124 284 Z" fill="#7c5bc8"/>
-          <path d="M126 284 C 140 288 160 288 174 284" fill="none" stroke="#3f2871" stroke-width="1.4"/>
-        </svg>
+      <div class="win-body" id="face" role="img" aria-label="Sasha's iridescent porcelain face, watching your cursor">
+        <div class="face-stage">
+          <div class="head" id="head">
+            <img class="head-img" src="assets/face-cutout.webp" alt="" draggable="false">
+            <svg class="head-eyes" viewBox="0 0 840 840" aria-hidden="true">
+              <defs>
+                <radialGradient id="sclera" cx="50%" cy="55%" r="55%"><stop offset="0" stop-color="#b8a5ac"/><stop offset="0.6" stop-color="#9c868c"/><stop offset="1" stop-color="#7d6264"/></radialGradient>
+                <linearGradient id="lidshade" x1="0" y1="0" x2="0" y2="1"><stop offset="0.12" stop-color="#2a1513" stop-opacity="0.85"/><stop offset="0.5" stop-color="#2a1513" stop-opacity="0"/><stop offset="0.85" stop-color="#5a3436" stop-opacity="0"/><stop offset="1" stop-color="#5a3436" stop-opacity="0.45"/></linearGradient>
+                <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d6863"/><stop offset="1" stop-color="#7a5654"/></linearGradient>
+                <filter id="feather" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
+                <mask id="mL" maskUnits="userSpaceOnUse" x="0" y="0" width="840" height="840"><ellipse cx="343" cy="441" rx="33" ry="10.5" fill="#fff" filter="url(#feather)"/></mask>
+                <mask id="mR" maskUnits="userSpaceOnUse" x="0" y="0" width="840" height="840"><ellipse cx="535" cy="441" rx="33" ry="10.5" fill="#fff" filter="url(#feather)"/></mask>
+              </defs>
+            <g mask="url(#mL)">
+              <rect x="298" y="418" width="90" height="46" fill="url(#sclera)"/>
+              <image id="iris-l" href="assets/iris-l.png" x="325" y="423" width="36" height="36"/>
+              <rect x="298" y="418" width="90" height="46" fill="url(#lidshade)"/>
+              <g class="lid"><rect x="298" y="418" width="90" height="34" fill="url(#skin)"/><path d="M313 450 Q 343 456 373 448" stroke="#2e1a15" stroke-width="4" fill="none"/></g>
+            </g>
+            <g mask="url(#mR)">
+              <rect x="490" y="418" width="90" height="46" fill="url(#sclera)"/>
+              <image id="iris-r" href="assets/iris-r.png" x="509" y="423" width="36" height="36"/>
+              <rect x="490" y="418" width="90" height="46" fill="url(#lidshade)"/>
+              <g class="lid"><rect x="490" y="418" width="90" height="34" fill="url(#skin)"/><path d="M505 450 Q 535 456 565 448" stroke="#2e1a15" stroke-width="4" fill="none"/></g>
+            </g>
+            </svg>
+            <div class="head-sheen" id="head-sheen"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div id="card-caption" aria-live="polite">
@@ -81,7 +86,7 @@
 
   <!-- start menu -->
   <div id="start-menu" hidden role="menu">
-    <div class="sm-side"><span>SASHA OS 2026</span></div>
+    <div class="sm-side"><span>✦ SASHA OS 2026</span></div>
     <div class="sm-items" id="sm-items"></div>
   </div>
 
