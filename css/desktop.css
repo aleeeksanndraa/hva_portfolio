@@ -2,20 +2,20 @@
    Palette pulled from the iridescent portrait: periwinkle sky, bubblegum pink,
    lacquer white, navy ink, burgundy hair, and a holographic pink→blue sheen. */
 :root {
-  --sky: #9cbcf5;
-  --sky-2: #c4d6fb;
+  --sky: #7d8cbd;
+  --sky-2: #a7b1d4;
   --navy: #23264f;
   --ink: #23264f;
-  --pink: #f7b4dc;
-  --pink-2: #ffd9ef;
-  --pink-3: #ef8fc7;
-  --peri: #b6befa;
-  --peri-2: #dfe3fd;
-  --paper: #fffdfe;
-  --cream: #f8f5ff;
+  --pink: #d7a3bd;
+  --pink-2: #ead2de;
+  --pink-3: #b9648f;
+  --peri: #a9afd6;
+  --peri-2: #d3d6ea;
+  --paper: #eeecf0;
+  --cream: #e4e2ea;
   --muted: #6f7299;
   --burgundy: #6d1d2b;
-  --holo: linear-gradient(90deg, #ffc4e8, #d8c9ff 30%, #b9d8ff 55%, #c7f3ff 75%, #ffd0ec);
+  --holo: linear-gradient(90deg, #d9b1c8, #bfb5dc 30%, #a9bde0 55%, #b4d3df 75%, #d6b4c8);
   --line: 2px solid var(--navy);
   --drop: 4px 4px 0 var(--navy);
   --r: 7px;
@@ -38,15 +38,15 @@ button { font: inherit; color: inherit; }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(50vw 46vh at 50% 42%, rgba(255, 255, 255, 0.55), transparent 70%),
-    radial-gradient(40vw 40vh at 8% 92%, rgba(247, 180, 220, 0.55), transparent 70%),
-    radial-gradient(36vw 36vh at 96% 6%, rgba(223, 227, 253, 0.8), transparent 70%),
-    linear-gradient(180deg, #a9c5f7, var(--sky) 60%, #8fb2f2);
+    radial-gradient(50vw 46vh at 50% 42%, rgba(214, 216, 232, 0.28), transparent 70%),
+    radial-gradient(40vw 40vh at 8% 92%, rgba(185, 120, 150, 0.3), transparent 70%),
+    radial-gradient(36vw 36vh at 96% 6%, rgba(190, 196, 225, 0.35), transparent 70%),
+    linear-gradient(180deg, #8492c2, var(--sky) 60%, #6f7db0);
 }
 .wp-grid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1.2px, transparent 1.6px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.28) 1.2px, transparent 1.6px);
   background-size: 22px 22px;
 }
 .wp-obj { position: absolute; height: auto; opacity: 0.95; filter: drop-shadow(0 10px 24px rgba(35, 38, 79, 0.18)); }
@@ -60,17 +60,17 @@ button { font: inherit; color: inherit; }
   letter-spacing: -0.08em;
   line-height: 0.8;
   color: transparent;
-  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.55);
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.28);
 }
 .sparkle {
   position: absolute;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.75);
   line-height: 1;
   pointer-events: none;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+  text-shadow: none;
   animation: twinkle 3.2s ease-in-out infinite;
 }
-.sparkle.p { color: var(--pink-2); text-shadow: 0 0 12px rgba(247, 180, 220, 0.9); }
+.sparkle.p { color: var(--pink); }
 .sparkle.n { color: var(--navy); text-shadow: none; }
 @keyframes twinkle { 50% { transform: scale(0.6) rotate(20deg); opacity: 0.55; } }
 
@@ -124,7 +124,7 @@ button { font: inherit; color: inherit; }
 .icon-glyph { font-style: normal; font-size: 34px; line-height: 40px; text-align: center; color: var(--pink-3); -webkit-text-stroke: 1.5px var(--navy); }
 .icon-svg path { stroke: var(--navy); }
 .icon-svg path:first-child { fill: #fff; }
-.icon span { padding: 1px 6px; line-height: 1.35; border-radius: 4px; background: rgba(255, 255, 255, 0.55); }
+.icon span { padding: 1px 6px; line-height: 1.35; border-radius: 4px; background: rgba(238, 236, 240, 0.7); }
 .icon:hover span, .icon:focus-visible span { background: var(--pink); }
 .icon:focus-visible { outline: none; }
 
@@ -226,8 +226,8 @@ button { font: inherit; color: inherit; }
   overflow: hidden;
   cursor: pointer;
   background:
-    radial-gradient(60% 50% at 50% 46%, rgba(255, 255, 255, 0.95), transparent 72%),
-    conic-gradient(from 200deg at 50% 50%, #ffd0ec, #d6ccff, #bfd9ff, #cff3ff, #ffd0ec);
+    radial-gradient(60% 50% at 50% 46%, rgba(205, 202, 208, 0.9), transparent 72%),
+    conic-gradient(from 200deg at 50% 50%, #c9b3c1, #b7b3cf, #a9b6d2, #b3c4cf, #c9b3c1);
 }
 .face-win .win-body::after {
   /* "loading" strip like the reference windows */
@@ -257,7 +257,7 @@ button { font: inherit; color: inherit; }
   pointer-events: none;
   -webkit-mask: url(../assets/face-cutout.webp) center / contain no-repeat;
   mask: url(../assets/face-cutout.webp) center / contain no-repeat;
-  background: linear-gradient(115deg, transparent 32%, rgba(255, 196, 232, 0.5) 42%, rgba(185, 216, 255, 0.55) 50%, rgba(199, 243, 255, 0.4) 56%, transparent 66%) var(--sheen-x, 50%) 50% / 260% 100% no-repeat;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 196, 232, 0.3) 42%, rgba(185, 216, 255, 0.35) 50%, rgba(199, 243, 255, 0.25) 56%, transparent 66%) var(--sheen-x, 50%) 50% / 260% 100% no-repeat;
   mix-blend-mode: screen;
 }
 .face-win.poked .head { animation: wobble 0.45s ease; }
@@ -312,7 +312,7 @@ button { font: inherit; color: inherit; }
 }
 .ring-card canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
 .ring-card:focus-visible { outline: 2px dashed var(--navy); outline-offset: 4px; }
-.ring-card.is-front { box-shadow: 5px 5px 0 var(--navy), 0 0 0 6px rgba(255, 255, 255, 0.5); }
+.ring-card.is-front { box-shadow: 5px 5px 0 var(--navy), 0 0 0 5px rgba(238, 236, 240, 0.35); }
 
 #card-caption {
   position: absolute;
@@ -331,7 +331,7 @@ button { font: inherit; color: inherit; }
   font-size: clamp(26px, 3.6vw, 56px);
   letter-spacing: -0.06em;
   line-height: 0.95;
-  color: #fff;
+  color: var(--paper);
   -webkit-text-stroke: 2px var(--navy);
   text-shadow: 3px 3px 0 var(--navy);
   padding: 0 0.1em;
@@ -358,7 +358,7 @@ button { font: inherit; color: inherit; }
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.4);
   transition: color 0.2s, transform 0.2s;
 }
 .star-pick:hover { color: var(--pink); transform: scale(1.6) rotate(15deg); }

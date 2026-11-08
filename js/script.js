@@ -82,13 +82,13 @@
     const key = gx + ":" + gy;
     if (key === lastTrail) return;
     lastTrail = key;
-    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "255,255,255" : "247,180,220", snap: true });
+    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "238,236,240" : "215,163,189", snap: true });
   }
   function burst(x, y, n, color) {
     if (reduceMotion) return;
     for (let i = 0; i < (n || 14); i++) {
       const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
-      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "247,180,220" : "35,38,79")), g: 0.25 });
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "215,163,189" : "35,38,79")), g: 0.25 });
     }
   }
   function drawPixels() {
@@ -533,7 +533,7 @@
       while (snake.some((s) => s.x === food.x && s.y === food.y));
     }
     function draw() {
-      x.fillStyle = "#dfe3fd"; x.fillRect(0, 0, cv.width, cv.height);
+      x.fillStyle = "#d3d6ea"; x.fillRect(0, 0, cv.width, cv.height);
       x.fillStyle = "rgba(63,40,113,0.08)";
       for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) x.fillRect(i * C + 1, j * C + 1, C - 2, C - 2);
       x.fillStyle = "#23264f";
@@ -656,7 +656,7 @@
   function shutDown() {
     sfx.close();
     const s = h("div");
-    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#9cbcf5;color:#23264f;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
+    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#7d8cbd;color:#23264f;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
     s.innerHTML = "It's now safe to close this tab.<br><span style='font-size:.6em;color:#fff'>(or click anywhere to start again)</span>";
     s.addEventListener("click", () => { s.remove(); sfx.boot(); });
     document.body.appendChild(s);
@@ -682,7 +682,7 @@
 
   function drawSnakeIcon(cv, w, hgt) {
     const x = cv.getContext("2d");
-    x.fillStyle = "#dfe3fd"; x.fillRect(0, 0, w, hgt);
+    x.fillStyle = "#d3d6ea"; x.fillRect(0, 0, w, hgt);
     x.fillStyle = "#23264f";
     const oy = Math.floor((hgt - 8) / 2), ox = Math.floor((w - 13) / 2);
     [[0, 3], [1, 3], [2, 3], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [6, 6], [6, 7], [7, 7], [8, 7]].forEach(([a, b]) => x.fillRect(ox + a, oy + b, 1, 1));
@@ -813,7 +813,7 @@
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
     sfx.poke();
-    burst(e.clientX, e.clientY, 10, "247,180,220");
+    burst(e.clientX, e.clientY, 10, "215,163,189");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
     blink();
     pokes++;
