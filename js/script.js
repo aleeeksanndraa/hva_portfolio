@@ -82,13 +82,13 @@
     const key = gx + ":" + gy;
     if (key === lastTrail) return;
     lastTrail = key;
-    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.04, c: "17,17,16", snap: true });
+    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "255,255,255" : "124,91,200", snap: true });
   }
   function burst(x, y, n, color) {
     if (reduceMotion) return;
     for (let i = 0; i < (n || 14); i++) {
       const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
-      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || "17,17,16", g: 0.25 });
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : "164,136,203"), g: 0.25 });
     }
   }
   function drawPixels() {
@@ -98,8 +98,8 @@
       p.x += p.vx; p.y += p.vy; if (p.g) p.vy += p.g;
       p.life -= p.decay;
       if (p.life <= 0) { parts.splice(i, 1); continue; }
-      px.fillStyle = "rgba(" + p.c + "," + (p.snap ? p.life * 0.28 : p.life).toFixed(3) + ")";
-      if (p.snap) px.fillRect(p.x, p.y, CELL, CELL);
+      px.fillStyle = "rgba(" + p.c + "," + (p.snap ? p.life * 0.55 : p.life).toFixed(3) + ")";
+      if (p.snap) px.fillRect(p.x + 1, p.y + 1, CELL - 2, CELL - 2);
       else px.fillRect(Math.round(p.x / 6) * 6, Math.round(p.y / 6) * 6, 6, 6);
     }
   }
@@ -533,10 +533,10 @@
       while (snake.some((s) => s.x === food.x && s.y === food.y));
     }
     function draw() {
-      x.fillStyle = "#c5cbb0"; x.fillRect(0, 0, cv.width, cv.height);
-      x.fillStyle = "rgba(43,47,37,0.07)";
+      x.fillStyle = "#cfc4e2"; x.fillRect(0, 0, cv.width, cv.height);
+      x.fillStyle = "rgba(63,40,113,0.08)";
       for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) x.fillRect(i * C + 1, j * C + 1, C - 2, C - 2);
-      x.fillStyle = "#2b2f25";
+      x.fillStyle = "#3f2871";
       const fx = food.x * C, fy = food.y * C, u = C / 4;
       x.fillRect(fx + u * 1.5, fy, u, C); x.fillRect(fx, fy + u * 1.5, C, u);
       snake.forEach((s, i) => { const p = i === 0 ? 0 : 1; x.fillRect(s.x * C + p, s.y * C + p, C - p * 2, C - p * 2); });
@@ -654,7 +654,7 @@
   function shutDown() {
     sfx.close();
     const s = h("div");
-    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#111110;color:#f2c94c;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
+    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#040109;color:#a488cb;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
     s.innerHTML = "It's now safe to close this tab.<br><span style='font-size:.6em;color:#8a8880'>(or click anywhere to start again)</span>";
     s.addEventListener("click", () => { s.remove(); sfx.boot(); });
     document.body.appendChild(s);
@@ -680,8 +680,8 @@
 
   function drawSnakeIcon(cv, w, hgt) {
     const x = cv.getContext("2d");
-    x.fillStyle = "#c5cbb0"; x.fillRect(0, 0, w, hgt);
-    x.fillStyle = "#2b2f25";
+    x.fillStyle = "#cfc4e2"; x.fillRect(0, 0, w, hgt);
+    x.fillStyle = "#3f2871";
     const oy = Math.floor((hgt - 8) / 2), ox = Math.floor((w - 13) / 2);
     [[0, 3], [1, 3], [2, 3], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [6, 6], [6, 7], [7, 7], [8, 7]].forEach(([a, b]) => x.fillRect(ox + a, oy + b, 1, 1));
     x.fillRect(ox + 11, oy, 1, 1); x.fillRect(ox + 10, oy + 1, 3, 1); x.fillRect(ox + 11, oy + 2, 1, 1);
@@ -700,7 +700,9 @@
     if (c.cover.img) { const im = h("img"); im.src = c.cover.img; im.alt = ""; body.appendChild(im); }
     else if (c.cover.snake) { const cv = h("canvas"); cv.width = 16; cv.height = 15; drawSnakeIcon(cv, 16, 15); body.appendChild(cv); }
     else { const t = h("div", "rc-type"); t.innerHTML = c.cover.type; body.appendChild(t); }
-    b.append(bar, body);
+    b.dataset.track = "";
+    const tl = h("span", "track-label", slug(c.title) + "_" + String(i).padStart(2, "0") + " · 0." + (91 + (i * 7) % 9));
+    b.append(bar, body, tl);
     ring.appendChild(b);
     cardEls.push(b);
   });
@@ -803,7 +805,7 @@
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
     sfx.poke();
-    burst(e.clientX, e.clientY, 10, "201,80,90");
+    burst(e.clientX, e.clientY, 10, "164,136,203");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
     blink();
     pokes++;
@@ -869,6 +871,7 @@
   /* ------------------------------------------------------------------
    * Loop
    * ------------------------------------------------------------------ */
+  const frameLabel = $("frame-label");
   let lastNow = performance.now();
   function tick(now) {
     const dt = Math.min(64, now - lastNow);
@@ -878,6 +881,7 @@
     renderRing();
     updateEyes();
     if (snakeApi) snakeApi.tick(dt);
+    frameLabel.textContent = "frame " + String(Math.floor(now / 41.7) % 10000).padStart(4, "0") + " · " + (Math.abs(targetAngle - angle) > 0.5 ? "spinning" : "tracking");
     drawPixels();
     requestAnimationFrame(tick);
   }
