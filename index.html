@@ -47,30 +47,7 @@
       <div class="win-body" id="face" role="img" aria-label="Sasha's iridescent porcelain face, watching your cursor">
         <div class="face-stage">
           <div class="head" id="head">
-            <img class="head-img" src="assets/face-cutout.webp" alt="" draggable="false">
-            <svg class="head-eyes" viewBox="0 0 840 840" aria-hidden="true">
-              <defs>
-                <radialGradient id="sclera" cx="50%" cy="55%" r="55%"><stop offset="0" stop-color="#b8a5ac"/><stop offset="0.6" stop-color="#9c868c"/><stop offset="1" stop-color="#7d6264"/></radialGradient>
-                <linearGradient id="lidshade" x1="0" y1="0" x2="0" y2="1"><stop offset="0.12" stop-color="#2a1513" stop-opacity="0.85"/><stop offset="0.5" stop-color="#2a1513" stop-opacity="0"/><stop offset="0.85" stop-color="#5a3436" stop-opacity="0"/><stop offset="1" stop-color="#5a3436" stop-opacity="0.45"/></linearGradient>
-                <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d6863"/><stop offset="1" stop-color="#7a5654"/></linearGradient>
-                <filter id="feather" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
-                <mask id="mL" maskUnits="userSpaceOnUse" x="0" y="0" width="840" height="840"><ellipse cx="343" cy="441" rx="33" ry="10.5" fill="#fff" filter="url(#feather)"/></mask>
-                <mask id="mR" maskUnits="userSpaceOnUse" x="0" y="0" width="840" height="840"><ellipse cx="535" cy="441" rx="33" ry="10.5" fill="#fff" filter="url(#feather)"/></mask>
-              </defs>
-            <g mask="url(#mL)">
-              <rect x="298" y="418" width="90" height="46" fill="url(#sclera)"/>
-              <image id="iris-l" href="assets/iris-l.png" x="325" y="423" width="36" height="36"/>
-              <rect x="298" y="418" width="90" height="46" fill="url(#lidshade)"/>
-              <g class="lid"><rect x="298" y="418" width="90" height="34" fill="url(#skin)"/><path d="M313 450 Q 343 456 373 448" stroke="#2e1a15" stroke-width="4" fill="none"/></g>
-            </g>
-            <g mask="url(#mR)">
-              <rect x="490" y="418" width="90" height="46" fill="url(#sclera)"/>
-              <image id="iris-r" href="assets/iris-r.png" x="509" y="423" width="36" height="36"/>
-              <rect x="490" y="418" width="90" height="46" fill="url(#lidshade)"/>
-              <g class="lid"><rect x="490" y="418" width="90" height="34" fill="url(#skin)"/><path d="M505 450 Q 535 456 565 448" stroke="#2e1a15" stroke-width="4" fill="none"/></g>
-            </g>
-            </svg>
-            <div class="head-sheen" id="head-sheen"></div>
+            <canvas class="head-px" id="head-px" width="72" height="72"></canvas>
           </div>
         </div>
       </div>

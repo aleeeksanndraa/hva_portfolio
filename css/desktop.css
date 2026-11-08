@@ -16,6 +16,7 @@
   --muted: #6f7299;
   --burgundy: #6d1d2b;
   --holo: linear-gradient(90deg, #d9b1c8, #bfb5dc 30%, #a9bde0 55%, #b4d3df 75%, #d6b4c8);
+  --silver: linear-gradient(180deg, #fbfbfd 0%, #d4d5de 38%, #a9abb8 52%, #e6e7ee 70%, #c3c5d0 100%);
   --line: 2px solid var(--navy);
   --drop: 4px 4px 0 var(--navy);
   --r: 7px;
@@ -247,18 +248,17 @@ button { font: inherit; color: inherit; }
 .head {
   position: absolute;
   inset: 0;
-  will-change: transform;
-  filter: drop-shadow(0 14px 18px rgba(35, 38, 79, 0.28));
+  filter: drop-shadow(4px 4px 0 rgba(35, 38, 79, 0.35));
 }
-.head > * { position: absolute; inset: 0; width: 100%; height: 100%; }
-.head-img { object-fit: contain; user-select: none; -webkit-user-drag: none; }
-.head-eyes { pointer-events: none; }
-.head-sheen {
-  pointer-events: none;
-  -webkit-mask: url(../assets/face-cutout.webp) center / contain no-repeat;
-  mask: url(../assets/face-cutout.webp) center / contain no-repeat;
-  background: linear-gradient(115deg, transparent 32%, rgba(255, 196, 232, 0.3) 42%, rgba(185, 216, 255, 0.35) 50%, rgba(199, 243, 255, 0.25) 56%, transparent 66%) var(--sheen-x, 50%) 50% / 260% 100% no-repeat;
-  mix-blend-mode: screen;
+.head-px {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 .face-win.poked .head { animation: wobble 0.45s ease; }
 @keyframes wobble {
@@ -532,7 +532,7 @@ button { font: inherit; color: inherit; }
 .dialog { display: flex; gap: 14px; align-items: center; padding: 18px 18px 12px; background: var(--paper); font-size: 12px; line-height: 1.5; }
 .dialog .d-ico { font-size: 30px; line-height: 1; color: var(--pink-3); -webkit-text-stroke: 1px var(--navy); }
 .dialog .d-face { flex: 0 0 auto; width: 64px; height: 64px; border: var(--line); border-radius: 50%; background: var(--holo); overflow: hidden; }
-.dialog .d-face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; transform: scale(1.6); }
+.dialog .d-face img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 .dialog .d-big { font-family: var(--pix); font-size: 14px; display: block; margin-bottom: 4px; }
 .loadbar { margin: 0 18px 14px; height: 14px; border: var(--line); border-radius: 999px; overflow: hidden; background: #fff; }
 .loadbar i { display: block; height: 100%; width: 0; background: var(--holo); border-right: var(--line); animation: load 1.6s steps(12) forwards; }
@@ -568,3 +568,15 @@ button { font: inherit; color: inherit; }
 /* blinking lids inside the eye overlay */
 .head-eyes .lid { transform-box: fill-box; transform-origin: 50% 0; transform: scaleY(0); transition: transform 0.07s ease-in; }
 .head.blink .head-eyes .lid { transform: scaleY(1); }
+
+/* ---------- silver / chrome accents ---------- */
+.win-btns i, .win-btns button, .btn98:not(.primary), .pad button, #tray, .task, .cap-meta, .corner-label, .icon span { background: var(--silver); }
+.win-btns button:hover, .task.is-active { background: linear-gradient(180deg, #fff, #ead2de 60%, #d7a3bd); }
+#start-btn { background: var(--silver); }
+#start-btn[aria-expanded="true"] { background: linear-gradient(180deg, #c3c5d0, #e6e7ee); }
+.win-body::-webkit-scrollbar-thumb { background: var(--silver); }
+.face-win .win-body::after { background: var(--silver); animation: none; }
+.loadbar i { background: var(--silver); }
+.sm-side { background: var(--silver); }
+.ring-card .rc-body, .lcd { box-shadow: inset 0 0 0 3px #c3c5d0; }
+#taskbar { background: linear-gradient(180deg, #f3f3f6, #d9dae2); }

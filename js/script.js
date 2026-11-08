@@ -601,7 +601,7 @@
       id: "welcome", title: "hello.exe", w: 380, h: "auto", flat: true, dy: -60,
       fill(body, w) {
         const d = h("div", "dialog");
-        const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-cutout.webp"; im.alt = ""; face.appendChild(im);
+        const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-pixel.png"; im.alt = ""; face.appendChild(im);
         const t = h("div");
         t.append(h("b", "d-big", "I am not a robot :)"),
           "Welcome to Sasha OS, my process book. Spin the windows around my head and open a project. " + STARS.length + " ✦ are hidden around.");
@@ -780,35 +780,72 @@
     setTimeout(() => { drag = null; }, 0);
   });
 
-  /* ---------- face ---------- */
+  /* ---------- face: the portrait redrawn as pixel art every frame ----------
+     The cutout is 840x840. Each frame it is drawn into a tiny canvas (PIX x PIX)
+     together with the eye overlay, then shown scaled up with crisp pixels, so the
+     moving irises, blinks and sheen all become part of the pixel art. */
   const faceWin = $("face-win");
   const faceBody = $("face");
   const head = $("head");
-  const sheen = $("head-sheen");
-  const irises = [[$("iris-l"), 325], [$("iris-r"), 509]];
+  const hc = $("head-px");
+  const hx = hc.getContext("2d", { willReadFrequently: true });
+  const PIX = hc.width, U = PIX / 840;
+  const loadImg = (src) => { const im = new Image(); im.src = src; return im; };
+  const faceImg = loadImg("assets/face-cutout.webp");
+  const EYES = [{ cx: 343, ix: 343, iris: loadImg("assets/iris-l.png") }, { cx: 535, ix: 527, iris: loadImg("assets/iris-r.png") }];
   let look = { x: innerWidth / 2, y: innerHeight };
-  let eyeX = 0, eyeY = 0, tiltX = 0, tiltY = 0, pokes = 0, pokeReset = null;
-  function blink() {
-    head.classList.add("blink");
-    setTimeout(() => head.classList.remove("blink"), 120);
-  }
+  let eyeX = 0, eyeY = 0, tiltX = 0, tiltY = 0, pokes = 0, pokeReset = null, blinking = false;
+  function blink() { blinking = true; setTimeout(() => { blinking = false; }, 130); }
   (function blinkLoop() { setTimeout(() => { blink(); blinkLoop(); }, 2600 + Math.random() * 3200); })();
+  function drawFace() {
+    if (!faceImg.complete || !faceImg.naturalWidth) return;
+    hx.clearRect(0, 0, PIX, PIX);
+    hx.imageSmoothingEnabled = true;
+    hx.drawImage(faceImg, 0, 0, PIX, PIX);
+    hx.save();
+    hx.scale(U, U);
+    EYES.forEach((e) => {
+      hx.save();
+      hx.beginPath(); hx.ellipse(e.cx, 441, 33, 10.5, 0, 0, Math.PI * 2); hx.clip();
+      const g = hx.createRadialGradient(e.cx, 444, 2, e.cx, 444, 36);
+      g.addColorStop(0, "#b8a5ac"); g.addColorStop(0.6, "#9c868c"); g.addColorStop(1, "#7d6264");
+      hx.fillStyle = g; hx.fillRect(e.cx - 45, 418, 90, 46);
+      if (e.iris.complete) hx.drawImage(e.iris, e.ix - 18 + eyeX, 423 + eyeY, 36, 36);
+      const l = hx.createLinearGradient(0, 418, 0, 464);
+      l.addColorStop(0.12, "rgba(42,21,19,0.85)"); l.addColorStop(0.5, "rgba(42,21,19,0)"); l.addColorStop(1, "rgba(90,52,54,0.45)");
+      hx.fillStyle = l; hx.fillRect(e.cx - 45, 418, 90, 46);
+      if (blinking) { hx.fillStyle = "#86625e"; hx.fillRect(e.cx - 45, 418, 90, 32); hx.fillStyle = "#2e1a15"; hx.fillRect(e.cx - 34, 447, 68, 5); }
+      hx.restore();
+    });
+    hx.restore();
+    // lacquer sheen, only on the face pixels
+    hx.globalCompositeOperation = "source-atop";
+    const sx = PIX * (0.5 - tiltX * 0.45);
+    const sh = hx.createLinearGradient(sx - PIX * 0.25, 0, sx + PIX * 0.25, PIX * 0.4);
+    sh.addColorStop(0, "rgba(255,255,255,0)"); sh.addColorStop(0.42, "rgba(255,200,230,0.22)"); sh.addColorStop(0.5, "rgba(200,220,255,0.3)"); sh.addColorStop(0.58, "rgba(210,245,255,0.2)"); sh.addColorStop(1, "rgba(255,255,255,0)");
+    hx.fillStyle = sh; hx.fillRect(0, 0, PIX, PIX);
+    hx.globalCompositeOperation = "source-over";
+    // hard pixel edges: no half-transparent blocks
+    try {
+      const d = hx.getImageData(0, 0, PIX, PIX), a = d.data;
+      for (let i = 0; i < a.length; i += 4) { a[i + 3] = a[i + 3] > 110 ? 255 : 0; for (let c = 0; c < 3; c++) a[i + c] = Math.min(255, Math.round(a[i + c] / 20) * 20); }
+      hx.putImageData(d, 0, 0);
+    } catch (err) { /* canvas tainted when opened from disk: keep soft edges */ }
+  }
   function updateEyes() {
     const r = faceBody.getBoundingClientRect();
     if (!r.width) return;
     const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.5);
     const dist = Math.hypot(dx, dy) || 1, k = Math.min(1, dist / 320);
     const ease = reduceMotion ? 1 : 0.16;
-    // irises move inside the eye (svg units of the 840px portrait)
-    eyeX += ((dx / dist) * 7 * k - eyeX) * ease;
-    eyeY += ((dy / dist) * 2.6 * k - eyeY) * ease;
-    irises.forEach(([el, x]) => { el.setAttribute("x", (x + eyeX).toFixed(2)); el.setAttribute("y", (423 + eyeY).toFixed(2)); });
-    // the whole head turns a little toward the cursor, lacquer sheen slides across
+    eyeX += ((dx / dist) * 11 * k - eyeX) * ease;
+    eyeY += ((dy / dist) * 3 * k - eyeY) * ease;
     const nx = Math.max(-1, Math.min(1, dx / (innerWidth / 2))), ny = Math.max(-1, Math.min(1, dy / (innerHeight / 2)));
     tiltX += (nx - tiltX) * (reduceMotion ? 1 : 0.08);
     tiltY += (ny - tiltY) * (reduceMotion ? 1 : 0.08);
-    if (!reduceMotion) head.style.transform = "rotateY(" + (tiltX * 12).toFixed(2) + "deg) rotateX(" + (tiltY * -8).toFixed(2) + "deg) translate(" + (tiltX * 4).toFixed(1) + "px," + (tiltY * 3).toFixed(1) + "px)";
-    sheen.style.setProperty("--sheen-x", (50 - tiltX * 50).toFixed(1) + "%");
+    // whole-pixel shifts only, so the pixel art stays crisp
+    if (!reduceMotion) head.style.transform = "translate(" + Math.round(tiltX * 8) + "px," + Math.round(tiltY * 5) + "px)";
+    drawFace();
   }
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
