@@ -1,255 +1,439 @@
 (() => {
   "use strict";
 
-  const PROJECTS = [
-    {
-      index: "01", title: "CUSTOM BADGE", year: "2026", course: "Digital Design", role: "Concept, fabrication, styling", status: "Complete",
-      chapters: [
-        { n: "OVERVIEW", title: "A name tag that became a keychain", text: "Made in the first week of Digital Design, when nobody in class knew each other's names yet. What started as a slick metal debit-card concept ended up as a bedazzled clear-acrylic keychain covered in rhinestones — the material changed the whole idea.", media: [{ label: "FIG. 01 — FINAL KEYCHAIN", kind: "wide", img: "assets/process-final-bedazzled-charm.png" }] },
-        { n: "BRIEF", title: "Brief", text: "Introduction week: make a personal badge with your name on it, so the class could learn who's who. The real point of the assignment was hidden inside it — a first tour of the Makers Lab, shown the laser cutter, the material stock and the 3D printer.", media: [] },
-        { n: "RESEARCH", title: "Research", text: "Less research than reconnaissance: what does this lab actually have. I wanted aluminium and couldn't find any in the material stock, so the badge became a lesson in designing around what's on the shelf rather than what's in my head.", media: [{ label: "FIG. 02 — DEBIT CARD REFERENCE", kind: "small", img: "assets/moodboard-metal-card-01.png" }, { label: "FIG. 03 — DEBIT CARD REFERENCE", kind: "small", img: "assets/moodboard-metal-card-03.png" }, { label: "FIG. 04 — ALUMINIUM MATERIAL REFERENCE", kind: "small", img: "assets/moodboard-aluminum-texture.png" }] },
-        { n: "CONCEPT", title: "Concept", text: "First idea: a slim metal card, wallet-sized, name engraved into brushed aluminium — understated, a bit like a debit card. Drawn in Figma as a card shape with a cut into one edge, doubling as a bottle opener.", media: [{ label: "FIG. 05 — CONCEPT SKETCH", kind: "tall", img: "assets/process-sketch-card-01.png" }, { label: "FIG. 06 — ALUMINIUM CARD SKETCH", kind: "tall", img: "assets/process-sketch-card-02.png" }, { label: "FIG. 07 — HOW I ENVISIONED IT", kind: "wide", img: "assets/process-final-card-studio.png" }] },
-        { n: "SKETCHES", title: "Sketches", text: "The card outline, the bottle-opener notch and the lettering, all built as vectors in Figma before anything touched the laser cutter — the file the machine actually reads.", media: [{ label: "FIG. 08 — SKETCH & CUT PIECE", kind: "tall", img: "assets/process-sketch-vs-lasercut.png" }] },
-        { n: "EXPERIMENTS", title: "Experiments", text: "No aluminium, so clear acrylic instead. First pass out of the laser cutter: the card with \"Sasha\" engraved into it, plus a set of separate 3D letters cut from the same sheet. Held up to the light, the offcuts looked exactly like jelly sweets.", media: [{ label: "FIG. 09 — ACRYLIC MATERIAL REFERENCE", kind: "small", img: "assets/moodboard-acrylic-sheets.png" }, { label: "FIG. 10 — FIRST LASER-CUT PIECE", kind: "small", img: "assets/process-first-lasercut-card.png" }, { label: "FIG. 11 — LOOSE ACRYLIC LETTERS", kind: "small", img: "assets/process-lasercut-letters.png" }] },
-        { n: "ITERATIONS", title: "Iterations", text: "The jelly look changed the direction completely: from a slick metal card to a Y2K keychain. Raided my own nail kit for rhinestones and sparkles, bedazzled the acrylic card by hand, then built up the keychain with extra charms until it read as one deliberately messy, glamorous object.", media: [{ label: "FIG. 12 — Y2K KEYCHAIN REFERENCE", kind: "wide", img: "assets/moodboard-y2k-keychain-03.png" }, { label: "FIG. 13 — Y2K KEYCHAIN REFERENCE", kind: "wide", img: "assets/moodboard-y2k-keychain-poster.png" }] },
-        { n: "PRODUCTION", title: "Production", text: "Every rhinestone placed by hand, so no two badges from this batch would ever match. The 3D letters, the engraved card and the added charms were glued and wired together into one keychain.", media: [] },
-        { n: "OUTCOME", title: "Final outcome", text: "The bottle-opener notch never worked — acrylic that thin snaps before it opens anything. It's now where a hair scrunchie sits instead, which suits the badge better than the original idea did.", media: [{ label: "FIG. 14 — FINAL KEYCHAIN, PHOTO", kind: "wide", img: "assets/process-final-keychain-detail.png" }, { label: "FIG. 15 — FINAL KEYCHAIN, 3D-STYLE RENDER", kind: "tall", img: "assets/badge-tight.png" }] },
-        { n: "REFLECTION", title: "Reflection", text: "The best part of the badge wasn't the plan, it was the pivot: acrylic reading as jelly, jelly reading as Y2K, Y2K reading as a keychain nobody else in class had. Next time I'd let the material talk earlier instead of designing the metal version first.", media: [] }
-      ]
-    },
-    {
-      index: "02", title: "IN // BETWEEN", year: "2026", course: "Digital Design", role: "Group project — concept, spatial & interaction design", status: "Concept pitch",
-      chapters: [
-        { n: "OVERVIEW", title: "An experiential space for holographic fashion", text: "in//between is our concept pitch for Group 22 × Future Front Row 2026 — an installation that gives virtual fashion the materiality and presence it usually lacks. A holographic avatar stands on a central stage; the audience walks around it inside a room hung with fabric that catches projected light and the movement of the air itself. Made together with Norah, Nicole and Norton.", media: [] },
-        { n: "BRIEF", title: "Brief", text: "Future Front Row 2026 asked our group to design a spatial concept for showing virtual fashion. We started from a problem we kept running into in our research: virtual fashion exhibitions can read as flat and alienating — screens without a room around them — even though the format opens up storytelling a physical runway can't.", media: [] },
-        { n: "RESEARCH", title: "Research", text: "We looked at precedents for immersive, holographic and interactive exhibition environments — Sónar and Casa Batlló's \"Music:Response\" at The Cube in Barcelona, and \"UFO — Unidentified Fluid Other\" at the Nxt Museum in Amsterdam — alongside academic work on the sense of presence, or its absence, in virtual and phygital fashion shows. John Berger's line stuck with us: the meaning of an image changes with what you see beside it, or what comes after it.", media: [] },
-        { n: "CONCEPT", title: "Concept", text: "Our proposal: a central stage where the hologram is displayed through an inverted glass prism, letting the audience walk around it as it moves — sharing the space with the avatar rather than watching it on a screen. The surrounding area is hung in layers of fabric light enough to shift with the audience's own movement, giving the room a sense of organic, interactive motion.", media: [] },
-        { n: "EXPERIENCE", title: "Sound & projection", text: "Animations tied to the holographic look are projected onto the hanging fabric to carry the piece's emotional register, and the motion of both the hologram and the animations is set to music — so the room moves with the fashion instead of just displaying it.", media: [] },
-        { n: "NEXT STEPS", title: "Next steps", text: "This is a concept pitch, pending further research through prototyping. The next phase is testing the prism display and the fabric's response to real air movement, before we commit to a final material and spatial build for Future Front Row 2026.", media: [] }
-      ]
-    },
-    {
-      index: "03", title: "FEELING OF HOME", year: "2026", course: "Emerging Interactions (MDD playground project)", role: "Group project with Rasika, Sohail & Valentyn — research, cognitive dimension, prototyping", status: "In progress — week 2 of 8",
-      chapters: [
-        { n: "OVERVIEW", title: "Keeping your inner child alive", text: "An eight-week playground project in the Master Digital Design: design an immersive experience that nurtures a feeling of home. Our team narrowed \"home\" down to the inner child — how might stressed, pressured adults feel at home within themselves? — and I've been testing that question through two small, playful prototypes: Little Rooms and Little Tank.", media: [{ label: "FIG. 01 — LITTLE TANK, SHARED FISH TANK", kind: "wide", img: "assets/ei-little-tank-tank.jpg" }] },
-        { n: "BRIEF", title: "Brief", text: "\"Emerging Interactions: Designing for the feeling of home\". Home as a place where our senses are aligned, a place to be safe, to act from intuition, to welcome others, to grow. The brief cares more about the strength of the execution than the concept — the how and why, not the what — and asks us to work through Alina Goldwoman's Odyssey Heuristics: technical, physical, cognitive, social, emotional and narrative dimensions. The outcome is an experienceable prototype, plus a documented process that turns users into voyagers.", media: [] },
-        { n: "PLANNING", title: "Team & planning", text: "Four of us — Rasika, Sohail, Valentyn and me (Sasha) — with Romar as our mentor. In week 1 we wrote a group contract and a mentor intro email in our FigJam homebase, and I set up an eight-week plan: a Trello board with one card per week, a timeline page with mentor touchpoints, and a proposed split of the Odyssey dimensions. I took the cognitive dimension and the research log, which fits my learning goals around research and project management.", media: [{ label: "FIG. 02 — EIGHT-WEEK TIMELINE", kind: "wide", img: "assets/ei-timeline.jpg" }] },
-        { n: "RESEARCH", title: "What home means", text: "We started by interviewing each other on the FigJam board about what home means. The same words kept coming back: safety, support, family, comfort, routines, small things, handmade things, making memories. Home read less like a place and more like something we make — and something that can feel far away once you've moved, as Rasika pointed out from her own experience. Alongside that I built a quantitative survey: a Google Form with mostly closed questions grouped by Odyssey dimension and two optional open ones. It's out now and collecting responses.", media: [] },
-        { n: "IDEATION", title: "Three directions", text: "Our conception session turned the research into three concepts, each with its own research question. Queer Home: how might queer people who feel abandoned by their family find a space or community where they feel at home? Keeping your inner child alive: how might stressed, pressured adults feel at home within themselves? Digital nomad: how might people who love to travel, but feel guilty about leaving family behind, feel more at home? As a team we chose the inner child.", media: [] },
-        { n: "PRECEDENTS", title: "Precedents", text: "I wanted the experience to be digital, social and a little gamified, and my starting reference was Reddit's r/place (2022): millions of strangers placing one pixel at a time on a shared canvas. Around it I collected precedents on a moodboard — One Million Checkboxes, teamLab's Sketch Aquarium, the 21 Balançoires musical swings in Montréal, Kind Words, Sky, Meow Wolf's House of Eternal Return — plus Habbo Hotel, Finch and Locket for the room, the soft gamification and the home screen. The pattern underneath: small, low-stakes contributions that add up to a shared place.", media: [] },
-        { n: "CONCEPT 1", title: "Little Rooms", text: "My own idea: an app where you build a small, cosy lo-fi room. Keep it private, or open it so anyone can visit and leave you a letter. The room can live as your home screen or desktop wallpaper, so it sits behind your work all day as a quiet reminder to step out of the pressure. To keep the inner child link, the image-generation tool only makes pixel-art objects from your childhood — \"my green dinosaur toy\" — so every room stays recognisably someone's own instead of polished and generic.", media: [{ label: "FIG. 03 — LITTLE ROOMS, ROOM EDITOR", kind: "wide", img: "assets/ei-little-rooms-editor.jpg" }, { label: "FIG. 04 — LITTLE ROOMS AS A DESKTOP WALLPAPER", kind: "wide", img: "assets/ei-little-rooms-desktop.jpg" }] },
-        { n: "PROTOTYPE 1", title: "Building Little Rooms", text: "A working web prototype instead of a Figma flow: a pixel room you decorate by dragging in a bed, a blanket fort, ABC blocks, a teddy, fairy lights or a crayon drawing; wall and floor colours; day, dusk and night lighting; an open/private toggle; a \"visit rooms\" view where you leave a letter with a sticker; and a desktop preview where the room becomes your wallpaper with a letter widget. The home screen itself is faked — a real widget would need native app code — which kept the build inside a week.", media: [] },
-        { n: "CONCEPT 2", title: "Little Tank", text: "The rooms felt very screen-bound, and the Odyssey framework kept pointing at the physical dimension we were weakest on. So the second concept starts on paper: you colour a fish on a printed stencil with crayons, the way you did when you were small, photograph it with your phone, and it swims into a shared digital tank on a big screen. It borrows directly from teamLab's Sketch Aquarium, but the tank is ours — a pixel-art castle, a duck and ABC blocks on the sand.", media: [{ label: "FIG. 05 — PRINTABLE FISH STENCILS", kind: "wide", img: "assets/ei-little-tank-stencils.jpg" }] },
-        { n: "PROTOTYPE 2", title: "Building Little Tank", text: "Three A4 stencils (Classic, Puffer, Angel), each with four black corner squares so the phone can find the sheet, correct the perspective and cut the fish out cleanly. The big screen shows the tank with a QR code; the phone view takes the photo, a fish name and an optional note that appears when someone taps the fish. Every fish lands in one shared tank, and I restyled it to match Little Rooms so both prototypes read as one family.", media: [{ label: "FIG. 06 — PHONE: ADD YOUR FISH", kind: "tall", img: "assets/ei-little-tank-phone.jpg" }] },
-        { n: "NEXT STEPS", title: "Next steps", text: "Test both prototypes with classmates and people outside the course, using the survey results to decide what to measure. Questions to answer: does making something with your hands (the fish) feel more like home than arranging something on a screen (the room)? Do letters from strangers feel warm or intrusive? Then bring the findings to Romar for the concept crit and choose one direction to take to the week 8 hand-in.", media: [] }
-      ]
+  const PROJECTS = window.PROJECTS || [];
+  const $ = (id) => document.getElementById(id);
+  const root = $("root");
+  const views = { home: $("home-view"), project: $("project-view"), archive: $("archive-view"), about: $("about-view") };
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ------------------------------------------------------------------
+   * Storage (per visitor, best effort)
+   * ------------------------------------------------------------------ */
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("sasha:" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem("sasha:" + k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
+  };
+
+  /* ------------------------------------------------------------------
+   * Sound — tiny synthesized blips, off until the visitor turns it on
+   * ------------------------------------------------------------------ */
+  let soundOn = store.get("sound", false);
+  let ctx = null;
+  function blip(freq, dur, type, vol, slide) {
+    if (!soundOn) return;
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type || "square";
+      o.frequency.setValueAtTime(freq, t);
+      if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+      g.gain.setValueAtTime(vol || 0.05, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    } catch (e) { /* audio unavailable */ }
+  }
+  const sfx = {
+    tick: () => blip(1400, 0.03, "square", 0.025),
+    click: () => blip(520, 0.08, "square", 0.05, 880),
+    open: () => { blip(330, 0.09, "square", 0.05, 660); setTimeout(() => blip(660, 0.12, "square", 0.04, 990), 70); },
+    poke: () => blip(240, 0.12, "triangle", 0.08, 160),
+    star: () => [784, 988, 1175, 1568].forEach((f, i) => setTimeout(() => blip(f, 0.1, "square", 0.045), i * 70)),
+    eat: () => blip(880, 0.06, "square", 0.04, 1320),
+    die: () => blip(300, 0.4, "sawtooth", 0.05, 60)
+  };
+  const soundBtn = $("sound-toggle");
+  function renderSound() {
+    soundBtn.textContent = soundOn ? "♪ SOUND ON" : "♪ SOUND OFF";
+    soundBtn.setAttribute("aria-pressed", String(soundOn));
+  }
+  soundBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    soundOn = !soundOn;
+    store.set("sound", soundOn);
+    renderSound();
+    sfx.click();
+  });
+  renderSound();
+
+  /* ------------------------------------------------------------------
+   * Pixel layer — cursor trail, click bursts, view transitions
+   * ------------------------------------------------------------------ */
+  const pc = $("pixels");
+  const px = pc.getContext("2d");
+  const CELL = 12;
+  let parts = [];
+  let wipe = null;
+  function sizePixels() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    pc.width = Math.round(innerWidth * dpr);
+    pc.height = Math.round(innerHeight * dpr);
+    px.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  sizePixels();
+  let lastTrail = { x: -99, y: -99 };
+  function trail(x, y) {
+    if (reduceMotion) return;
+    const gx = Math.floor(x / CELL) * CELL;
+    const gy = Math.floor(y / CELL) * CELL;
+    if (gx === lastTrail.x && gy === lastTrail.y) return;
+    lastTrail = { x: gx, y: gy };
+    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: "17,17,16", snap: true });
+  }
+  function burst(x, y, n, color) {
+    if (reduceMotion) return;
+    for (let i = 0; i < (n || 14); i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = 2 + Math.random() * 5;
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || "17,17,16", g: 0.25 });
     }
+  }
+  // pixel wipe: cover the screen square by square, swap, then uncover
+  function pixelWipe(swap) {
+    if (reduceMotion) { swap(); return; }
+    const cols = Math.ceil(innerWidth / 48);
+    const rows = Math.ceil(innerHeight / 48);
+    const order = [];
+    for (let i = 0; i < cols * rows; i++) order.push(Math.random());
+    wipe = { cols, rows, order, t: 0, swapped: false, swap };
+  }
+  function drawPixels() {
+    px.clearRect(0, 0, innerWidth, innerHeight);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.x += p.vx; p.y += p.vy; if (p.g) p.vy += p.g;
+      p.life -= p.decay;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      px.fillStyle = "rgba(" + p.c + "," + (p.snap ? p.life * 0.35 : p.life).toFixed(3) + ")";
+      const s = p.snap ? CELL : 6;
+      px.fillRect(p.snap ? p.x : Math.round(p.x / 6) * 6, p.snap ? p.y : Math.round(p.y / 6) * 6, s, s);
+    }
+    if (wipe) {
+      wipe.t += 0.06;
+      const w = 48;
+      // 0..1 covering, 1..2 uncovering
+      for (let r = 0; r < wipe.rows; r++) {
+        for (let c = 0; c < wipe.cols; c++) {
+          const k = wipe.order[r * wipe.cols + c];
+          const on = wipe.t < 1 ? wipe.t > k : wipe.t - 1 < k;
+          if (on) { px.fillStyle = "#111110"; px.fillRect(c * w, r * w, w, w); }
+        }
+      }
+      if (wipe.t >= 1 && !wipe.swapped) { wipe.swapped = true; wipe.swap(); }
+      if (wipe.t >= 2) wipe = null;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * Stars (collectibles)
+   * ------------------------------------------------------------------ */
+  const STARS = [
+    { id: "corner", hint: "Hiding in a corner of the landing" },
+    { id: "eyebrow", hint: "Near the very top" },
+    { id: "floor", hint: "Down on the floor, by the hint" },
+    { id: "drift", hint: "Floating on the right" },
+    { id: "poke", hint: "Poke the face five times" },
+    { id: "reader", hint: "Read any project to the very end" },
+    { id: "snake", hint: "Eat 10 ✦ in the snake game" }
   ];
+  let got = store.get("stars", []);
+  if (!Array.isArray(got)) got = [];
+  function renderStars() {
+    $("stars-count").textContent = String(got.length);
+    $("stars-total").textContent = String(STARS.length);
+    const list = $("stars-list");
+    list.innerHTML = "";
+    STARS.forEach((s) => {
+      const li = document.createElement("li");
+      const have = got.includes(s.id);
+      li.className = have ? "got" : "";
+      li.textContent = (have ? "✦ " : "· ") + s.hint;
+      list.appendChild(li);
+    });
+    const note = $("stars-note");
+    if (got.length >= STARS.length) {
+      note.innerHTML = 'All found. You clearly have time — <a href="mailto:aleksandraslahova88@gmail.com?subject=I%20found%20all%20the%20stars">say hi</a>.';
+    } else {
+      note.textContent = "Find all " + STARS.length + " to unlock a little something.";
+    }
+  }
+  let toastT = null;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => t.classList.remove("show"), 2400);
+  }
+  function collect(id, x, y) {
+    if (got.includes(id)) return false;
+    got.push(id);
+    store.set("stars", got);
+    renderStars();
+    sfx.star();
+    if (x != null) burst(x, y, 26);
+    const hud = $("stars-hud");
+    hud.classList.remove("bump"); void hud.offsetWidth; hud.classList.add("bump");
+    toast(got.length >= STARS.length ? "✦ ALL " + STARS.length + " STARS — check the panel" : "✦ STAR FOUND — " + got.length + "/" + STARS.length);
+    return true;
+  }
+  // stars hidden on the landing
+  const PICKS = [
+    { id: "corner", style: "right: 2.6vw; bottom: 3.2vh;" },
+    { id: "eyebrow", style: "left: 63vw; top: 3vh;" },
+    { id: "floor", style: "left: 41vw; bottom: 2.6vh;" },
+    { id: "drift", style: "right: 6vw; top: 38vh;" }
+  ];
+  function placePicks() {
+    PICKS.forEach((p) => {
+      if (got.includes(p.id) || document.querySelector('[data-star="' + p.id + '"]')) return;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "star-pick";
+      b.dataset.star = p.id;
+      b.setAttribute("aria-label", "Hidden star");
+      b.setAttribute("style", p.style);
+      b.textContent = "✦";
+      views.home.appendChild(b);
+    });
+  }
 
-  const root = document.getElementById("root");
-  const homeView = document.getElementById("home-view");
-  const projectView = document.getElementById("project-view");
-  const archiveView = document.getElementById("archive-view");
-  const track = document.getElementById("track");
-  const counterNum = document.getElementById("counter-num");
-  const progressBar = document.getElementById("progress-bar");
+  /* ------------------------------------------------------------------
+   * Card ring
+   * ------------------------------------------------------------------ */
+  const COVERS = {
+    "01": { img: "assets/badge-tight.png", cls: "light" },
+    "02": { type: "IN //<br>BETWEEN" },
+    "03": { img: "assets/ei-little-tank-tank.jpg", cls: "shade" }
+  };
+  const CARDS = PROJECTS.map((p, i) => ({
+    kind: "project", index: i, num: p.index, title: p.title,
+    meta: p.course.split("(")[0].trim() + " · " + p.year,
+    cover: COVERS[p.index] || { type: p.title }
+  }));
+  CARDS.push({ kind: "about", num: "ME", title: "ABOUT", meta: "Who's behind the face", cover: { img: "assets/tamagotchi-with-me.png", cls: "light" } });
+  CARDS.push({ kind: "play", num: "▸", title: "PLAY", meta: "Snake on a Sasha·gotchi", cover: { pixels: true } });
+  CARDS.push({ kind: "archive", num: "—", title: "ARCHIVE", meta: "Every project as a list", cover: { img: "assets/chrome-folder.png", cls: "light" } });
 
-  let view = "home";
-  let currentProject = 0;
-  let target = 0;
-  let current = 0;
-  let max = 0;
-  let vw = window.innerWidth;
-  let sections = [];
-  let raf = null;
+  const ring = $("ring");
+  const N = CARDS.length;
+  const STEP = 360 / N;
+  let angle = 0;
+  let targetAngle = 0;
+  let front = -1;
+  let radius = 420;
+  let radiusY = 220;
+  const cardEls = [];
 
-  const SCROLL_EASE = 0.1;
-  const MOVE_AMP_X = 4;
-  const MOVE_AMP_Y = 5;
-  const MOVE_AMP_ROT = 1.2;
-  const MOUSE_PARALLAX = 60;
-  const GLOBE_ROT_PER_VW = 68;
-  const GLOBE_MAX_ROT = 56;
-  const GLOBE_Z_PER_DEG = 4.2;
+  function drawSnakeCover(cv) {
+    const x = cv.getContext("2d");
+    x.fillStyle = "#c5cbb0"; x.fillRect(0, 0, 16, 22);
+    x.fillStyle = "#2b2f25";
+    [[3, 6], [4, 6], [5, 6], [6, 6], [6, 7], [6, 8], [7, 8], [8, 8], [9, 8], [9, 9], [9, 10], [10, 10], [11, 10]].forEach(([a, b]) => x.fillRect(a, b, 1, 1));
+    x.fillRect(12, 4, 1, 1); x.fillRect(11, 5, 3, 1); x.fillRect(12, 6, 1, 1);
+  }
 
-  let mouseX = 0;
-  let mouseY = 0;
-  let mouseXEased = 0;
-  let mouseYEased = 0;
-  window.addEventListener("mousemove", (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+  CARDS.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "ring-card " + (c.cover.cls || "");
+    b.dataset.card = String(i);
+    b.setAttribute("aria-label", c.title + " — " + c.meta);
+    if (c.cover.img) {
+      const img = document.createElement("img");
+      img.src = c.cover.img;
+      img.alt = "";
+      b.appendChild(img);
+    } else if (c.cover.pixels) {
+      const cv = document.createElement("canvas");
+      cv.className = "card-pixels";
+      cv.width = 16; cv.height = 22;
+      drawSnakeCover(cv);
+      b.appendChild(cv);
+      b.style.color = "#2b2f25";
+    } else {
+      const t = document.createElement("div");
+      t.className = "card-type";
+      t.innerHTML = c.cover.type;
+      b.appendChild(t);
+    }
+    const lab = document.createElement("div");
+    lab.className = "card-label";
+    lab.innerHTML = "<span>" + c.num + "</span><span>" + (c.kind === "project" ? "OPEN →" : c.title) + "</span>";
+    b.appendChild(lab);
+    ring.appendChild(b);
+    cardEls.push(b);
   });
 
-  function setView(next) {
-    if (view === next) return;
-    view = next;
-    homeView.hidden = view !== "home";
-    projectView.hidden = view !== "project";
-    archiveView.hidden = view !== "archive";
-    root.classList.toggle("is-scrolling", view === "home");
-    root.classList.toggle("is-static", view !== "home");
-    if (view !== "home") window.scrollTo(0, 0);
-    else requestAnimationFrame(measure);
+  function layout() {
+    const w = innerWidth, h = innerHeight;
+    const small = w < 760;
+    const cw = Math.round(Math.max(96, Math.min(190, w * 0.14, h * 0.21)));
+    radius = small ? Math.min(w * 0.36, 200) : Math.min(w * 0.36, h * 0.66, 560);
+    radiusY = h * (small ? 0.24 : 0.26);
+    document.documentElement.style.setProperty("--cw", cw + "px");
+    document.documentElement.style.setProperty("--fw", Math.round(Math.min(h * 0.27, w * (small ? 0.42 : 0.2), 280)) + "px");
+    sizePixels();
   }
 
-  function measure() {
-    if (!track) return;
-    const kids = track.children;
-    const last = kids[kids.length - 1];
-    vw = window.innerWidth;
-    max = last ? Math.max(0, last.offsetLeft + last.offsetWidth - vw) : 0;
-    sections = Array.from(track.children);
-    let di = 0;
-    sections.forEach((sec) => {
-      sec.style.perspective = "900px";
-      sec.style.perspectiveOrigin = "50% 55%";
-      sec.__revealEl = sec.querySelector(".reveal");
-      sec.__parallaxEls = Array.from(sec.querySelectorAll("[data-p]"));
-      sec.__swingEls = Array.from(sec.querySelectorAll("[data-swing]"));
-      sec.__swingEls.forEach((el) => {
-        if (el.dataset.phase === undefined) el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
-        di++;
-      });
-      sec.__parallaxEls.forEach((el) => {
-        if (el.dataset.rot === undefined) {
-          const m = /rotate\((-?[\d.]+)deg\)/.exec(el.getAttribute("style") || "");
-          el.dataset.rot = m ? m[1] : "0";
-          el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
-        }
-        di++;
-      });
+  function renderRing() {
+    cardEls.forEach((el, i) => {
+      const a = i * STEP - angle;
+      const rel = (((a % 360) + 540) % 360) - 180; // -180..180, 0 = front (below the face)
+      const rad = rel * Math.PI / 180;
+      const depth = Math.cos(rad); // 1 front, -1 behind the head
+      const x = Math.sin(rad) * radius;
+      const y = depth * radiusY;
+      const sc = 0.58 + 0.42 * ((depth + 1) / 2);
+      el.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) scale(" + sc.toFixed(3) + ") rotate(" + (Math.sin(rad) * -14).toFixed(2) + "deg)";
+      el.style.opacity = (0.35 + 0.65 * ((depth + 1) / 2)).toFixed(3);
+      el.style.zIndex = String(Math.round((depth + 1) * 50)); // face sits at 50
+      el.style.filter = depth < -0.3 ? "grayscale(1) blur(1.5px)" : "none";
     });
-    target = Math.min(target, max);
-    current = target;
+    const f = ((Math.round(angle / STEP) % N) + N) % N;
+    if (f !== front) {
+      if (front !== -1) sfx.tick();
+      front = f;
+      cardEls.forEach((el, i) => el.classList.toggle("is-front", i === f));
+      const c = CARDS[f];
+      $("cap-index").textContent = c.num;
+      $("cap-title").textContent = c.title;
+      $("cap-meta").textContent = c.meta;
+      const cap = $("card-caption");
+      cap.classList.remove("swap"); void cap.offsetWidth; cap.classList.add("swap");
+    }
   }
 
-  function tick(now) {
-    current += (target - current) * SCROLL_EASE;
-    if (Math.abs(target - current) < 0.05) current = target;
-    track.style.transform = "translate3d(" + (-current).toFixed(2) + "px,0,0)";
-
-    mouseXEased += (mouseX - mouseXEased) * 0.06;
-    mouseYEased += (mouseY - mouseYEased) * 0.06;
-
-    if (progressBar) {
-      const p = max > 0 ? current / max : 0;
-      progressBar.style.transform = "scaleX(" + p.toFixed(4) + ")";
-    }
-
-    if (sections.length) {
-      let active = 0;
-      let bestDist = Infinity;
-      sections.forEach((sec, i) => {
-        const left = sec.offsetLeft - current;
-        const center = left + sec.offsetWidth / 2;
-        const dist = Math.abs(center - vw / 2);
-        if (dist < bestDist) { bestDist = dist; active = i; }
-
-        // globe/cylinder distortion — panels curve away like the surface of a
-        // sphere as they leave center, and the incoming one arrives already tilted
-        const signedOffset = center - vw / 2;
-        const rot = Math.max(-GLOBE_MAX_ROT, Math.min(GLOBE_MAX_ROT, (signedOffset / vw) * GLOBE_ROT_PER_VW));
-        const zPush = -Math.abs(rot) * GLOBE_Z_PER_DEG;
-        const curve = Math.abs(rot) / GLOBE_MAX_ROT;
-        const scale = 1 - curve * 0.16;
-        sec.style.transform = "rotateY(" + (-rot).toFixed(2) + "deg) translateZ(" + zPush.toFixed(1) + "px) scale(" + scale.toFixed(3) + ")";
-        sec.style.opacity = (1 - curve * 0.55).toFixed(3);
-
-        // skip offscreen sections entirely — nothing visible to animate
-        if (dist > vw * 1.2) return;
-
-        // 3D appearance reveal for text blocks, once per section entry
-        const enter = Math.max(0, Math.min(1, (vw - left) / (vw * 0.65)));
-        const eased = enter * enter * (3 - 2 * enter);
-        const rev = sec.__revealEl;
-        if (rev) {
-          rev.style.opacity = "1";
-          const kids = rev.children;
-          for (let k = 0; k < kids.length; k++) {
-            const raw = (eased - k * 0.1) / 0.9;
-            const s = Math.max(0, Math.min(1, raw));
-            const se = s * s * (3 - 2 * s);
-            const el = kids[k];
-            el.style.opacity = (0.04 + 0.96 * se).toFixed(3);
-            el.style.transform =
-              "translate3d(0," + ((1 - se) * 34).toFixed(2) + "px," + ((1 - se) * -520).toFixed(1) +
-              "px) rotateX(" + ((1 - se) * 58).toFixed(2) + "deg)";
-          }
-        }
-
-        // small idle movement for decorative elements only (not text)
-        const els = sec.__parallaxEls;
-        for (let k = 0; k < els.length; k++) {
-          const el = els[k];
-          const f = parseFloat(el.getAttribute("data-p"));
-          const ph = parseFloat(el.dataset.phase || "0");
-          const rot = parseFloat(el.dataset.rot || "0");
-          const dx = (center - vw / 2) * f + Math.cos(now * 0.00025 + ph * 1.7) * MOVE_AMP_X + mouseXEased * MOUSE_PARALLAX * f;
-          const dy = Math.sin(now * 0.00033 + ph) * MOVE_AMP_Y + mouseYEased * MOUSE_PARALLAX * f;
-          const dr = Math.sin(now * 0.00021 + ph * 1.3) * MOVE_AMP_ROT;
-          const dz = f * 90;
-          el.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px," + dz.toFixed(1) + "px) rotate(" + (rot + dr).toFixed(2) + "deg)";
-        }
-
-        // pendulum swing, pivoting from the top anchor (e.g. a keyring loop)
-        const swings = sec.__swingEls;
-        for (let k = 0; k < swings.length; k++) {
-          const el = swings[k];
-          const ph = parseFloat(el.dataset.phase || "0");
-          const swing = Math.sin(now * 0.0006 + ph) * 4.5;
-          el.style.transform = "rotate(" + swing.toFixed(2) + "deg)";
-        }
-      });
-
-      const label = String(active + 1).padStart(2, "0");
-      if (counterNum.textContent !== label) counterNum.textContent = label;
-    }
-
-    raf = requestAnimationFrame(tick);
+  let snapT = null;
+  function nudge(deltaDeg) {
+    targetAngle += deltaDeg;
+    clearTimeout(snapT);
+    snapT = setTimeout(() => { targetAngle = Math.round(targetAngle / STEP) * STEP; }, 140);
+    $("landing-hint").classList.add("is-gone");
+  }
+  function spinTo(i) {
+    // shortest way round to card i
+    const cur = Math.round(targetAngle / STEP);
+    let d = ((i - cur) % N + N) % N;
+    if (d > N / 2) d -= N;
+    targetAngle = (cur + d) * STEP;
   }
 
-  function scrollToSection(i) {
-    setView("home");
-    requestAnimationFrame(() => {
-      measure();
-      const sec = sections[i];
-      if (sec) target = Math.max(0, Math.min(max, sec.offsetLeft));
+  window.addEventListener("wheel", (e) => {
+    if (view !== "home" || anyModal()) return;
+    e.preventDefault();
+    const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    nudge(d * 0.12);
+  }, { passive: false });
+
+  // touch / drag to spin
+  let drag = null;
+  views.home.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".star-pick, #face")) return;
+    drag = { x: e.clientX, moved: 0, start: targetAngle };
+  });
+  window.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x;
+    drag.moved = Math.max(drag.moved, Math.abs(dx));
+    if (drag.moved > 6) targetAngle = drag.start - dx * 0.25;
+  });
+  window.addEventListener("pointerup", () => {
+    if (!drag) return;
+    if (drag.moved > 6) { targetAngle = Math.round(targetAngle / STEP) * STEP; $("landing-hint").classList.add("is-gone"); }
+    setTimeout(() => { drag = null; }, 0);
+  });
+
+  /* ------------------------------------------------------------------
+   * Face — eyes follow the cursor, blink, react to pokes
+   * ------------------------------------------------------------------ */
+  const face = $("face");
+  const pupils = [$("pupil-l"), $("pupil-r")];
+  const eyes = [$("eye-l"), $("eye-r")];
+  let look = { x: innerWidth / 2, y: innerHeight };
+  let eyeX = 0, eyeY = 0;
+  let pokes = 0;
+  let pokeReset = null;
+  function blink() {
+    eyes.forEach((e) => e.classList.add("blink"));
+    setTimeout(() => eyes.forEach((e) => e.classList.remove("blink")), 130);
+  }
+  (function blinkLoop() {
+    setTimeout(() => { if (view === "home") blink(); blinkLoop(); }, 2600 + Math.random() * 3200);
+  })();
+  function updateEyes() {
+    const r = face.getBoundingClientRect();
+    if (!r.width) return;
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height * 0.47;
+    const dx = look.x - cx;
+    const dy = look.y - cy;
+    const dist = Math.hypot(dx, dy) || 1;
+    const k = Math.min(1, dist / 260);
+    const tx = (dx / dist) * 14 * k;
+    const ty = (dy / dist) * 7 * k;
+    eyeX += (tx - eyeX) * 0.2;
+    eyeY += (ty - eyeY) * 0.2;
+    pupils.forEach((p) => p.setAttribute("transform", "translate(" + eyeX.toFixed(2) + " " + eyeY.toFixed(2) + ")"));
+  }
+  face.addEventListener("click", (e) => {
+    e.stopPropagation();
+    sfx.poke();
+    burst(e.clientX, e.clientY, 10, "201,80,90");
+    face.classList.remove("poked"); void face.offsetWidth; face.classList.add("poked");
+    blink();
+    pokes++;
+    clearTimeout(pokeReset);
+    pokeReset = setTimeout(() => { pokes = 0; }, 2500);
+    if (pokes >= 5) { pokes = 0; if (!collect("poke", e.clientX, e.clientY)) toast("ow. okay. you already have that one."); }
+    else if (pokes === 3 && !got.includes("poke")) toast("hey—");
+  });
+
+  /* ------------------------------------------------------------------
+   * Views
+   * ------------------------------------------------------------------ */
+  let view = "home";
+  function setView(next, after) {
+    pixelWipe(() => {
+      view = next;
+      Object.keys(views).forEach((k) => { views[k].hidden = k !== view; });
+      root.classList.toggle("is-landing", view === "home");
+      root.classList.toggle("is-static", view !== "home");
+      window.scrollTo(0, 0);
+      if (after) after();
     });
   }
 
   function renderProjectDetail(i) {
-    currentProject = i;
     const p = PROJECTS[i];
-    document.getElementById("project-index").textContent = p.index;
-    document.getElementById("project-title").textContent = p.title;
-
-    const meta = document.getElementById("project-meta");
+    $("project-index").textContent = p.index;
+    $("project-title").textContent = p.title;
+    const meta = $("project-meta");
     meta.innerHTML = "";
-    [
-      ["YEAR", p.year],
-      ["COURSE", p.course],
-      ["ROLE", p.role],
-      ["STATUS", p.status]
-    ].forEach(([label, value]) => {
+    [["YEAR", p.year], ["COURSE", p.course], ["ROLE", p.role], ["STATUS", p.status]].forEach(([label, value]) => {
       const col = document.createElement("div");
-      col.innerHTML = '<div class="meta-label">' + label + "</div><div>" + value + "</div>";
+      const l = document.createElement("div");
+      l.className = "meta-label";
+      l.textContent = label;
+      const v = document.createElement("div");
+      v.textContent = value;
+      col.append(l, v);
       meta.appendChild(col);
     });
-
-    const chaptersEl = document.getElementById("chapters");
+    const chaptersEl = $("chapters");
     chaptersEl.innerHTML = "";
     p.chapters.forEach((c) => {
       const section = document.createElement("section");
       section.className = "chapter";
-
       const num = document.createElement("div");
       num.className = "chapter-num";
       num.textContent = c.n;
-
       const body = document.createElement("div");
       body.className = "chapter-body";
-
       const top = document.createElement("div");
       top.className = "chapter-top";
       const h2 = document.createElement("h2");
@@ -260,7 +444,6 @@
       pEl.textContent = c.text;
       top.append(h2, pEl);
       body.appendChild(top);
-
       if (c.media.length) {
         const media = document.createElement("div");
         media.className = "chapter-media";
@@ -273,6 +456,7 @@
             const img = document.createElement("img");
             img.src = m.img;
             img.alt = m.label;
+            img.loading = "lazy";
             box.appendChild(img);
           }
           const cap = document.createElement("figcaption");
@@ -283,111 +467,234 @@
         });
         body.appendChild(media);
       }
-
       section.append(num, body);
       chaptersEl.appendChild(section);
     });
-  }
-
-  function openProject(i) {
-    renderProjectDetail(i);
-    setView("project");
+    $("read-star").hidden = true;
   }
 
   function renderArchive() {
-    const list = document.getElementById("archive-list");
+    const list = $("archive-list");
     list.innerHTML = "";
-
     PROJECTS.forEach((p, i) => {
       const row = document.createElement("div");
       row.className = "archive-row";
       row.dataset.action = "open-project";
       row.dataset.index = String(i);
-      row.innerHTML =
-        "<div>" + p.index + "</div>" +
-        '<div class="archive-project-title">' + p.title + "</div>" +
-        "<div>" + p.course + "</div>" +
-        "<div>" + p.year + "</div>" +
-        '<div class="archive-mark">→</div>';
+      [p.index, p.title, p.course, p.year, "→"].forEach((t, k) => {
+        const d = document.createElement("div");
+        if (k === 1) d.className = "archive-project-title";
+        if (k === 4) d.className = "archive-mark";
+        d.textContent = t;
+        row.appendChild(d);
+      });
       list.appendChild(row);
     });
-
-    // slots reserved for projects still to be added
-    for (let n = PROJECTS.length + 1; n <= 4; n++) {
-      const row = document.createElement("div");
-      row.className = "archive-row is-placeholder";
-      row.innerHTML =
-        "<div>" + String(n).padStart(2, "0") + "</div>" +
-        '<div class="archive-project-title">Project —</div>' +
-        "<div>—</div>" +
-        "<div>—</div>" +
-        '<div class="archive-mark">—</div>';
-      list.appendChild(row);
-    }
-
+    const row = document.createElement("div");
+    row.className = "archive-row is-placeholder";
+    row.innerHTML = "<div>" + String(PROJECTS.length + 1).padStart(2, "0") + '</div><div class="archive-project-title">Project —</div><div>—</div><div>—</div><div class="archive-mark">—</div>';
+    list.appendChild(row);
     const end = document.createElement("div");
     end.className = "archive-list-end";
     list.appendChild(end);
   }
 
-  document.addEventListener("click", (e) => {
-    const el = e.target.closest("[data-action]");
-    if (!el) return;
-    const action = el.dataset.action;
-    switch (action) {
-      case "home": scrollToSection(0); break;
-      case "projects": scrollToSection(1); break;
-      case "about": scrollToSection(sections.findIndex((sec) => sec.id === "screen-about")); break;
-      case "archive": renderArchive(); setView("archive"); break;
-      case "open-project": openProject(parseInt(el.dataset.index, 10)); break;
-    }
-  });
+  // reaching the end of a project earns the reader star
+  window.addEventListener("scroll", () => {
+    if (view !== "project") return;
+    const nearEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 40;
+    if (nearEnd && collect("reader")) $("read-star").hidden = false;
+  }, { passive: true });
 
-  let snapTimer = null;
+  function openCard(i) {
+    const c = CARDS[i];
+    sfx.open();
+    if (c.kind === "project") setView("project", () => renderProjectDetail(c.index));
+    else if (c.kind === "about") setView("about");
+    else if (c.kind === "archive") setView("archive", renderArchive);
+    else if (c.kind === "play") openSnake();
+  }
 
-  function nearestSectionIndex(pos) {
-    let idx = 0;
-    let best = Infinity;
-    sections.forEach((sec, i) => {
-      const d = Math.abs(sec.offsetLeft - pos);
-      if (d < best) { best = d; idx = i; }
+  /* ------------------------------------------------------------------
+   * Snake
+   * ------------------------------------------------------------------ */
+  const sc = $("snake-canvas");
+  const sx = sc.getContext("2d");
+  const G = 20; // grid cells
+  const C = sc.width / G;
+  let snake = [], dir = { x: 1, y: 0 }, nextDir = dir, food = { x: 0, y: 0 }, score = 0, alive = true, running = false, stepT = 0;
+  let best = store.get("snake-best", 0);
+  $("snake-best").textContent = String(best);
+  function resetSnake() {
+    snake = [{ x: 8, y: 10 }, { x: 7, y: 10 }, { x: 6, y: 10 }];
+    dir = { x: 1, y: 0 };
+    nextDir = dir;
+    score = 0;
+    alive = true;
+    placeFood();
+    $("snake-score").textContent = "0";
+    drawSnake();
+  }
+  function placeFood() {
+    do { food = { x: Math.floor(Math.random() * G), y: Math.floor(Math.random() * G) }; }
+    while (snake.some((s) => s.x === food.x && s.y === food.y));
+  }
+  function drawSnake() {
+    sx.fillStyle = "#c5cbb0";
+    sx.fillRect(0, 0, sc.width, sc.height);
+    sx.fillStyle = "rgba(43,47,37,0.07)";
+    for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) sx.fillRect(i * C + 1, j * C + 1, C - 2, C - 2);
+    sx.fillStyle = "#2b2f25";
+    // food as a little pixel star
+    const fx = food.x * C, fy = food.y * C, u = C / 4;
+    sx.fillRect(fx + u * 1.5, fy, u, C);
+    sx.fillRect(fx, fy + u * 1.5, C, u);
+    snake.forEach((s, i) => {
+      const pad = i === 0 ? 0 : 1;
+      sx.fillRect(s.x * C + pad, s.y * C + pad, C - pad * 2, C - pad * 2);
     });
-    return idx;
   }
-
-  function snapToNearest() {
-    if (!sections.length) return;
-    const idx = nearestSectionIndex(target);
-    target = Math.max(0, Math.min(max, sections[idx].offsetLeft));
+  function stepSnake() {
+    dir = nextDir;
+    const head = { x: (snake[0].x + dir.x + G) % G, y: (snake[0].y + dir.y + G) % G };
+    if (snake.some((s) => s.x === head.x && s.y === head.y)) {
+      alive = false;
+      running = false;
+      sfx.die();
+      $("snake-msg").innerHTML = "GAME OVER · " + score + "<br>SPACE / TAP TO RETRY";
+      $("snake-msg").hidden = false;
+      return;
+    }
+    snake.unshift(head);
+    if (head.x === food.x && head.y === food.y) {
+      score++;
+      sfx.eat();
+      $("snake-score").textContent = String(score);
+      if (score > best) { best = score; store.set("snake-best", best); $("snake-best").textContent = String(best); }
+      if (score === 10) collect("snake");
+      placeFood();
+    } else {
+      snake.pop();
+    }
+    drawSnake();
   }
+  function startSnake() {
+    if (!alive) resetSnake();
+    running = true;
+    $("snake-msg").hidden = true;
+  }
+  function setDir(name) {
+    const m = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } }[name];
+    if (!m) return;
+    if (m.x === -dir.x && m.y === -dir.y) return;
+    nextDir = m;
+    if (!running) startSnake();
+  }
+  function openSnake() {
+    $("snake").hidden = false;
+    resetSnake();
+    running = false;
+    $("snake-msg").innerHTML = "PRESS SPACE<br>OR TAP TO START";
+    $("snake-msg").hidden = false;
+  }
+  function closeSnake() { $("snake").hidden = true; running = false; }
+  document.querySelectorAll(".console-pad button").forEach((b) => b.addEventListener("click", () => setDir(b.dataset.dir)));
+  let swipe = null;
+  sc.addEventListener("pointerdown", (e) => { swipe = { x: e.clientX, y: e.clientY }; });
+  sc.addEventListener("pointerup", (e) => {
+    if (!swipe) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    swipe = null;
+    if (Math.hypot(dx, dy) < 18) { if (!running) startSnake(); return; }
+    setDir(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"));
+  });
 
-  window.addEventListener("wheel", (e) => {
-    if (view !== "home") return;
-    e.preventDefault();
-    const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    target = Math.max(0, Math.min(max, target + d * 1.15));
-    clearTimeout(snapTimer);
-    snapTimer = setTimeout(snapToNearest, 160);
-  }, { passive: false });
+  function anyModal() { return !$("snake").hidden || !$("stars-panel").hidden; }
 
+  /* ------------------------------------------------------------------
+   * Input
+   * ------------------------------------------------------------------ */
   window.addEventListener("keydown", (e) => {
-    if (view !== "home") return;
-    clearTimeout(snapTimer);
-    if (e.key === "ArrowRight") {
-      const idx = Math.min(sections.length - 1, nearestSectionIndex(target) + 1);
-      target = sections[idx].offsetLeft;
+    if (!$("snake").hidden) {
+      const k = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" }[e.key];
+      if (k) { e.preventDefault(); setDir(k); }
+      if (e.key === " ") { e.preventDefault(); if (running) { running = false; $("snake-msg").innerHTML = "PAUSED"; $("snake-msg").hidden = false; } else startSnake(); }
+      if (e.key === "Escape") closeSnake();
+      return;
     }
-    if (e.key === "ArrowLeft") {
-      const idx = Math.max(0, nearestSectionIndex(target) - 1);
-      target = sections[idx].offsetLeft;
-    }
+    if (!$("stars-panel").hidden) { if (e.key === "Escape") $("stars-panel").hidden = true; return; }
+    if (view !== "home") { if (e.key === "Escape") setView("home"); return; }
+    if (e.key === "ArrowRight") { e.preventDefault(); spinTo((front + 1) % N); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); spinTo((front - 1 + N) % N); }
   });
 
-  window.addEventListener("resize", () => {
-    if (view === "home") measure();
+  window.addEventListener("mousemove", (e) => {
+    look = { x: e.clientX, y: e.clientY };
+    if (view === "home" && !anyModal()) trail(e.clientX, e.clientY);
+  });
+  window.addEventListener("touchmove", (e) => {
+    const t = e.touches[0];
+    if (t) look = { x: t.clientX, y: t.clientY };
+  }, { passive: true });
+
+  document.addEventListener("click", (e) => {
+    const pick = e.target.closest(".star-pick");
+    if (pick) { const r = pick.getBoundingClientRect(); collect(pick.dataset.star, r.left + r.width / 2, r.top + r.height / 2); pick.remove(); return; }
+    const card = e.target.closest(".ring-card");
+    if (card) {
+      if (drag && drag.moved > 6) return;
+      const i = parseInt(card.dataset.card, 10);
+      if (i === front) openCard(i);
+      else { sfx.click(); spinTo(i); }
+      return;
+    }
+    const el = e.target.closest("[data-action]");
+    if (el) {
+      const a = el.dataset.action;
+      sfx.click();
+      if (a === "home") { if (view !== "home") setView("home"); else spinTo(0); }
+      else if (a === "projects") { if (view !== "home") setView("home", () => spinTo(0)); else spinTo(0); }
+      else if (a === "about") setView("about");
+      else if (a === "archive") setView("archive", renderArchive);
+      else if (a === "play") openSnake();
+      else if (a === "open-project") { const i = parseInt(el.dataset.index, 10); setView("project", () => renderProjectDetail(i)); }
+      else if (a === "close-snake") closeSnake();
+      else if (a === "stars") { renderStars(); $("stars-panel").hidden = false; }
+      else if (a === "close-stars") $("stars-panel").hidden = true;
+      return;
+    }
+    if (e.target.classList.contains("modal")) { e.target.hidden = true; running = false; return; }
+    if (view === "home" && !(drag && drag.moved > 6)) burst(e.clientX, e.clientY, 12);
   });
 
-  root.classList.add("is-scrolling");
-  measure();
-  raf = requestAnimationFrame(tick);
+  window.addEventListener("resize", layout);
+
+  /* ------------------------------------------------------------------
+   * Loop
+   * ------------------------------------------------------------------ */
+  let lastNow = performance.now();
+  function tick(now) {
+    const dt = Math.min(64, now - lastNow);
+    lastNow = now;
+    if (view === "home") {
+      angle += (targetAngle - angle) * (reduceMotion ? 1 : 0.1);
+      if (Math.abs(targetAngle - angle) < 0.01) angle = targetAngle;
+      renderRing();
+      updateEyes();
+    }
+    if (running) {
+      stepT += dt;
+      const speed = Math.max(70, 150 - score * 4);
+      while (stepT > speed && running) { stepT -= speed; stepSnake(); }
+    } else stepT = 0;
+    drawPixels();
+    requestAnimationFrame(tick);
+  }
+
+  layout();
+  placePicks();
+  renderStars();
+  resetSnake();
+  renderRing();
+  requestAnimationFrame(tick);
 })();
