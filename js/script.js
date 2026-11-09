@@ -1642,7 +1642,7 @@
    * ------------------------------------------------------------------ */
   const COVERS = {
     "01": { img: "assets/badge-pixel.png" },
-    "02": { type: "IN //<br>BETWEEN" },
+    "02": { type: "MIRROR<br>&amp; DOME" },
     "03": { img: "assets/tandem-pixel.png" },
     "04": { img: "assets/ei-little-tank-tank.jpg" },
     "05": { type: "PERS<br>ONAL" },
