@@ -1133,7 +1133,7 @@
       cardEls.forEach((el, i) => pixelCover(el, { cell: 12, dur: 500, delay: 500 + i * 70 }));
       document.querySelectorAll("#icons .icon").forEach((el, i) => pixelCover(el, { cell: 8, dur: 380, delay: 300 + i * 60 }));
       setTimeout(() => resolveFace(1100), 350);
-      if (!store.get("welcomed", false)) setTimeout(openWelcome, 1500);
+      setTimeout(openWelcome, 1500);   // greet on every entry
     }
   }
 })();
