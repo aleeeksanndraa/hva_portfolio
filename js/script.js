@@ -1298,13 +1298,13 @@
       const e = +DASH.E[i], X = bx(i) + 36;   // jump on the beat to clear what sits at X
       if (e <= 1) { i += 4; continue; }
       if (e <= 4) { spike(X); i += 4; continue; }
-      if (e <= 6) { if (i % 8 === 0) { spike(X); spike(X + C); } else spike(X); i += 2; continue; }
+      if (e <= 6) { spike(X); i += 3; continue; }
       // loud: a little 4-beat move
       const r = rnd();
-      if (r < 0.3) { spike(X); spike(bx(i + 2) + 36); spike(bx(i + 2) + 36 + C); }
+      if (r < 0.3) { spike(X); spike(bx(i + 2) + 36); }
       else if (r < 0.5) { pad(bx(i) + 10); spike(bx(i) + 50); spike(bx(i) + 70); spike(bx(i) + 90); }
       else if (r < 0.7) { block(X, 40, 20); block(bx(i + 2) + 36, 40, 40); }
-      else if (r < 0.85) { spike(X); spike(X + C); spike(bx(i + 2) + 36); }
+      else if (r < 0.85) { spike(X); spike(X + C); }
       else { block(X, 120, 20); spike(X + 50, 20); }
       i += 4;
     }
@@ -1357,7 +1357,7 @@
         for (const o of obs) {
           if (o.x > R + 4 || o.x + o.w < L - 4) continue;
           if (o.k === "s") { // a slightly forgiving triangle hitbox
-            if (R - 4 > o.x && L + 4 < o.x + o.w && cy + C - 4 > o.y + 6) { die(); return; }
+            if (R - 6 > o.x && L + 6 < o.x + o.w && cy + C - 4 > o.y + 9) { die(); return; }
           } else if (o.k === "p") {
             if (R > o.x && L < o.x + o.w && cy + C >= GY - 14 && vy >= 0) { jump(PAD); burstAt(o.x - cam + 10, GY - 4); }
           } else if (R > o.x && L < o.x + o.w) {
