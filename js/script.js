@@ -926,7 +926,7 @@
         const sS = h("b", null, "0"), sB = h("b", null, String(store.get("flap-best", 0)));
         const s1 = h("span", null, "SCORE "), s2 = h("span", null, "BEST ");
         s1.appendChild(sS); s2.appendChild(sB); sc.append(s1, s2);
-        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG")); 
+        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"), h("div", "snake-tip", "♪ Bytesize – Dig Dug")); 
         body.appendChild(app);
         flapApi = makeFlap(cv, msg, sS, sB, lcd);
       }
@@ -938,7 +938,12 @@
     const GAP = 96, PW = 40, SPD = 1.6, GRAV = 0.32, JUMP = -5.6;
     let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
     let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
-    const dubs = makeBeat("dub");
+    // Bytesize – Dig Dug (Sasha's Monstercat Gold license), from 0:55
+    const song = new Audio("assets/flap-dubstep.mp3"); song.loop = true; song.volume = 0.55; song.preload = "none"; songs.push(song);
+    const dubs = {
+      play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
+      stop() { song.pause(); }
+    };
     function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 20); addPipe(W + 20 + 150); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
@@ -1379,14 +1384,24 @@
       gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8");
       x.fillStyle = gg; x.fillRect(0, GY, W, H - GY);
       x.fillStyle = "#2e2452"; x.fillRect(0, GY, W, 2);
-      x.fillStyle = "rgba(46,36,82,.25)";
-      for (let i = -1; i < W / 40 + 1; i++) x.fillRect(Math.floor(i * 40 - cam % 40), GY + 2, 2, H - GY);
+      // floor seams sit exactly on the beat grid: when a seam reaches the cube, that's the beat
+      const bi = Math.floor(bt), eNow = +(DASH.E[Math.max(0, bi)] || 0);
+      for (let i = Math.max(0, bi - 2); i < bi + 6; i++) {
+        const sx = (DASH.T0 + i * DASH.BEAT) * DASH.PPS + PX - cam;
+        if (sx < -4 || sx > W + 4) continue;
+        const loud = +(DASH.E[i] || 0) >= 7;
+        x.fillStyle = i === bi ? "rgba(215,163,189," + (0.4 + kick * 0.6).toFixed(2) + ")" : (loud ? "rgba(46,36,82,.4)" : "rgba(46,36,82,.2)");
+        x.fillRect(Math.floor(sx), GY + 2, i % 4 === 0 ? 3 : 2, H - GY);
+        if (i % 4 === 0) { x.fillStyle = "#d7a3bd"; x.fillRect(Math.floor(sx) - 1, GY - 3, 5, 3); }
+      }
       // obstacles
       obs.forEach((o) => {
         const ox = o.x - cam; if (ox > W + 10 || ox + o.w < -10) return;
         if (o.k === "s") {
+          x.save(); const pz = 1 + kick * 0.12; x.translate(ox + o.w / 2, o.y + o.h); x.scale(pz, pz); x.translate(-(ox + o.w / 2), -(o.y + o.h));
           x.fillStyle = "#2e2452"; x.beginPath(); x.moveTo(ox, o.y + o.h); x.lineTo(ox + o.w / 2, o.y); x.lineTo(ox + o.w, o.y + o.h); x.closePath(); x.fill();
           x.fillStyle = "#d7a3bd"; x.beginPath(); x.moveTo(ox + 5, o.y + o.h - 2); x.lineTo(ox + o.w / 2, o.y + 7); x.lineTo(ox + o.w - 5, o.y + o.h - 2); x.closePath(); x.fill();
+          x.restore();
         } else if (o.k === "p") {
           x.fillStyle = "#fff200"; x.fillRect(ox + 2, o.y + 1, o.w - 4, o.h); x.strokeStyle = "#2e2452"; x.lineWidth = 1.5; x.strokeRect(ox + 2, o.y + 1, o.w - 4, o.h);
         } else {
@@ -1408,6 +1423,8 @@
       }
       parts.forEach((q) => { x.globalAlpha = Math.max(0, q.life); x.fillStyle = COL[q.c]; x.fillRect(q.x - 2, q.y - 2, 4, 4); });
       x.globalAlpha = 1;
+      // loud beats flash the whole screen a little
+      if (running && eNow >= 7) { x.fillStyle = "rgba(255,255,255," + (kick * (eNow - 6) * 0.06).toFixed(3) + ")"; x.fillRect(0, 0, W, H); }
       // progress bar
       const pr = Math.min(1, cam / LEN);
       x.fillStyle = "rgba(46,36,82,.35)"; x.fillRect(W / 2 - 80, 8, 160, 6);
