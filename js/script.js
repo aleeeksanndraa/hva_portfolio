@@ -1526,7 +1526,15 @@
       },
       keyup(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") held = false; },
       tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
-      level() { if (!running) return 0; const b = Math.floor((t - DASH.T0) / DASH.BEAT); return b < 0 ? 0 : +(DASH.E[b] || 0); },
+      // laser eyes only during the drops: a beat counts if the 9 beats around it are loud on average
+      level() {
+        if (!running) return 0;
+        const b = Math.floor((t - DASH.T0) / DASH.BEAT);
+        if (b < 0 || b >= DASH.E.length) return 0;
+        let sum = 0, n = 0;
+        for (let i = Math.max(0, b - 4); i <= Math.min(DASH.E.length - 1, b + 4); i++) { sum += +DASH.E[i]; n++; }
+        return sum / n >= 6 ? 9 : 0;
+      },
       stop() { running = false; music.stop(); }
     };
   }
