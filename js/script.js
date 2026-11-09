@@ -145,7 +145,7 @@
     if (x != null) burst(x, y, 26);
     const t = $("tray-stars");
     t.classList.remove("bump"); void t.offsetWidth; t.classList.add("bump");
-    if (got.length >= STARS.length) balloon("✦ All " + STARS.length + " stars found", "Open stars.txt for your reward.");
+    if (got.length >= STARS.length) { balloon("✦ All " + STARS.length + " stars found", "Look at me. New look unlocked."); window.dispatchEvent(new Event("sasha:allstars")); }
     else balloon("✦ Star found", got.length + " of " + STARS.length + " collected.");
     return true;
   }
@@ -905,6 +905,11 @@
   const hx = hc.getContext("2d");
   const SHEET = { src: "assets/face-turn.webp", size: 420, cols: 10, poses: [[0.2,15.8],[3.8,16.4],[7.8,17.0],[11.0,17.9],[14.0,18.5],[18.2,19.3],[20.3,17.3],[22.8,17.5],[25.8,15.0],[27.3,17.2],[29.4,14.9],[34.5,14.9],[36.7,13.2],[39.1,12.3],[36.5,11.7],[32.3,15.0],[-2.7,15.5],[-5.4,15.3],[-8.1,15.1],[-10.4,15.5],[-13.7,17.3],[-16.1,15.5],[-20.7,14.7],[-24.8,14.9],[-30.2,15.9],[-33.1,15.6],[-33.1,13.8],[-23.5,16.5],[-19.3,15.9],[-12.6,15.7],[1.0,12.0],[1.0,9.0],[1.1,6.9],[0.5,4.4],[0.1,1.7],[0.1,-0.9],[0.2,-2.7],[0.3,17.3],[0.8,14.1],[-1.6,3.8],[-5.4,4.8],[-13.1,2.5],[-17.7,4.7],[-23.9,5.0],[-27.8,3.8],[-37.4,7.8],[-43.7,6.0],[32.3,11.7],[27.2,10.8],[27.4,7.5],[22.9,9.3],[19.0,9.9],[14.7,9.0],[12.2,8.8],[7.9,7.5],[5.1,7.0],[0.9,10.5]] };
   const sheet = new Image(); sheet.src = SHEET.src;
+  // reward skin: after all stars are found she transforms and keeps the star glasses on
+  const GLASSES = { src: "assets/face-glasses-turn.webp", size: 420, cols: 10, yawMax: 22, poses: [[0.2,15.5],[1.0,13.8],[2.9,16.5],[6.1,16.0],[5.8,17.9],[7.9,17.1],[9.2,19.0],[11.6,19.6],[14.2,20.0],[16.3,18.5],[17.6,19.8],[18.0,17.5],[-0.6,17.5],[-1.5,19.6],[-4.6,19.5],[-8.9,20.4],[-8.3,18.8],[-10.8,18.6],[-13.1,18.1],[-1.6,13.4],[-0.4,10.5],[0.5,6.9],[-0.4,8.4],[12.5,17.2],[19.1,23.5],[20.8,21.1],[20.5,18.4],[1.9,18.0],[-4.7,18.0],[14.7,17.4],[4.9,14.5],[9.0,20.6],[10.0,17.6]] };
+  const gsheet = new Image(); gsheet.src = GLASSES.src;
+  let skin = store.get("skin", "plain");
+  const skinSheet = () => skin === "glasses" ? [gsheet, GLASSES] : [sheet, SHEET];
   const NEUTRAL_PITCH = 16;
   let look = { x: innerWidth / 2, y: innerHeight };
   let lastMove = performance.now();   // last time the cursor actually moved
@@ -948,9 +953,9 @@
     })(t0);
   }
   // nearest head-turn frame for a pose
-  function turnFrame(yaw, pitch) {
+  function turnFrame(yaw, pitch, sh) {
     let best = 0, bd = Infinity;
-    SHEET.poses.forEach((p, i) => { const d = (p[0] - yaw) ** 2 + 2.2 * (p[1] - pitch) ** 2; if (d < bd) { bd = d; best = i; } });
+    (sh || SHEET).poses.forEach((p, i) => { const d = (p[0] - yaw) ** 2 + 2.2 * (p[1] - pitch) ** 2; if (d < bd) { bd = d; best = i; } });
     return best;
   }
 
@@ -991,16 +996,20 @@
       const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.45);
       const nx = Math.max(-1, Math.min(1, dx / (innerWidth * 0.45)));
       const ny = Math.max(-1, Math.min(1, dy / (innerHeight * 0.45)));
-      wantYaw = nx * 38;
+      wantYaw = nx * (skin === "glasses" ? GLASSES.yawMax : 38);
       wantPitch = ny < 0 ? NEUTRAL_PITCH + ny * 20 : NEUTRAL_PITCH + ny * 3;
     }
     const ease = reduceMotion ? 1 : (c.state === "settling" ? 0.2 : 0.12);
     tYaw += (wantYaw - tYaw) * ease;
     tPitch += (wantPitch - tPitch) * ease;
-    const idleLayer = [sheet, SHEET, turnFrame(tYaw, tPitch), 1];
+    const [sImg, sSh] = skinSheet();
+    const idleLayer = [sImg, sSh, turnFrame(tYaw, tPitch, sSh), 1];
+
+    // all stars found: transform once the head is free
+    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) pendingGlasses = false;
 
     // cursor resting (just scrolling / using arrows): look ahead and blink
-    if (c.state === "idle" && now - lastMove > IDLE_AFTER && EMOTIONS.idle_blink) character.play("idle_blink");
+    if (c.state === "idle" && skin === "plain" && now - lastMove > IDLE_AFTER && EMOTIONS.idle_blink) character.play("idle_blink");
 
     if (c.state === "settling") {
       // wait until the head faces forward (or give up waiting after 700ms)
@@ -1013,7 +1022,7 @@
       if (reduceMotion) {
         // no playback: show the expression's key frame as a still, then go back
         paint([[e.img, e.sheet, e.still, 1]]);
-        if (el > (e.stillFor || 1800)) { c.state = "returning"; c.t0 = now; }
+        if (el > (e.stillFor || 1800)) { c.state = "returning"; c.t0 = now; if (e.onEnd) e.onEnd(); }
         return;
       }
       if (e.loop) {
@@ -1025,7 +1034,7 @@
         return;
       }
       const f = Math.floor(el / 1000 * e.fps);
-      if (f >= e.frames) { c.state = "returning"; c.t0 = now; paint([[e.img, e.sheet, e.frames - 1, 1]]); return; }
+      if (f >= e.frames) { c.state = "returning"; c.t0 = now; if (e.onEnd) e.onEnd(); paint([[e.img, e.sheet, e.frames - 1, 1]]); return; }
       const fade = Math.min(1, el / e.fadeIn);
       paint(fade < 1 ? [idleLayer, [e.img, e.sheet, f, fade]] : [[e.img, e.sheet, f, 1]]);
       return;
@@ -1033,7 +1042,7 @@
     if (c.state === "returning") {
       const p = reduceMotion ? 1 : Math.min(1, (now - c.t0) / e.fadeOut);
       const last = e.loop ? (c.loopFrame || 0) : (reduceMotion ? e.still : e.frames - 1);
-      paint(p < 1 ? [[e.img, e.sheet, last, 1], [sheet, SHEET, idleLayer[2], p]] : [idleLayer]);
+      paint(p < 1 ? [[e.img, e.sheet, last, 1], [idleLayer[0], idleLayer[1], idleLayer[2], p]] : [idleLayer]);
       if (p >= 1) { e.lastEnd = now; c.state = "idle"; c.emotion = null; }
       return;
     }
@@ -1055,11 +1064,27 @@
     still: 21, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
   });
 
+  // the reward: a full turn, and she comes back round wearing the star glasses
+  registerEmotion("glasses_on", {
+    src: "assets/face-glasses-on.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 48, stillFor: 1200, cooldown: 0, fadeIn: 200, fadeOut: 200,
+    onEnd() { skin = "glasses"; store.set("skin", "glasses"); }
+  });
+  // in glasses, a poke gets a smug little smirk instead of the pout
+  registerEmotion("glasses_smirk", {
+    src: "assets/face-glasses-smirk.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 24, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 300, settle: false
+  });
+  let pendingGlasses = false;
+  window.addEventListener("sasha:allstars", () => { if (skin !== "glasses") pendingGlasses = true; });
+  if (skin !== "glasses" && got.length >= STARS.length) pendingGlasses = true;
+
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
+    const pokeAs = skin === "glasses" ? "glasses_smirk" : "pout";
     // another one-shot emotion is mid-play: don't stack a second one on top
-    if (character.busy() && character.emotion !== EMOTIONS.pout && !character.emotion.loop) return;
-    character.play("pout");
+    if (character.busy() && character.emotion !== EMOTIONS[pokeAs] && !character.emotion.loop) return;
+    character.play(pokeAs);
     sfx.poke();
     burst(e.clientX, e.clientY, 10, "215,163,189");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
@@ -1162,7 +1187,7 @@
     const screen = $("boot");
     const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
     const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
-    const urls = [SHEET.src, "assets/face-pout.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+    const urls = [SHEET.src, skin === "glasses" ? GLASSES.src : "assets/face-glasses-on.webp", "assets/face-pout.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
       .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
     let loaded = 0;
     const uniq = Array.from(new Set(urls));
