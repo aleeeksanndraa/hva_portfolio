@@ -820,7 +820,7 @@ body.booting #desktop { visibility: hidden; }
 /* beat_dash drop: pixel rainbow beams from her eyes (low-res canvas scaled up) */
 .eye-beams {
   position: fixed; inset: 0; width: 100vw; height: 100vh;
-  pointer-events: none; z-index: 5;
+  pointer-events: none; z-index: 60;   /* above the face so the beams start right at her eyes */
   image-rendering: pixelated; image-rendering: crisp-edges;
 }
 

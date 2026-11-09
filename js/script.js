@@ -760,7 +760,7 @@
     const L = Math.hypot(cw, ch) * 0.8, hue = (now / 8) % 360;
     [-1, 1].forEach((side, i) => {
       const ox = (ex + side * 46 * k) / PXS, oy = ey / PXS;
-      const ang = (side < 0 ? Math.PI - 0.35 : 0.35) + Math.sin(now / 260 + i) * 0.16 + tYaw * 0.014;
+      const ang = (side < 0 ? Math.PI : 0) + Math.sin(now / 260 + i) * 0.04 + tYaw * 0.006;   // straight out of each eye
       const spread = 0.24, n = RAIN.length;
       RAIN.forEach((c, j) => {
         const a0 = ang - spread + (2 * spread * j) / n, a1 = ang - spread + (2 * spread * (j + 1)) / n;
