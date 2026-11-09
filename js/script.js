@@ -745,19 +745,45 @@
       return;
     }
     el.style.filter = "hue-rotate(" + Math.round((now / 6) % 360 * trip) + "deg) saturate(" + (1 + trip * 0.9).toFixed(2) + ")";
+    // pixel beams: drawn on a low-res canvas (1 px = 6 screen px) that is scaled up without smoothing
+    const PXS = 6;
     if (!beams) {
-      beams = h("div", "eye-beams"); beams.append(h("i", "beam l"), h("i", "beam r"));
-      el.parentNode.appendChild(beams);
+      beams = document.createElement("canvas"); beams.className = "eye-beams";
+      document.getElementById("orbit").appendChild(beams);
     }
-    const r = el.getBoundingClientRect(), pr = el.parentNode.getBoundingClientRect(), k = r.width / 420;
-    const ex = r.left - pr.left + r.width / 2 + tYaw * 1.6 * k, ey = r.top - pr.top + r.height * 0.5;
-    beams.style.opacity = Math.min(1, trip * 1.4).toFixed(2);
-    [...beams.children].forEach((b, i) => {
-      const side = i ? 1 : -1, sway = Math.sin(now / 260 + i) * 9;
-      b.style.left = (ex + side * 46 * k) + "px"; b.style.top = ey + "px";
-      b.style.rotate = (side < 0 ? 160 + sway : 20 + sway) + tYaw * 0.8 + "deg";   // out and slightly down from each eye
-      b.style.backgroundPosition = "0 0, " + Math.round(now / 12 % 80) + "px 0";   // colours run outward
+    const cw = Math.ceil(innerWidth / PXS), ch = Math.ceil(innerHeight / PXS);
+    if (beams.width !== cw || beams.height !== ch) { beams.width = cw; beams.height = ch; }
+    const bx = beams.getContext("2d"); bx.clearRect(0, 0, cw, ch); bx.imageSmoothingEnabled = false;
+    const r = el.getBoundingClientRect(), k = r.width / 420;
+    const ex = r.left + r.width / 2 + tYaw * 1.6 * k, ey = r.top + r.height * 0.5;
+    const RAIN = [[255, 106, 213], [255, 211, 106], [255, 245, 138], [255, 255, 255], [138, 255, 193], [106, 216, 255], [180, 138, 255]];
+    const L = Math.hypot(cw, ch) * 0.8, hue = (now / 8) % 360;
+    [-1, 1].forEach((side, i) => {
+      const ox = (ex + side * 46 * k) / PXS, oy = ey / PXS;
+      const ang = (side < 0 ? Math.PI - 0.35 : 0.35) + Math.sin(now / 260 + i) * 0.16 + tYaw * 0.014;
+      const spread = 0.24, n = RAIN.length;
+      RAIN.forEach((c, j) => {
+        const a0 = ang - spread + (2 * spread * j) / n, a1 = ang - spread + (2 * spread * (j + 1)) / n;
+        // stepped fade along the beam: hard alpha steps read as pixel fading
+        const g = bx.createRadialGradient(ox, oy, 0, ox, oy, L), rgb = c.join(",");
+        [[0, 1], [0.16, 1], [0.16, 0.82], [0.32, 0.82], [0.32, 0.6], [0.48, 0.6], [0.48, 0.38], [0.64, 0.38], [0.64, 0.18], [0.8, 0.18], [0.8, 0]]
+          .forEach(([o, al]) => g.addColorStop(o, "rgba(" + rgb + "," + (al * trip).toFixed(3) + ")"));
+        bx.fillStyle = g; bx.beginPath(); bx.moveTo(ox, oy);
+        bx.lineTo(ox + Math.cos(a0) * L, oy + Math.sin(a0) * L); bx.lineTo(ox + Math.cos(a1) * L, oy + Math.sin(a1) * L); bx.closePath(); bx.fill();
+      });
+      // sparkles: single bright pixels and little + crosses twinkling inside the cone
+      for (let q = 0; q < 26; q++) {
+        const seed = Math.sin(q * 91.7 + i * 13.1) * 43758.5, fr = seed - Math.floor(seed);
+        const d = ((fr * L * 0.8 + now / 18 * (0.5 + fr)) % (L * 0.8)) + 4;
+        const aa = ang + (fr - 0.5) * 2 * spread * 0.9;
+        const sx = Math.round(ox + Math.cos(aa) * d), sy = Math.round(oy + Math.sin(aa) * d);
+        const tw = (Math.sin(now / 90 + q * 2.3) + 1) / 2;
+        bx.fillStyle = "rgba(255,255,255," + (tw * trip * (1 - d / L)).toFixed(2) + ")";
+        bx.fillRect(sx, sy, 1, 1);
+        if (q % 4 === 0 && tw > 0.6) { bx.fillRect(sx - 1, sy, 3, 1); bx.fillRect(sx, sy - 1, 1, 3); }
+      }
     });
+    beams.style.filter = "hue-rotate(" + Math.round(hue) + "deg) saturate(1.6)";
   }
   // while blocks.exe is open the big head bops along to the 144 bpm tune
   function danceStep(now) {
@@ -957,7 +983,7 @@
         app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"), h("div", "snake-tip", "♪ Bytesize – Dig Dug")); 
         body.appendChild(app);
         flapApi = makeFlap(cv, msg, sS, sB, lcd);
-        setPixelFace(true); setTimeout(() => setShades(true), 500);
+        setPixelFace(true);
       }
     });
   }
@@ -973,12 +999,20 @@
       play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
       stop() { song.pause(); }
     };
+    // where the track drops (per half second, measured from the file): the meme shades slam on there
+    const DROPS = "00011111111111111111111111110001111111111111111111111110001111111111111111111111110000111111111111111111111000000111111111111111111111111111111111111111111110000000000";
+    let shadesOn = false, playT = 0;
+    function dropShades() {
+      const t = !song.paused && song.currentTime > 0 ? song.currentTime : (running ? (playT += 1 / 60) : 0);
+      const want = running && DROPS[Math.floor(t * 2)] === "1";
+      if (want !== shadesOn) { shadesOn = want; setShades(want); if (want) { mlg.hit(); hitmark(60, by); } }
+    }
     function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 40); addPipe(W + 40 + 175); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
     function hitmark(X, Y) { fx.push({ hm: true, x: X, y: Y, life: 1 }); }
     function flap() { if (!running) { start(); return; } vy = JUMP; mlg.flap(); }
-    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; dubs.play(); }
+    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; playT = 0; dubs.play(); }
     function die() {
       alive = false; running = false; shake = 18; dubs.stop(); mlg.horn(); sfx.die();
       pop("GET REKT", W / 2, H / 2 - 30, true); hitmark(60, by); hitmark(70, by - 12);
@@ -1041,6 +1075,7 @@
     }
     function step() {
       frame++;
+      dropShades();
       if (running) {
         vy += GRAV; by += vy;
         if (by < 14) { by = 14; vy = Math.max(vy, 0); }   // soft ceiling
