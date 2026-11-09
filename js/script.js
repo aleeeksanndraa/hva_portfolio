@@ -1271,9 +1271,9 @@
     });
   }
   // beat_dash level: laid out on the beat grid of the song (175 bpm), denser where the track is loud
-  const DASH = { T0: 0.2351, BEAT: 60 / 175.15, PPS: 252, END: 90,
+  const DASH = { T0: 0.2177, BEAT: 60 / 175.15, PPS: 252, END: 85,
     // loudness per beat, 0-9 (measured from the track)
-    E: "39896949599969395999793978990000000957498869797968796688778976886699669989997699739976997999749756364288579964997398539667997497859885989997859682869696999696879663122111101231034100111010033103420010101003210342032323341343443499959999899479599984998669399499997" };
+    E: "95893991000000853976799759883987496879894958498859699979696949597979997978575607474987596969686857488769687978796899999966885389679989996599637112110200321023200102010022202330010201002221233022232252244343479797969996929699969296939699949997929799" };
   function dashLevel(GY, C, PX) {
     let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
     const obs = [], bx = (i) => (DASH.T0 + i * DASH.BEAT) * DASH.PPS + PX;
@@ -1300,7 +1300,7 @@
   function makeDash(cv, msg, attEl, bestEl) {
     const x = cv.getContext("2d"), W = cv.width, H = cv.height, GY = 164, C = 20, PX = 70;
     const head = new Image(); head.src = "assets/face-cutout.webp";
-    // Sasha's own 8-bit edit of Feint – Snake Eyes (licensed via Monstercat Gold), starting on the drop
+    // Sasha's own 8-bit edit of Feint – Snake Eyes (licensed via Monstercat Gold), starting at 1:01
     const song = new Audio("assets/flap-song.mp3"); song.volume = 0.6; song.preload = "auto"; songs.push(song);
     const music = {
       play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
