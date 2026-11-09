@@ -430,7 +430,11 @@
             c.media.forEach((md) => {
               const f = h("figure");
               const box = h("div", "mb " + md.kind);
-              if (md.img) { const im = h("img"); im.src = md.img; im.alt = md.label; im.loading = "lazy"; box.appendChild(im); }
+              if (md.video) {
+                const v = h("video"); v.src = md.video; if (md.img) v.poster = md.img;
+                v.controls = true; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "none"; v.setAttribute("aria-label", md.label);
+                box.appendChild(v);
+              } else if (md.img) { const im = h("img"); im.src = md.img; im.alt = md.label; im.loading = "lazy"; box.appendChild(im); }
               f.append(box, h("figcaption", null, md.label));
               m.appendChild(f);
             });
@@ -1345,7 +1349,7 @@
     // loudness per beat, 0-9 (measured from the track)
     E: "95893991000000853976799759883987496879894958498859699979696949597979997978575607474987596969686857488769687978796899999966885389679989996599637112110200321023200102010022202330010201002221233022232252244343479797969996929699969296939699949997929799" };
   // the drops of the track, in beats: the first hits ~5% into the run, the second after the breakdown
-  const DASH_DROPS = [[12, 143], [209, 1e9]];
+  const DASH_DROPS = [[13.5, 144.5], [210.5, 1e9]];   // fractional beats: 1.5 beats ≈ 0.5 s later than the measured hit, as Sasha asked
   const dashInDrop = (b) => DASH_DROPS.some(([a, z]) => b >= a && b < z);
   // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases outside the drops, night phrases inside them
   const DASH_THEMES = [
@@ -1448,7 +1452,7 @@
       // the world changes every 16 beats (a phrase); loud phrases get the night palette
       const phrase = Math.max(0, Math.floor(bt / 16)), pb = bt - phrase * 16;
       let loudSum = 0; for (let k = phrase * 16; k < phrase * 16 + 16; k++) loudSum += +(DASH.E[k] || 0);
-      const drop = running && dashInDrop(Math.floor(bt));
+      const drop = running && dashInDrop(bt);
       if (drop && !wasDrop) dropHit = 1;   // the drop lands: instant scene swap + big flash + shake
       wasDrop = drop; dropHit *= 0.93;
       const th = running ? DASH_THEMES[(drop ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
@@ -1548,8 +1552,7 @@
       // laser eyes only during the drops (beat ranges of the track: first drop hits ~5% into the run, second after the breakdown)
       level() {
         if (!running) return 0;
-        const b = Math.floor((t - DASH.T0) / DASH.BEAT);
-        return dashInDrop(b) ? 9 : 0;
+        return dashInDrop((t - DASH.T0) / DASH.BEAT) ? 9 : 0;
       },
       stop() { running = false; music.stop(); }
     };
@@ -1640,7 +1643,7 @@
   const COVERS = {
     "01": { img: "assets/badge-tight.png" },
     "02": { type: "IN //<br>BETWEEN" },
-    "03": { type: "TAN<br>DEM" },
+    "03": { img: "assets/tandem-cover.jpg" },
     "04": { img: "assets/ei-little-tank-tank.jpg" },
     "05": { type: "PERS<br>ONAL" },
     "06": { type: "SELF<br>GROW" }
