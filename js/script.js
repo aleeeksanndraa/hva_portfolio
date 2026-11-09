@@ -668,7 +668,9 @@
   const COVERS = {
     "01": { img: "assets/badge-tight.png" },
     "02": { type: "IN //<br>BETWEEN" },
-    "03": { img: "assets/ei-little-tank-tank.jpg" }
+    "03": { img: "assets/ei-little-tank-tank.jpg" },
+    "04": { type: "TAN<br>DEM" },
+    "05": { type: "PERS<br>ONAL" }
   };
   const CARDS = PROJECTS.map((p, i) => ({ app: "project:" + i, num: p.index, title: p.title, file: p.index + "_" + slug(p.title) + ".doc", meta: p.course.split("(")[0].trim() + " · " + p.year, cover: COVERS[p.index] || { type: p.title } }));
   CARDS.push({ app: "about", num: "ME", title: "ABOUT", file: "about_me.txt", meta: "who's behind the face", cover: { img: "assets/tamagotchi-with-me.png" } });

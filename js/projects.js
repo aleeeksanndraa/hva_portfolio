@@ -43,6 +43,23 @@
         { n: "PROTOTYPE 2", title: "Building Little Tank", text: "Three A4 stencils (Classic, Puffer, Angel), each with four black corner squares so the phone can find the sheet, correct the perspective and cut the fish out cleanly. The big screen shows the tank with a QR code; the phone view takes the photo, a fish name and an optional note that appears when someone taps the fish. Every fish lands in one shared tank, and I restyled it to match Little Rooms so both prototypes read as one family.", media: [{ label: "FIG. 06 — PHONE: ADD YOUR FISH", kind: "tall", img: "assets/ei-little-tank-phone.jpg" }] },
         { n: "NEXT STEPS", title: "Next steps", text: "Test both prototypes with classmates and people outside the course, using the survey results to decide what to measure. Questions to answer: does making something with your hands (the fish) feel more like home than arranging something on a screen (the room)? Do letters from strangers feel warm or intrusive? Then bring the findings to Romar for the concept crit and choose one direction to take to the week 8 hand-in.", media: [] }
       ]
+    },
+    {
+      index: "04", title: "TANDEM", year: "2026", course: "Accessibility project", role: "To be filled in", status: "Draft — content coming",
+      chapters: [
+        { n: "OVERVIEW", title: "An accessibility project", text: "Placeholder. This page is waiting for Sasha's material: what Tandem is, who it was for, and what she made.", media: [] },
+        { n: "BRIEF", title: "Brief", text: "Placeholder for the brief.", media: [] },
+        { n: "PROCESS", title: "Process", text: "Placeholder for research, iterations and testing.", media: [] },
+        { n: "OUTCOME", title: "Outcome", text: "Placeholder for the final result and reflection.", media: [] }
+      ]
+    },
+    {
+      index: "05", title: "PERSONAL PROJECT", year: "2026", course: "Personal project", role: "Solo — to be filled in", status: "Draft — content coming",
+      chapters: [
+        { n: "OVERVIEW", title: "My personal project", text: "Placeholder. This page is waiting for Sasha's material: the idea, why it matters to her, and what she made.", media: [] },
+        { n: "PROCESS", title: "Process", text: "Placeholder for research, sketches and iterations.", media: [] },
+        { n: "OUTCOME", title: "Outcome", text: "Placeholder for the final result and reflection.", media: [] }
+      ]
     }
   ];
 })();
