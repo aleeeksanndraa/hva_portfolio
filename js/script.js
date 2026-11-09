@@ -1363,6 +1363,7 @@
     item("✦", "Stars (" + got.length + "/" + STARS.length + ")", () => openApp("stars", startBtn));
     box.appendChild(h("div", "sm-sep"));
     item(soundOn ? "🔊" : "🔇", soundOn ? "Turn sound off" : "Turn sound on", () => { setSound(!soundOn); sfx.click(); });
+    item("↻", "Restart (reset stars)", restartOS);
     item("⏻", "Shut down…", shutDown);
   }
   function closeStart() { startMenu.hidden = true; startBtn.setAttribute("aria-expanded", "false"); }
@@ -1374,6 +1375,12 @@
     startBtn.setAttribute("aria-expanded", String(open));
     sfx.click();
   });
+  // restart: forget the found stars (and the glasses reward) and boot again
+  function restartOS() {
+    sfx.close();
+    try { localStorage.removeItem("sasha:stars"); localStorage.removeItem("sasha:skin"); } catch (e) { /* private mode */ }
+    setTimeout(() => location.reload(), 250);
+  }
   function shutDown() {
     sfx.close();
     const s = h("div");
