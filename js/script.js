@@ -1030,7 +1030,7 @@
 
   /* ---------- beat engine: synthesized drums, wobble bass and leads (no samples) ---------- */
   function makeBeat(kind) {
-    const BPM = kind === "dub" ? 140 : kind === "melo" ? 174 : 150, S = 60 / BPM / 4;   // one 16th note
+    const BPM = kind === "dub" ? 140 : 174, S = 60 / BPM / 4;   // one 16th note
     let timer = null, gain = null, t = 0, step = 0, noise = null, t0 = 0;
     const ctx = () => actx;
     function nz() {
@@ -1107,14 +1107,33 @@
     const CH = [[220, 261.63, 329.63], [174.61, 220, 261.63], [261.63, 329.63, 392], [196, 246.94, 293.66]];
     const MEL = [0, 0, 2, 0, 1, 0, 2, 1, 0, 2, 1, 0, 2, 0, 1, 2];
     function dash(n, at) {
+      // bright drum & bass: A minor (Am F C G), arps on top, reese underneath
       const s = n % 16, bar = Math.floor(n / 16) % 8, ch = CH[bar % 4];
-      if (s % 4 === 0) kick(at, 0.5);
-      if (s === 4 || s === 12) snare(at, 0.18);
-      if (s % 4 === 2) hat(at, 0.06, true); else hat(at, 0.025);
-      if (s % 2 === 0) sawBass(at, (s % 4 === 2 ? ch[0] : ch[0] / 2) / 2, S * 1.8, 0.11);
-      tone(at, ch[(s + bar) % 3] * 2, S * 0.9, "square", 0.022);   // arp
-      if (bar >= 4 && s % 2 === 0) tone(at, ch[MEL[(s + bar * 3) % 16]] * 4, S * 1.8, "triangle", 0.045);   // lead line in the second half
-      if (bar === 7 && s >= 12) snare(at, 0.1 + (s - 12) * 0.04);
+      dnbDrums(s, bar, at, bar === 7);
+      if (s === 0 || s === 8 || s === 11) reese(at, ch[0] / 2, S * (s === 11 ? 5 : 3), 0.07, 1600);
+      if (s % 2 === 0) tone(at, ch[(s / 2 + bar) % 3] * 2, S * 0.9, "square", 0.02);   // arp
+      if (bar >= 4 && MEL[(s + bar * 3) % 16] !== 1 && s % 3 !== 2) pluck(at, ch[MEL[(s + bar * 3) % 16]] * 4, 0.03);   // lead in the second half
+    }
+
+    // ---- drum & bass toolkit: two-step break + rolling reese bass ----
+    function dnbDrums(s, bar, at, fill) {
+      if (s === 0 || s === 10 || (bar % 2 === 1 && s === 7)) kick(at, 0.55);
+      if (s === 4 || s === 12) snare(at, 0.34);
+      if (s === 7 || s === 15 || (bar % 2 === 0 && s === 9)) snare(at, 0.07);   // ghost notes
+      hat(at, s % 2 ? 0.022 : 0.04); if (s === 6 || s === 14) hat(at, 0.035, true);
+      if (fill && s >= 12) { snare(at, 0.12 + (s - 12) * 0.05); if (s % 2) snare(at + S / 2, 0.1); }
+    }
+    function reese(at, f, dur, v, open) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain();
+      f1.type = "lowpass"; f1.Q.value = 5;
+      f1.frequency.setValueAtTime(220, at); f1.frequency.linearRampToValueAtTime(open || 900, at + dur * 0.5); f1.frequency.linearRampToValueAtTime(260, at + dur);
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.02);
+      g.gain.setValueAtTime(v, at + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      [-18, 18].forEach((c) => { const o = actx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = c; o.connect(f1); o.start(at); o.stop(at + dur + 0.02); });
+      const sub = actx.createOscillator(), sg = actx.createGain(); sub.type = "sine"; sub.frequency.value = f / 2;
+      sg.gain.setValueAtTime(0.0001, at); sg.gain.exponentialRampToValueAtTime(v * 1.6, at + 0.02); sg.gain.setValueAtTime(v * 1.6, at + dur * 0.85); sg.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      sub.connect(sg).connect(gain); sub.start(at); sub.stop(at + dur + 0.02);
+      f1.connect(g).connect(gain);
     }
 
     // ---- "melo": emotional melodic dubstep, 174 bpm half-time, F minor (Db Ab Eb Fm) ----
@@ -1147,17 +1166,16 @@
       o.start(at); o2.start(at); o.stop(at + 0.34); o2.stop(at + 0.34);
     }
     function melo(n, at) {
-      const s = n % 16, bar = Math.floor(n / 16) % 8, c = bar % 4, drop = bar >= 4;
-      if (s === 0) supersaw(at, PROG[c], S * 16, drop ? 0.016 : 0.012);
-      if (s === 0 || (drop && s === 10)) kick(at, 0.55);
-      if (s === 8) snare(at, 0.32);
-      if (s % 2 === 0) hat(at, 0.03); if (s % 4 === 3) hat(at, 0.02);
-      if (bar === 3 && s >= 12) snare(at, 0.12 + (s - 12) * 0.05);   // little fill into the drop
+      // melodic drum & bass: intro bars 0-3 (pads, pluck, light hats), full roll bars 4-15
+      const s = n % 16, bar = Math.floor(n / 16) % 16, c = bar % 4, intro = bar < 4;
+      if (s === 0) supersaw(at, PROG[c], S * 16, intro ? 0.012 : 0.014);
+      if (intro) { if (s % 2 === 0) hat(at, 0.025); if (bar === 3) { if (s >= 8) snare(at, 0.08 + (s - 8) * 0.03); if (s === 8) tone(at, 300, S * 8, "sawtooth", 0.03, 2400); } }
+      else {
+        dnbDrums(s, bar, at, bar % 8 === 7);
+        if (s === 0 || s === 6 || s === 10) reese(at, ROOT[c] * 2, S * (s === 6 ? 4 : 6), 0.07, s === 10 ? 1400 : 800);
+      }
       const k = HOOK[(s + (bar % 2) * 3) % 16];
-      if (k >= 0) pluck(at, SCALE[k] * (drop && bar % 2 ? 2 : 1), drop ? 0.035 : 0.045);
-      if (drop) { if (s % 8 === 0) wob(at, ROOT[c] * 2, S * 6, s === 8 ? 10.9 : 5.4, 0.1, 0); }
-      else if (s === 0) tone(at, ROOT[c] * 2, S * 15, "sine", 0.18);
-      if (bar === 7 && s === 14) tone(at, 1800, 0.2, "square", 0.02, 120);
+      if (k >= 0) pluck(at, SCALE[k] * (!intro && bar % 4 >= 2 ? 2 : 1), intro ? 0.045 : 0.032);
     }
 
     const fn = kind === "dub" ? dub : kind === "melo" ? melo : dash;
