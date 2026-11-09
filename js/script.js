@@ -852,20 +852,31 @@
   let tYaw = 0, tPitch = NEUTRAL_PITCH, shown = -1, pokes = 0, pokeReset = null;
   function blink() { /* the video has no blink */ }
   // mosaic: 0 = big blocks, 1 = the clear photo (animated in after loading)
-  let mosaic = 0, lastMosaic = -1;
+  let mosaic = 0, lastKey = "";
   const mc = document.createElement("canvas"), mx = mc.getContext("2d");
-  function drawFrame(i) {
-    if ((i === shown && mosaic === lastMosaic) || !sheet.complete || !sheet.naturalWidth) return;
-    shown = i; lastMosaic = mosaic;
-    const s = SHEET.size, sx = (i % SHEET.cols) * s, sy = Math.floor(i / SHEET.cols) * s;
+  // draw frame i of a sprite sheet into the head canvas (same size + position for every sheet)
+  function blit(img, sh, i, alpha) {
+    const s = sh.size, sx = (i % sh.cols) * s, sy = Math.floor(i / sh.cols) * s;
+    hx.globalAlpha = alpha == null ? 1 : alpha;
+    if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(img, sx, sy, s, s, 0, 0, hc.width, hc.height); }
+    else {
+      const n = Math.max(8, Math.round(hc.width * mosaic * mosaic));
+      mc.width = n; mc.height = n; mx.clearRect(0, 0, n, n);
+      mx.drawImage(img, sx, sy, s, s, 0, 0, n, n);
+      hx.imageSmoothingEnabled = false;
+      hx.drawImage(mc, 0, 0, n, n, 0, 0, hc.width, hc.height);
+    }
+    hx.globalAlpha = 1;
+  }
+  const ready = (img) => img.complete && img.naturalWidth > 0;
+  // one frame, or a crossfade between two: layers = [[img, sheet, index, alpha], ...]
+  function paint(layers) {
+    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic;
+    if (key === lastKey) return;
+    if (!layers.every((l) => ready(l[0]))) return;
+    lastKey = key;
     hx.clearRect(0, 0, hc.width, hc.height);
-    if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(sheet, sx, sy, s, s, 0, 0, hc.width, hc.height); return; }
-    const n = Math.max(8, Math.round(hc.width * mosaic * mosaic));
-    mc.width = n; mc.height = n;
-    mx.clearRect(0, 0, n, n);
-    mx.drawImage(sheet, sx, sy, s, s, 0, 0, n, n);
-    hx.imageSmoothingEnabled = false;
-    hx.drawImage(mc, 0, 0, n, n, 0, 0, hc.width, hc.height);
+    layers.forEach((l) => blit(l[0], l[1], l[2], l[3]));
   }
   function resolveFace(dur) {
     if (reduceMotion) { mosaic = 1; return; }
@@ -877,23 +888,114 @@
       if (p < 1) requestAnimationFrame(step);
     })(t0);
   }
-  function updateEyes() {
+  // nearest head-turn frame for a pose
+  function turnFrame(yaw, pitch) {
+    let best = 0, bd = Infinity;
+    SHEET.poses.forEach((p, i) => { const d = (p[0] - yaw) ** 2 + 2.2 * (p[1] - pitch) ** 2; if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+
+  /* ---------- character state system ----------
+     idle      : the head follows the cursor (head-turn sheet)
+     settling  : before an emotion, the head eases back to facing forward
+     emotion   : a registered emotion plays once; cursor-following is paused
+     returning : short crossfade from the emotion's last frame back to idle
+     Only one emotion runs at a time, each has its own cooldown. */
+  const EMOTIONS = {};
+  function registerEmotion(name, def) {
+    const e = Object.assign({ fps: 12, cooldown: 6000, fadeIn: 160, fadeOut: 260 }, def);
+    if (e.src) { e.img = new Image(); e.img.src = e.src; e.sheet = { src: e.src, size: e.size, cols: e.cols }; }
+    e.lastEnd = -Infinity;
+    EMOTIONS[name] = e;
+  }
+  const character = {
+    state: "idle", emotion: null, t0: 0,
+    busy() { return this.state !== "idle"; },
+    play(name) {
+      const e = EMOTIONS[name], now = performance.now();
+      if (!e || this.busy() || mosaic < 1 || now - e.lastEnd < e.cooldown) return false;
+      if (e.img && !ready(e.img)) return false;
+      this.emotion = e; this.state = e.settle === false ? "emotion" : "settling"; this.t0 = now;
+      return true;
+    }
+  };
+  function stepCharacter(now) {
     const r = faceBody.getBoundingClientRect();
     if (!r.width) return;
-    const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.45);
-    const nx = Math.max(-1, Math.min(1, dx / (innerWidth * 0.45)));
-    const ny = Math.max(-1, Math.min(1, dy / (innerHeight * 0.45)));
-    const wantYaw = nx * 38;
-    const wantPitch = ny < 0 ? NEUTRAL_PITCH + ny * 20 : NEUTRAL_PITCH + ny * 3;
-    const ease = reduceMotion ? 1 : 0.12;
+    const c = character, e = c.emotion;
+    let wantYaw = 0, wantPitch = NEUTRAL_PITCH;
+    if (c.state === "idle") {
+      const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.45);
+      const nx = Math.max(-1, Math.min(1, dx / (innerWidth * 0.45)));
+      const ny = Math.max(-1, Math.min(1, dy / (innerHeight * 0.45)));
+      wantYaw = nx * 38;
+      wantPitch = ny < 0 ? NEUTRAL_PITCH + ny * 20 : NEUTRAL_PITCH + ny * 3;
+    }
+    const ease = reduceMotion ? 1 : (c.state === "settling" ? 0.2 : 0.12);
     tYaw += (wantYaw - tYaw) * ease;
     tPitch += (wantPitch - tPitch) * ease;
-    let best = 0, bd = Infinity;
-    SHEET.poses.forEach((p, i) => { const d = (p[0] - tYaw) ** 2 + 2.2 * (p[1] - tPitch) ** 2; if (d < bd) { bd = d; best = i; } });
-    drawFrame(best);
+    const idleLayer = [sheet, SHEET, turnFrame(tYaw, tPitch), 1];
+
+    if (c.state === "settling") {
+      // wait until the head faces forward (or give up waiting after 700ms)
+      if ((Math.abs(tYaw) < 3 && Math.abs(tPitch - NEUTRAL_PITCH) < 2) || now - c.t0 > 700) { c.state = "emotion"; c.t0 = now; }
+      paint([idleLayer]);
+      return;
+    }
+    if (c.state === "emotion") {
+      const el = now - c.t0;
+      if (reduceMotion) {
+        // no playback: show the expression's key frame as a still, then go back
+        paint([[e.img, e.sheet, e.still, 1]]);
+        if (el > (e.stillFor || 1800)) { c.state = "returning"; c.t0 = now; }
+        return;
+      }
+      const f = Math.floor(el / 1000 * e.fps);
+      if (f >= e.frames) { c.state = "returning"; c.t0 = now; paint([[e.img, e.sheet, e.frames - 1, 1]]); return; }
+      const fade = Math.min(1, el / e.fadeIn);
+      paint(fade < 1 ? [idleLayer, [e.img, e.sheet, f, fade]] : [[e.img, e.sheet, f, 1]]);
+      return;
+    }
+    if (c.state === "returning") {
+      const p = reduceMotion ? 1 : Math.min(1, (now - c.t0) / e.fadeOut);
+      paint(p < 1 ? [[e.img, e.sheet, reduceMotion ? e.still : e.frames - 1, 1], [sheet, SHEET, idleLayer[2], p]] : [idleLayer]);
+      if (p >= 1) { e.lastEnd = now; c.state = "idle"; c.emotion = null; }
+      return;
+    }
+    paint([idleLayer]);
   }
+  // kept under its old name for the main loop
+  function updateEyes() { stepCharacter(performance.now()); }
+
+  registerEmotion("sassy_smirk", {
+    // 4 s clip: side-eye, mischievous smirk, back to looking forward
+    src: "assets/face-smirk.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 30, stillFor: 1800, cooldown: 8000
+  });
+
+  registerEmotion("annoyed", {
+    // 4 s clip: neutral, nose scrunch, then a cold glare; plays when you poke her face
+    src: "assets/face-annoyed.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 34, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
+  });
+
+  // trigger: hover a project card for 2 s; once per hover
+  cardEls.forEach((el) => {
+    let timer = null, fired = false;
+    el.addEventListener("pointerenter", (ev) => {
+      if (ev.pointerType !== "mouse") return;
+      clearTimeout(timer);
+      if (fired) return;
+      timer = setTimeout(() => { fired = character.play("sassy_smirk") || fired; }, 2000);
+    });
+    el.addEventListener("pointerleave", () => { clearTimeout(timer); timer = null; fired = false; });
+  });
+
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
+    // another emotion (the smirk) is mid-play: don't stack a second one on top
+    if (character.busy() && character.emotion !== EMOTIONS.annoyed) return;
+    character.play("annoyed");
     sfx.poke();
     burst(e.clientX, e.clientY, 10, "215,163,189");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
@@ -995,7 +1097,7 @@
     const screen = $("boot");
     const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
     const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
-    const urls = [SHEET.src, "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+    const urls = [SHEET.src, "assets/face-smirk.webp", "assets/face-annoyed.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
       .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
     let loaded = 0;
     const uniq = Array.from(new Set(urls));
