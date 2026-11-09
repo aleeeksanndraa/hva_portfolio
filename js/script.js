@@ -926,7 +926,7 @@
         const sS = h("b", null, "0"), sB = h("b", null, String(store.get("flap-best", 0)));
         const s1 = h("span", null, "SCORE "), s2 = h("span", null, "BEST ");
         s1.appendChild(sS); s2.appendChild(sB); sc.append(s1, s2);
-        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"), h("div", "snake-tip", "♪ Feint – Snake Eyes (feat. CoMa) · 8-bit edit by Sasha"));
+        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG")); 
         body.appendChild(app);
         flapApi = makeFlap(cv, msg, sS, sB, lcd);
       }
@@ -938,12 +938,7 @@
     const GAP = 96, PW = 40, SPD = 1.6, GRAV = 0.32, JUMP = -5.6;
     let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
     let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
-    // Sasha's own 8-bit edit of Feint – Snake Eyes (licensed), starting at 1:00
-    const song = new Audio("assets/flap-song.mp3"); song.loop = true; song.volume = 0.55; song.preload = "none"; songs.push(song);
-    const dubs = {
-      play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
-      stop() { song.pause(); }
-    };
+    const dubs = makeBeat("dub");
     function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 20); addPipe(W + 20 + 150); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
@@ -1086,28 +1081,53 @@
       o.connect(f1).connect(g).connect(gain); o.start(at); o.stop(at + dur + 0.02);
     }
 
-    // ---- "dub": weird half-time dubstep in F minor, 4-bar phrase with a stutter build ----
-    const F1 = 43.65, NOTES = [F1, F1, 51.91, F1, 38.89, F1, 65.41, 58.27];
-    const RATES = [2.33, 4.67, 9.33, 3.5, 14, 7, 1.17, 18.7];
+    // ---- "dub": hard half-time dubstep at 140, F minor. 8-bar loop: 2 bars build, 6 bars drop ----
+    let curve = null;
+    function dist() {   // a hard clipper for the growls
+      const ws = actx.createWaveShaper();
+      if (!curve) { curve = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const v = i / 512 - 1; curve[i] = Math.tanh(v * 6); } }
+      ws.curve = curve; return ws;
+    }
+    function growl(at, f, dur, rate, v, bend, shape) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain(), l = actx.createOscillator(), lg = actx.createGain(), d = dist(), post = actx.createBiquadFilter();
+      f1.type = "lowpass"; f1.Q.value = 14; f1.frequency.value = 300;
+      l.type = shape || "sine"; l.frequency.value = rate; lg.gain.value = 2200; l.connect(lg).connect(f1.frequency);
+      post.type = "lowpass"; post.frequency.value = 4200;
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.008);
+      g.gain.setValueAtTime(v, at + dur * 0.9); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      [[1, "sawtooth"], [1.007, "sawtooth"], [0.5, "square"], [2.003, "square"]].forEach(([m, ty]) => {
+        const o = actx.createOscillator(); o.type = ty;
+        o.frequency.setValueAtTime(f * m, at); if (bend) o.frequency.exponentialRampToValueAtTime(f * m * bend, at + dur);
+        o.connect(f1); o.start(at); o.stop(at + dur + 0.02);
+      });
+      f1.connect(d).connect(post).connect(g).connect(gain); l.start(at); l.stop(at + dur + 0.02);
+    }
+    function sub(at, f, dur, v) { tone(at, f, dur, "sine", v); }
+    const DF = 43.65, DN = [DF, DF, DF * 1.189, DF, DF * 0.891, DF, DF * 1.498, DF * 1.335];
+    const DR = [4.67, 9.33, 2.33, 18.67, 7, 14, 3.5, 28];
     function dub(n, at) {
-      const s = n % 16, bar = Math.floor(n / 16) % 4;
-      if (bar === 3 && s >= 8) {                    // build: snare roll speeding up + riser
-        if (s >= 12 || s % 2 === 0) snare(at, 0.12 + (s - 8) * 0.03);
-        if (s === 8) tone(at, 200, S * 8, "sawtooth", 0.035, 1600);
-        if (s === 15) { tone(at, 2400, 0.25, "square", 0.03, 90); }   // laser zap into the drop
+      const s = n % 16, bar = Math.floor(n / 16) % 8;
+      if (bar < 2) {   // build: kick on the beat, snare roll speeding up, riser, then silence and a zap
+        if (s % 4 === 0 && bar === 0) kick(at, 0.5);
+        if (bar === 0 && s % 4 === 0) snare(at, 0.12);
+        if (bar === 1) { if (s < 8 ? s % 2 === 0 : true) snare(at, 0.1 + s * 0.015); if (s >= 12) snare(at + S / 2, 0.14); }
+        if (bar === 0 && s === 0) tone(at, 120, S * 30, "sawtooth", 0.04, 3200);
+        if (bar === 1 && s === 15) tone(at, 3000, 0.2, "square", 0.04, 60);
+        hat(at, 0.02 + bar * 0.02);
         return;
       }
-      if (s === 0 || s === 10) kick(at);
-      if (s === 8) snare(at);
-      if (s % 2 === 0) hat(at, 0.04); if (s === 14) hat(at, 0.05, true);
-      if (s % 4 === 0) {
-        const k = (Math.floor(n / 4) + bar * 3) % NOTES.length;
-        const r = RATES[(k * 5 + bar) % RATES.length];
-        wob(at, NOTES[k], S * (s === 12 ? 2 : 4) * 0.98, r, 0.16, Math.random() < 0.25 ? (Math.random() < 0.5 ? 0.5 : 2) : 0);
-        if (s === 12) wob(at + S * 2, NOTES[(k + 3) % NOTES.length] * 2, S * 2 * 0.95, 18.7, 0.12, 0.7);
-      }
-      if (Math.random() < 0.06) tone(at, 900 + Math.random() * 2000, 0.09, "square", 0.025, 60 + Math.random() * 200);   // random zaps
-      if (bar === 2 && s === 6) tone(at, 220, 0.3, "square", 0.04, 880);   // "yoi"
+      // the drop
+      if (s === 0) { kick(at, 0.7); sub(at, DF, S * 3, 0.22); }
+      if (s === 10 || (bar % 2 && s === 3)) kick(at, 0.55);
+      if (s === 8) { snare(at, 0.42); hiss(at, 0.12, 0.25, 3000); }
+      if (s % 2 === 0) hat(at, 0.035);
+      if (bar === 7 && s >= 12) snare(at, 0.2 + (s - 12) * 0.05);
+      const k = (bar * 4 + Math.floor(s / 4)) % 8;
+      if (s % 4 === 0 && !(bar === 7 && s >= 12)) {
+        const r = DR[(k * 3 + bar) % DR.length], b = bar % 2 && s === 12 ? 0.5 : (k % 3 === 2 ? 1.5 : 0);
+        growl(at, DN[k], S * 3.8, r, 0.2, b, k % 2 ? "square" : "sine");
+      } else if (s % 4 === 2 && (bar + s) % 3 === 0) growl(at, DN[(k + 2) % 8] * 2, S * 1.6, 28, 0.16, 0.7, "square");   // stutter screech
+      if (s === 14 && bar % 2 === 0) tone(at, 1600, 0.12, "square", 0.04, 4000);   // metallic yelp
     }
 
     // ---- "dash": bright 150bpm four-on-the-floor in A minor (Am F C G) ----
@@ -1212,7 +1232,7 @@
         try {
           actx = actx || new (window.AudioContext || window.webkitAudioContext)();
           if (actx.state === "suspended") actx.resume();
-          gain = actx.createGain(); gain.gain.value = kind === "dash" ? 0.6 : 0.7; gain.connect(actx.destination);
+          gain = actx.createGain(); gain.gain.value = kind === "dub" ? 0.55 : kind === "dash" ? 0.6 : 0.7; gain.connect(actx.destination);
           t = t0 = actx.currentTime + 0.05; step = kind === "melo" ? 64 : 0;   // skip the intro, start on the drop
           timer = setInterval(pump, 60); pump();
         } catch (e) { /* audio unavailable */ }
@@ -1244,44 +1264,54 @@
         const sA = h("b", null, "1"), sB = h("b", null, store.get("dash-best", 0) + "%");
         const s1 = h("span", null, "ATTEMPT "), s2 = h("span", null, "BEST ");
         s1.appendChild(sA); s2.appendChild(sB); sc.append(s1, s2);
-        app.append(lcd, sc, h("div", "snake-tip", "SPACE / ↑ / CLICK · SOUND ON FOR THE TRACK"));
+        app.append(lcd, sc, h("div", "snake-tip", "JUMP ON THE BEAT · SOUND ON FOR THE TRACK"), h("div", "snake-tip", "♪ Feint – Snake Eyes (feat. CoMa) · 8-bit edit by Sasha"));
         body.appendChild(app);
         dashApi = makeDash(cv, msg, sA, sB);
       }
     });
   }
+  // beat_dash level: laid out on the beat grid of the song (175 bpm), denser where the track is loud
+  const DASH = { T0: 0.0087, BEAT: 60 / 175.15, PPS: 252, END: 92,
+    // loudness per beat, 0-9 (measured from the track)
+    E: "99979397899000000095749786979796779667877897688669966998999769973997699799974975636428857996499739853966799749785988598999785968286969699969687956312211110123103410011101003310342001010100321034203232334134344349995999989947959998499866939949999757939997769499978894996" };
+  function dashLevel(GY, C, PX) {
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const obs = [], bx = (i) => (DASH.T0 + i * DASH.BEAT) * DASH.PPS + PX;
+    const spike = (X, up) => obs.push({ k: "s", x: X, y: GY - C - (up || 0), w: C, h: C });
+    const block = (X, w, hh) => obs.push({ k: "b", x: X, y: GY - hh, w, h: hh });
+    const pad = (X) => obs.push({ k: "p", x: X, y: GY - 5, w: C, h: 5 });
+    let i = 6;   // a short run-up before the first obstacle
+    while (i < DASH.E.length - 4) {
+      const e = +DASH.E[i], X = bx(i) + 36;   // jump on the beat to clear what sits at X
+      if (e <= 1) { i += 4; continue; }
+      if (e <= 4) { spike(X); i += 4; continue; }
+      if (e <= 6) { if (i % 8 === 0) { spike(X); spike(X + C); } else spike(X); i += 2; continue; }
+      // loud: a little 4-beat move
+      const r = rnd();
+      if (r < 0.3) { spike(X); spike(bx(i + 2) + 36); spike(bx(i + 2) + 36 + C); }
+      else if (r < 0.5) { pad(bx(i) + 10); spike(bx(i) + 50); spike(bx(i) + 70); spike(bx(i) + 90); }
+      else if (r < 0.7) { block(X, 40, 20); block(bx(i + 2) + 36, 40, 40); }
+      else if (r < 0.85) { spike(X); spike(X + C); spike(bx(i + 2) + 36); }
+      else { block(X, 120, 20); spike(X + 50, 20); }
+      i += 4;
+    }
+    return obs;
+  }
   function makeDash(cv, msg, attEl, bestEl) {
     const x = cv.getContext("2d"), W = cv.width, H = cv.height, GY = 164, C = 20, PX = 70;
     const head = new Image(); head.src = "assets/face-cutout.webp";
-    const music = makeBeat("dash");
-    const GRAV = 0.92, JUMP = -10.2, PAD = -15, LEN = 7200;
-    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false;
-    let attempt = 1, best = store.get("dash-best", 0), acc = 0, frame = 0, dead = 0, spd = 4.2, won = 0;
-    // level chunks, x relative to chunk start: s = spike, b = block (w,h), p = jump pad
-    const CHUNKS = [
-      [["s", 0]], [["s", 0], ["s", 20]], [["s", 0], ["s", 150]], [["b", 0, 40, 20], ["s", 40]],
-      [["b", 0, 40, 20], ["b", 100, 40, 40], ["b", 200, 40, 60]],
-      [["p", 0], ["s", 40], ["s", 60], ["s", 80]],
-      [["b", 0, 120, 20], ["s", 40, 20], ["s", 160]],
-      [["s", 0], ["b", 110, 60, 30], ["s", 190]],
-      [["b", 0, 40, 40], ["s", 40], ["s", 60], ["b", 80, 40, 40]]
-    ];
-    function build() {
-      obs = []; let px = 600, i = 0;
-      while (px < LEN - 300) {
-        const pool = i < 3 ? CHUNKS.slice(0, 3) : CHUNKS;
-        const ch = pool[Math.floor(Math.random() * pool.length)];
-        let end = px;
-        ch.forEach(([k, dx, a, b]) => {
-          if (k === "s") obs.push({ k, x: px + dx, y: GY - C - (a || 0), w: C, h: C });
-          else if (k === "p") obs.push({ k, x: px + dx, y: GY - 5, w: C, h: 5 });
-          else obs.push({ k, x: px + dx, y: GY - b, w: a, h: b });
-          end = Math.max(end, px + dx + (k === "b" ? a : C));
-        });
-        px = end + 170 + Math.random() * 90; i++;
-      }
-    }
-    function reset() { cy = GY - C; vy = 0; rot = 0; ground = true; cam = 0; parts = []; trail = []; dead = 0; won = 0; build(); }
+    // Sasha's own 8-bit edit of Feint – Snake Eyes (licensed via Monstercat Gold), from 1:00
+    const song = new Audio("assets/flap-song.mp3"); song.volume = 0.6; song.preload = "auto"; songs.push(song);
+    const music = {
+      play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
+      stop() { song.pause(); },
+      get on() { return !song.paused; }
+    };
+    const GRAV = 0.92, JUMP = -10.2, PAD = -15, LEN = DASH.END * DASH.PPS;
+    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false, t = 0;
+    let attempt = 1, best = store.get("dash-best", 0), acc = 0, frame = 0, dead = 0, spd = DASH.PPS / 60, won = 0;
+    function build() { obs = dashLevel(GY, C, PX); }
+    function reset() { cy = GY - C; vy = 0; rot = 0; ground = true; cam = 0; t = 0; parts = []; trail = []; dead = 0; won = 0; build(); }
     function start() {
       if (dead) return;
       if (!alive) { reset(); alive = true; }
@@ -1304,7 +1334,8 @@
     function step() {
       frame++;
       if (running) {
-        cam += spd;
+        // the song is the clock: stay locked to it while it plays
+        if (music.on && song.currentTime > 0) { t = song.currentTime; cam = t * DASH.PPS; } else { t += 1 / 60; cam = t * DASH.PPS; }
         if (held && ground) jump();
         vy += GRAV; cy += vy; ground = false;
         if (vy < 0 || !ground) rot += 0.11;
@@ -1333,7 +1364,7 @@
     function burstAt(X, Y) { for (let i = 0; i < 8; i++) parts.push({ x: X + cam - cam, y: Y, vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 3, life: 0.8, c: 1 }); }
     const COL = ["#2e2452", "#d7a3bd", "#ffffff"];
     function draw() {
-      const p = music.pulse(), beat = p < 0 ? (frame % 24) / 24 : p, kick = Math.pow(1 - beat, 3);
+      const bt = (t - DASH.T0) / DASH.BEAT, beat = running ? bt - Math.floor(bt) : (frame % 24) / 24, kick = Math.pow(1 - beat, 3);
       const sky = x.createLinearGradient(0, 0, 0, H);
       sky.addColorStop(0, "#b9aee3"); sky.addColorStop(1, "#e7e1f6");
       x.fillStyle = sky; x.fillRect(0, 0, W, H);
