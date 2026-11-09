@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="assets/chrome-mark.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/desktop.css">
 </head>
 <body>
@@ -17,18 +17,16 @@
     <div class="wp-grid"></div>
     <img src="assets/chrome-cursor.png" alt="" class="wp-obj" style="right: 7vw; top: 9vh; width: 13vw; transform: rotate(14deg);">
     <img src="assets/pin-silver.png" alt="" class="wp-obj" style="right: 15vw; bottom: 14vh; width: 8vw; transform: rotate(-10deg);">
-    <i class="sparkle" style="left: 22%; top: 12%; font-size: 26px;">✦</i>
-    <i class="sparkle p" style="left: 74%; top: 22%; font-size: 18px; animation-delay: -1s;">✦</i>
-    <i class="sparkle" style="left: 84%; top: 58%; font-size: 30px; animation-delay: -2s;">✦</i>
-    <i class="sparkle n" style="left: 12%; top: 66%; font-size: 14px; animation-delay: -0.5s;">✦</i>
-    <i class="sparkle p" style="left: 30%; top: 80%; font-size: 22px; animation-delay: -1.7s;">✦</i>
-    <i class="sparkle" style="left: 63%; top: 8%; font-size: 12px; animation-delay: -2.6s;">✦</i>
-    <i class="sparkle n" style="left: 92%; top: 34%; font-size: 12px; animation-delay: -1.2s;">✦</i>
-    <div class="wp-word">SASHA&nbsp;OS</div>
+    <div class="curtain"></div>
+    <i class="bubble b1"></i>
+    <i class="bubble b2"></i>
+    <i class="bubble b3"></i>
+    <i class="bubble b4"></i>
+    <div class="wp-word">SASHA<span>//</span></div>
   </div>
   <canvas id="pixels" aria-hidden="true"></canvas>
-  <div class="corner-label" style="right: 16px; top: 14px;">✦ process book · sasha</div>
-  <div class="corner-label" id="frame-label" style="left: 16px; bottom: 56px;">♡ sasha os 2026 · online</div>
+  <div class="corner-label" style="right: 20px; top: 18px;">// process book. hva, amsterdam, 2026</div>
+  <div class="corner-label" id="frame-label" style="left: 20px; bottom: 82px;">// sasha os · online</div>
 
   <!-- desktop icons -->
   <nav id="icons" aria-label="Desktop">
@@ -44,6 +42,7 @@
     <div id="ring"></div>
     <div class="win face-win" id="face-win">
       <div class="win-bar"><span class="win-title">sasha.exe</span><span class="win-btns"><i>_</i><i>□</i><i>×</i></span></div>
+      <span class="sel" data-label="sasha.png"><i></i><i></i><i></i><i></i></span>
       <div class="win-body" id="face" role="img" aria-label="Sasha's iridescent porcelain face, watching your cursor">
         <div class="face-stage">
           <div class="head" id="head">
@@ -63,7 +62,7 @@
 
   <!-- start menu -->
   <div id="start-menu" hidden role="menu">
-    <div class="sm-side"><span>✦ SASHA OS 2026</span></div>
+    <div class="sm-side"><span>SASHA OS//2026</span></div>
     <div class="sm-items" id="sm-items"></div>
   </div>
 
