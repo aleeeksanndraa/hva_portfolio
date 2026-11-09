@@ -369,6 +369,7 @@
     if (app === "about") return openAbout(fromRect);
     if (app === "archive") return openArchive(fromRect);
     if (app === "snake") return openSnake(fromRect);
+    if (app === "blocks") return openBlocks(fromRect);
     if (app === "stars") return openStars(fromRect);
     if (app === "trash") return openTrash(fromRect);
     return null;
@@ -649,6 +650,202 @@
     };
   }
 
+  /* ---------- blocks.exe: falling blocks in purples, with an 8-bit folk tune ---------- */
+  // chiptune player: square-wave lead + triangle bass, scheduled ahead on the audio clock
+  const TUNE = (() => {
+    const N = (n) => 440 * Math.pow(2, (n - 69) / 12);
+    const E5 = 76, B4 = 71, C5 = 72, D5 = 74, A4 = 69, F5 = 77, A5 = 81, G5 = 79, Gs4 = 68;
+    // Korobeiniki, a 19th-century Russian folk song (public domain); [midi note or 0 = rest, beats]
+    const lead = [
+      [E5, 1], [B4, .5], [C5, .5], [D5, 1], [C5, .5], [B4, .5], [A4, 1], [A4, .5], [C5, .5], [E5, 1], [D5, .5], [C5, .5],
+      [B4, 1.5], [C5, .5], [D5, 1], [E5, 1], [C5, 1], [A4, 1], [A4, 1], [0, 1],
+      [0, .5], [D5, 1], [F5, .5], [A5, 1], [G5, .5], [F5, .5], [E5, 1.5], [C5, .5], [E5, 1], [D5, .5], [C5, .5],
+      [B4, 1], [B4, .5], [C5, .5], [D5, 1], [E5, 1], [C5, 1], [A4, 1], [A4, 1], [0, .5]
+    ];
+    const roots = [52, 52, 45, 45, Gs4 - 24, 52, 45, 45, 50, 50, 48, 48, 47, 52, 45, 45]; // one per 2 beats
+    return { lead: lead.map(([n, b]) => [n ? N(n) : 0, b]), bass: roots.map(N) };
+  })();
+  function makeMusic() {
+    let timer = null, nextT = 0, li = 0, bi = 0, leadT = 0, bassT = 0, gain = null;
+    const BEAT = 60 / 144;
+    function note(f, t, dur, type, vol) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(vol, t); g.gain.setValueAtTime(vol, t + dur * 0.8); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.98);
+      o.connect(g).connect(gain); o.start(t); o.stop(t + dur);
+    }
+    function pump() {
+      const ahead = actx.currentTime + 0.25;
+      while (leadT < ahead) {
+        const [f, b] = TUNE.lead[li]; if (f) note(f, leadT, b * BEAT, "square", 0.05);
+        leadT += b * BEAT; li = (li + 1) % TUNE.lead.length;
+      }
+      while (bassT < ahead) {
+        const r = TUNE.bass[Math.floor(bi / 4) % TUNE.bass.length];
+        note(bi % 2 ? r * 2 : r, bassT, BEAT / 2, "triangle", 0.09);
+        bassT += BEAT / 2; bi++;
+      }
+    }
+    return {
+      play() {
+        if (timer || !soundOn) return;
+        try {
+          actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+          if (actx.state === "suspended") actx.resume();
+          gain = actx.createGain(); gain.gain.value = 0.8; gain.connect(actx.destination);
+          leadT = bassT = actx.currentTime + 0.05;
+          timer = setInterval(pump, 80); pump();
+        } catch (e) { /* audio unavailable */ }
+      },
+      stop() {
+        if (!timer) return;
+        clearInterval(timer); timer = null;
+        try { gain.gain.setTargetAtTime(0, actx.currentTime, 0.03); const g = gain; setTimeout(() => g.disconnect(), 300); } catch (e) { /* ignore */ }
+      },
+      get on() { return !!timer; }
+    };
+  }
+
+  let blocksApi = null;
+  function openBlocks(from) {
+    return createWin({
+      id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
+      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; },
+      fill(body) {
+        const app = h("div", "snake-app blocks-app");
+        const row = h("div", "blocks-row");
+        const lcd = h("div", "lcd blocks-lcd");
+        const cv = h("canvas"); cv.width = 160; cv.height = 320;
+        const msg = h("div", "lcd-msg"); msg.innerHTML = "PRESS SPACE<br>OR TAP TO START";
+        lcd.append(cv, msg);
+        const side = h("div", "blocks-side");
+        const nx = h("canvas", "blocks-next"); nx.width = 64; nx.height = 64;
+        const sS = h("b", null, "0"), sL = h("b", null, "0"), sB = h("b", null, String(store.get("blocks-best", 0)));
+        const stat = (l, el) => { const d = h("div", "blocks-stat"); d.append(h("span", null, l), el); return d; };
+        const mus = h("button", "btn98 blocks-music", soundOn ? "♪ on" : "♪ off"); mus.type = "button"; mus.title = "Music";
+        side.append(h("span", "blocks-lbl", "NEXT"), nx, stat("SCORE", sS), stat("LINES", sL), stat("BEST", sB), mus);
+        row.append(lcd, side);
+        const pad = h("div", "pad blocks-pad");
+        [["left", "◀"], ["rotate", "⟳"], ["right", "▶"], ["down", "▼"], ["drop", "⤓"]].forEach(([d, t]) => {
+          const b = h("button", null, t); b.type = "button"; b.dataset.act = d; b.setAttribute("aria-label", d); pad.appendChild(b);
+        });
+        app.append(row, pad, h("div", "snake-tip", "← → MOVE · ↑ TURN · ↓ DROP · SPACE SLAM"));
+        body.appendChild(app);
+        blocksApi = makeBlocks(cv, nx, msg, sS, sL, sB, pad, mus);
+      }
+    });
+  }
+
+  function makeBlocks(cv, nxc, msg, scoreEl, linesEl, bestEl, pad, musBtn) {
+    const x = cv.getContext("2d"), nx = nxc.getContext("2d");
+    const W = 10, H = 20, C = 16;
+    // pieces in the desktop's purples
+    const SHAPES = {
+      I: [[0, 1], [1, 1], [2, 1], [3, 1]], O: [[1, 0], [2, 0], [1, 1], [2, 1]], T: [[1, 0], [0, 1], [1, 1], [2, 1]],
+      S: [[1, 0], [2, 0], [0, 1], [1, 1]], Z: [[0, 0], [1, 0], [1, 1], [2, 1]], J: [[0, 0], [0, 1], [1, 1], [2, 1]], L: [[2, 0], [0, 1], [1, 1], [2, 1]]
+    };
+    const COL = { I: "#b4a7dd", O: "#d7a3bd", T: "#8a6fc4", S: "#c9b8ec", Z: "#a77fb8", J: "#5d4a96", L: "#e3c4dc" };
+    const music = makeMusic();
+    let grid, cur, next, score, lines, alive = false, running = false, acc = 0, best = store.get("blocks-best", 0), bag = [];
+    const draw7 = () => { if (!bag.length) bag = Object.keys(SHAPES).sort(() => Math.random() - 0.5); return bag.pop(); };
+    const piece = (k) => ({ k, cells: SHAPES[k].map((c) => c.slice()), x: 3, y: 0 });
+    const fits = (cells, ox, oy) => cells.every(([cx, cy]) => { const X = cx + ox, Y = cy + oy; return X >= 0 && X < W && Y < H && (Y < 0 || !grid[Y][X]); });
+    function block(ctx, X, Y, col, sz) {
+      ctx.fillStyle = col; ctx.fillRect(X, Y, sz, sz);
+      ctx.fillStyle = "rgba(255,255,255,0.45)"; ctx.fillRect(X, Y, sz, 2); ctx.fillRect(X, Y, 2, sz);
+      ctx.fillStyle = "rgba(46,36,82,0.35)"; ctx.fillRect(X, Y + sz - 2, sz, 2); ctx.fillRect(X + sz - 2, Y, 2, sz);
+      ctx.strokeStyle = "#2e2452"; ctx.lineWidth = 1; ctx.strokeRect(X + 0.5, Y + 0.5, sz - 1, sz - 1);
+    }
+    function draw() {
+      x.fillStyle = "#e3ddf4"; x.fillRect(0, 0, cv.width, cv.height);
+      x.fillStyle = "rgba(63,40,113,0.07)";
+      for (let i = 0; i < W; i++) for (let j = 0; j < H; j++) x.fillRect(i * C + 1, j * C + 1, C - 2, C - 2);
+      for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (grid[j][i]) block(x, i * C, j * C, grid[j][i], C);
+      if (cur) {
+        let gy = cur.y; while (fits(cur.cells, cur.x, gy + 1)) gy++;
+        x.fillStyle = "rgba(46,36,82,0.16)";
+        cur.cells.forEach(([cx, cy]) => { if (cy + gy >= 0) x.fillRect((cx + cur.x) * C + 2, (cy + gy) * C + 2, C - 4, C - 4); });
+        cur.cells.forEach(([cx, cy]) => { if (cy + cur.y >= 0) block(x, (cx + cur.x) * C, (cy + cur.y) * C, COL[cur.k], C); });
+      }
+      nx.fillStyle = "#e3ddf4"; nx.fillRect(0, 0, 64, 64);
+      if (next) SHAPES[next].forEach(([cx, cy]) => block(nx, 8 + cx * 12, 20 + cy * 12, COL[next], 12));
+    }
+    function reset() {
+      grid = Array.from({ length: H }, () => Array(W).fill(null));
+      score = 0; lines = 0; bag = []; next = draw7(); spawn();
+      scoreEl.textContent = "0"; linesEl.textContent = "0"; alive = true; draw();
+    }
+    function spawn() {
+      cur = piece(next); next = draw7();
+      if (!fits(cur.cells, cur.x, cur.y)) gameOver();
+    }
+    function gameOver() {
+      alive = false; running = false; music.stop(); sfx.die();
+      msg.innerHTML = "GAME OVER · " + score + "<br>SPACE / TAP TO RETRY"; msg.hidden = false;
+    }
+    function lock() {
+      cur.cells.forEach(([cx, cy]) => { if (cy + cur.y >= 0) grid[cy + cur.y][cx + cur.x] = COL[cur.k]; });
+      let cleared = 0;
+      for (let j = H - 1; j >= 0; j--) if (grid[j].every(Boolean)) { grid.splice(j, 1); grid.unshift(Array(W).fill(null)); cleared++; j++; }
+      if (cleared) {
+        lines += cleared; score += [0, 100, 300, 500, 800][cleared] * (1 + Math.floor(lines / 10));
+        sfx.eat(); if (cleared >= 4) sfx.star();
+        const r = cv.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height * 0.8, 10 + cleared * 6, "193,182,230");
+      } else blip(180, 0.05, "square", 0.03);
+      scoreEl.textContent = String(score); linesEl.textContent = String(lines);
+      if (score > best) { best = score; store.set("blocks-best", best); bestEl.textContent = String(best); }
+      spawn();
+    }
+    function move(dx) { if (cur && fits(cur.cells, cur.x + dx, cur.y)) { cur.x += dx; sfx.tick(); draw(); } }
+    function rotate() {
+      if (!cur || cur.k === "O") return;
+      const rc = cur.cells.map(([cx, cy]) => [2 - cy, cx]);
+      for (const kick of [0, -1, 1, -2, 2]) if (fits(rc, cur.x + kick, cur.y)) { cur.cells = rc; cur.x += kick; blip(660, 0.04, "square", 0.03); draw(); return; }
+    }
+    function soft() { if (!cur) return; if (fits(cur.cells, cur.x, cur.y + 1)) { cur.y++; acc = 0; } else lock(); draw(); }
+    function slam() { if (!cur) return; while (fits(cur.cells, cur.x, cur.y + 1)) { cur.y++; score += 2; } lock(); draw(); }
+    function start() { if (!alive) reset(); running = true; msg.hidden = true; music.play(); syncMus(); }
+    function pause() { running = false; music.stop(); msg.innerHTML = "PAUSED"; msg.hidden = false; }
+    function syncMus() { musBtn.textContent = music.on ? "♪ on" : "♪ off"; }
+    function act(a) {
+      if (!running) { start(); return; }
+      ({ left: () => move(-1), right: () => move(1), rotate, down: soft, drop: slam })[a]();
+    }
+    musBtn.addEventListener("click", () => {
+      if (music.on) music.stop();
+      else { if (!soundOn) setSound(true); if (running) music.play(); }
+      musBtn.textContent = music.on || (!running && soundOn) ? "♪ on" : "♪ off";
+    });
+    pad.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => act(b.dataset.act)));
+    let sw = null;
+    cv.addEventListener("pointerdown", (e) => { sw = { x: e.clientX, y: e.clientY }; });
+    cv.addEventListener("pointerup", (e) => {
+      if (!sw) return;
+      const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+      if (!running) { start(); return; }
+      if (Math.hypot(dx, dy) < 14) rotate();
+      else if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 1 : -1);
+      else if (dy > 0) slam();
+    });
+    reset(); alive = false; cur = null; draw();
+    return {
+      key(e) {
+        const k = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "rotate", ArrowDown: "down", a: "left", d: "right", w: "rotate", s: "down" }[e.key];
+        if (k) { e.preventDefault(); if (running) act(k); return true; }
+        if (e.key === " ") { e.preventDefault(); if (running) slam(); else start(); return true; }
+        if (e.key === "p" || e.key === "P") { if (running) pause(); else if (alive) start(); return true; }
+        return false;
+      },
+      tick(dt) {
+        if (!running) { acc = 0; return; }
+        acc += dt;
+        const speed = Math.max(90, 650 - Math.floor(lines / 10) * 60);
+        while (acc > speed && running) { acc -= speed; soft(); }
+      },
+      stop() { running = false; music.stop(); }
+    };
+  }
+
   /* ---------- welcome dialog (first visit) ---------- */
   function openWelcome() {
     createWin({
@@ -693,6 +890,7 @@
     item("✎", "About me", () => openApp("about", startBtn));
     item("▣", "All projects", () => openApp("archive", startBtn));
     item("▸", "Snake", () => openApp("snake", startBtn));
+    item("▦", "Blocks", () => openApp("blocks", startBtn));
     item("✦", "Stars (" + got.length + "/" + STARS.length + ")", () => openApp("stars", startBtn));
     box.appendChild(h("div", "sm-sep"));
     item(soundOn ? "🔊" : "🔇", soundOn ? "Turn sound off" : "Turn sound on", () => { setSound(!soundOn); sfx.click(); });
@@ -724,7 +922,8 @@
     "02": { type: "IN //<br>BETWEEN" },
     "03": { type: "TAN<br>DEM" },
     "04": { img: "assets/ei-little-tank-tank.jpg" },
-    "05": { type: "PERS<br>ONAL" }
+    "05": { type: "PERS<br>ONAL" },
+    "06": { type: "SELF<br>GROW" }
   };
   const CARDS = PROJECTS.map((p, i) => ({ app: "project:" + i, num: p.index, title: p.title, file: p.index + "_" + slug(p.title) + ".doc", meta: p.course.split("(")[0].trim() + " · " + p.year, cover: COVERS[p.index] || { type: p.title } }));
 
@@ -1172,6 +1371,7 @@
   });
   window.addEventListener("keydown", (e) => {
     if (wins.snake && wins.snake.el.classList.contains("is-active") && snakeApi && snakeApi.key(e)) return;
+    if (wins.blocks && wins.blocks.el.classList.contains("is-active") && blocksApi && blocksApi.key(e)) return;
     if (e.key === "Escape") {
       if (!startMenu.hidden) { closeStart(); return; }
       const act = Object.values(wins).find((w) => w.el.classList.contains("is-active") && !w.el.classList.contains("is-min"));
@@ -1206,6 +1406,7 @@
     renderRing();
     updateEyes();
     if (snakeApi) snakeApi.tick(dt);
+    if (blocksApi) blocksApi.tick(dt);
     const spinning = Math.abs(targetAngle - angle) > 0.5;
     if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();

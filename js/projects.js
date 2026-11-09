@@ -60,6 +60,15 @@
         { n: "PROCESS", title: "Process", text: "Placeholder for research, sketches and iterations.", media: [] },
         { n: "OUTCOME", title: "Outcome", text: "Placeholder for the final result and reflection.", media: [] }
       ]
+    },
+    {
+      index: "06", title: "PERSONAL FINDINGS", year: "2026", course: "Self development", role: "Me, learning", status: "Draft — content coming",
+      chapters: [
+        { n: "WHERE I STARTED", title: "Where I started", text: "Placeholder. What I knew, what scared me and what I wanted to get better at when this year began.", media: [] },
+        { n: "WHAT I LEARNED", title: "What I learned", text: "Placeholder for the skills, methods and tools I picked up across the projects.", media: [] },
+        { n: "HOW I WORK", title: "How I work now", text: "Placeholder for the habits and ways of working I found out about myself: what helps me and what gets in my way.", media: [] },
+        { n: "NEXT", title: "What's next", text: "Placeholder for where I want to grow from here.", media: [] }
+      ]
     }
   ];
 })();

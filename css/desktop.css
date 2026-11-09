@@ -573,6 +573,18 @@ button { font: inherit; color: inherit; }
 .pad [data-dir="down"] { grid-column: 2; grid-row: 2; }
 .pad [data-dir="right"] { grid-column: 3; grid-row: 2; }
 .snake-tip { font-size: 10px; color: var(--muted); }
+/* blocks.exe */
+.blocks-row { display: flex; gap: 12px; align-items: flex-start; }
+.blocks-lcd { width: 160px; aspect-ratio: 1 / 2; }
+.blocks-side { display: flex; flex-direction: column; gap: 8px; width: 88px; font-size: 10px; }
+.blocks-lbl { font-family: var(--pix); font-size: 10px; }
+.blocks-next { width: 64px; height: 64px; border: var(--line); border-radius: 6px; image-rendering: pixelated; }
+.blocks-stat { display: flex; flex-direction: column; gap: 1px; }
+.blocks-stat span { font-family: var(--pix); font-size: 9px; color: var(--muted); }
+.blocks-stat b { font-size: 14px; }
+.blocks-music { font-size: 10px !important; padding: 4px 8px !important; }
+.blocks-pad { grid-template-columns: repeat(5, 40px); grid-template-rows: 32px; }
+.blocks-pad button { grid-row: 1 !important; grid-column: auto !important; font-size: 13px; }
 
 /* dialog (welcome) */
 .dialog { display: flex; gap: 14px; align-items: center; padding: 18px 18px 12px; background: var(--paper); font-size: 12px; line-height: 1.5; }
@@ -595,7 +607,7 @@ button { font: inherit; color: inherit; }
   #icons, #icons.free { display: grid; width: auto; height: auto; }
   #icons .icon { position: static !important; }
   #icons { grid-auto-flow: column; left: 50%; transform: translateX(-50%); top: 8px; gap: 2px; }
-  .icon { width: 64px; font-size: 9px; }
+  .icon { width: 56px; font-size: 8px; }
   .icon img, .icon canvas, .icon-svg, .icon-glyph { width: 30px; height: 30px; }
   .icon-glyph { font-size: 26px; line-height: 30px; }
   .win.app { left: 6px !important; top: 6px !important; width: calc(100% - 12px) !important; height: calc(100% - 56px) !important; }
