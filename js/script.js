@@ -82,13 +82,13 @@
     const key = gx + ":" + gy;
     if (key === lastTrail) return;
     lastTrail = key;
-    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "255,255,255" : "123,92,245", snap: true });
+    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "238,236,240" : "215,163,189", snap: true });
   }
   function burst(x, y, n, color) {
     if (reduceMotion) return;
     for (let i = 0; i < (n || 14); i++) {
       const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
-      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "123,92,245" : "200,202,212")), g: 0.25 });
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "215,163,189" : "35,38,79")), g: 0.25 });
     }
   }
   function drawPixels() {
@@ -231,11 +231,11 @@
 
     // size + position (cascade from centre)
     const W = Math.min(o.w || 560, innerWidth - 24);
-    const H = o.h === "auto" ? 0 : Math.min(o.h || 420, innerHeight - 96);
+    const H = o.h === "auto" ? 0 : Math.min(o.h || 420, innerHeight - 64);
     const off = isSmall() ? 0 : 1;
     const x = Math.max(8, Math.min(innerWidth - W - 8, (innerWidth - W) / 2 + ((o.dx || 0) + cascade * 26) * off));
     const Hc = H || 360;
-    const y = Math.max(8, Math.min(innerHeight - Hc - 80, (innerHeight - 72 - Hc) / 2 + ((o.dy || 0) + cascade * 22) * off));
+    const y = Math.max(8, Math.min(innerHeight - Hc - 48, (innerHeight - 40 - Hc) / 2 + ((o.dy || 0) + cascade * 22) * off));
     cascade = (cascade + 1) % 6;
     Object.assign(el.style, { left: x + "px", top: y + "px", width: W + "px", height: H ? H + "px" : "auto", visibility: "hidden" });
     winLayer.appendChild(el);
@@ -533,13 +533,12 @@
       while (snake.some((s) => s.x === food.x && s.y === food.y));
     }
     function draw() {
-      x.fillStyle = "#c9cad1"; x.fillRect(0, 0, cv.width, cv.height);
-      x.fillStyle = "rgba(17,17,17,0.06)";
+      x.fillStyle = "#e3ddf4"; x.fillRect(0, 0, cv.width, cv.height);
+      x.fillStyle = "rgba(63,40,113,0.08)";
       for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) x.fillRect(i * C + 1, j * C + 1, C - 2, C - 2);
-      x.fillStyle = "#7b5cf5";
+      x.fillStyle = "#2e2452";
       const fx = food.x * C, fy = food.y * C, u = C / 4;
       x.fillRect(fx + u * 1.5, fy, u, C); x.fillRect(fx, fy + u * 1.5, C, u);
-      x.fillStyle = "#111111";
       snake.forEach((s, i) => { const p = i === 0 ? 0 : 1; x.fillRect(s.x * C + p, s.y * C + p, C - p * 2, C - p * 2); });
     }
     function step() {
@@ -604,7 +603,7 @@
         const d = h("div", "dialog");
         const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-pixel.png"; im.alt = ""; face.appendChild(im);
         const t = h("div");
-        t.append(h("span", "d-label", "// are you human?"), h("b", "d-big", "I AM NOT A ROBOT"),
+        t.append(h("b", "d-big", "I am not a robot :)"),
           "Welcome to Sasha OS, my process book. Spin the windows around my head and open a project. " + STARS.length + " ✦ are hidden around.");
         d.append(face, t);
         const bar = h("div", "loadbar"); bar.appendChild(h("i"));
@@ -657,8 +656,8 @@
   function shutDown() {
     sfx.close();
     const s = h("div");
-    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#0e0e10;color:#f3f2ef;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
-    s.innerHTML = "It's now safe to close this tab.<br><span style='font-size:.6em;color:#8a8a93'>(or click anywhere to start again)</span>";
+    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#b4a7dd;color:#2e2452;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
+    s.innerHTML = "It's now safe to close this tab.<br><span style='font-size:.6em;color:#fff'>(or click anywhere to start again)</span>";
     s.addEventListener("click", () => { s.remove(); sfx.boot(); });
     document.body.appendChild(s);
   }
@@ -683,8 +682,8 @@
 
   function drawSnakeIcon(cv, w, hgt) {
     const x = cv.getContext("2d");
-    x.fillStyle = "#c9cad1"; x.fillRect(0, 0, w, hgt);
-    x.fillStyle = "#111111";
+    x.fillStyle = "#e3ddf4"; x.fillRect(0, 0, w, hgt);
+    x.fillStyle = "#2e2452";
     const oy = Math.floor((hgt - 8) / 2), ox = Math.floor((w - 13) / 2);
     [[0, 3], [1, 3], [2, 3], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [6, 6], [6, 7], [7, 7], [8, 7]].forEach(([a, b]) => x.fillRect(ox + a, oy + b, 1, 1));
     x.fillRect(ox + 11, oy, 1, 1); x.fillRect(ox + 10, oy + 1, 3, 1); x.fillRect(ox + 11, oy + 2, 1, 1);
@@ -703,17 +702,16 @@
     if (c.cover.img) { const im = h("img"); im.src = c.cover.img; im.alt = ""; body.appendChild(im); }
     else if (c.cover.snake) { const cv = h("canvas"); cv.width = 16; cv.height = 15; drawSnakeIcon(cv, 16, 15); body.appendChild(cv); }
     else { const t = h("div", "rc-type"); t.innerHTML = c.cover.type; body.appendChild(t); }
-    const sel = h("span", "sel"); sel.dataset.label = c.file; sel.innerHTML = "<i></i><i></i><i></i><i></i>";
-    b.append(bar, body, sel);
+    b.append(bar, body);
     ring.appendChild(b);
     cardEls.push(b);
   });
 
   function layout() {
-    const w = innerWidth, hh = innerHeight - 72, small = isSmall();
+    const w = innerWidth, hh = innerHeight - 40, small = isSmall();
     const cw = Math.round(Math.max(96, Math.min(180, w * 0.13, hh * 0.21)));
     radius = small ? Math.min(w * 0.36, 200) : Math.min(w * 0.34, hh * 0.7, 540);
-    radiusY = hh * (small ? 0.28 : 0.335);
+    radiusY = hh * (small ? 0.27 : 0.315);
     document.documentElement.style.setProperty("--cw", cw + "px");
     document.documentElement.style.setProperty("--fw", Math.round(Math.min(hh * 0.4, w * (small ? 0.56 : 0.24), 340)) + "px");
     sizePixels();
@@ -852,7 +850,7 @@
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
     sfx.poke();
-    burst(e.clientX, e.clientY, 10, "123,92,245");
+    burst(e.clientX, e.clientY, 10, "215,163,189");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
     blink();
     pokes++;
@@ -930,7 +928,7 @@
     updateEyes();
     if (snakeApi) snakeApi.tick(dt);
     const spinning = Math.abs(targetAngle - angle) > 0.5;
-    if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "// sasha os · spinning" : "// sasha os · online"; }
+    if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();
     requestAnimationFrame(tick);
   }
