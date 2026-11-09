@@ -50,6 +50,16 @@ button { font: inherit; color: inherit; }
   background-image: radial-gradient(rgba(255, 255, 255, 0.28) 1.2px, transparent 1.6px);
   background-size: 22px 22px;
 }
+/* pixel Amsterdam canal skyline along the bottom, drawn in the desktop's own palette */
+.wp-city {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 46vh;
+  background: url("../assets/amsterdam-pixel.png") repeat-x left bottom / auto 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+@media (max-width: 700px) { .wp-city { height: 30vh; } }
 .wp-obj { position: absolute; height: auto; opacity: 0.95; filter: drop-shadow(0 10px 24px rgba(46, 36, 82, 0.18)); }
 .wp-word {
   position: absolute;
