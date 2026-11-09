@@ -1646,7 +1646,7 @@
     "03": { img: "assets/tandem-pixel.png" },
     "04": { img: "assets/ei-little-tank-tank.jpg" },
     "05": { type: "PERS<br>ONAL" },
-    "06": { type: "SELF<br>GROW" }
+    "06": { type: "SELF<br>GROW", mini: "assets/face-mini-pixel.png" }
   };
   const CARDS = PROJECTS.map((p, i) => ({ app: "project:" + i, num: p.index, title: p.title, file: p.index + "_" + slug(p.title) + ".doc", meta: p.course.split("(")[0].trim() + " · " + p.year, cover: COVERS[p.index] || { type: p.title } }));
 
@@ -1733,7 +1733,12 @@
     const body = h("div", "rc-body");
     if (c.cover.img) { const im = h("img"); im.src = c.cover.img; im.alt = ""; body.appendChild(im); }
     else if (c.cover.snake) { const cv = h("canvas"); cv.width = 16; cv.height = 15; drawSnakeIcon(cv, 16, 15); body.appendChild(cv); }
-    else { const t = h("div", "rc-type"); t.innerHTML = c.cover.type; body.appendChild(t); }
+    else {
+      const t = h("div", "rc-type" + (c.cover.mini ? " has-mini" : ""));
+      if (c.cover.mini) { const im = h("img", "rc-mini"); im.src = c.cover.mini; im.alt = ""; const sp = h("span"); sp.innerHTML = c.cover.type; t.append(im, sp); }
+      else t.innerHTML = c.cover.type;
+      body.appendChild(t);
+    }
     b.append(bar, body);
     ring.appendChild(b);
     cardEls.push(b);
