@@ -1231,14 +1231,14 @@
     const x = cv.getContext("2d"), W = cv.width, H = cv.height, GY = 164, C = 20, PX = 70;
     const head = new Image(); head.src = "assets/face-cutout.webp";
     const music = makeBeat("dash");
-    const GRAV = 0.92, JUMP = -10.2, PAD = -14, LEN = 7200;
+    const GRAV = 0.92, JUMP = -10.2, PAD = -15, LEN = 7200;
     let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false;
     let attempt = 1, best = store.get("dash-best", 0), acc = 0, frame = 0, dead = 0, spd = 4.2, won = 0;
     // level chunks, x relative to chunk start: s = spike, b = block (w,h), p = jump pad
     const CHUNKS = [
       [["s", 0]], [["s", 0], ["s", 20]], [["s", 0], ["s", 150]], [["b", 0, 40, 20], ["s", 40]],
       [["b", 0, 40, 20], ["b", 100, 40, 40], ["b", 200, 40, 60]],
-      [["p", 0], ["s", 60], ["s", 80], ["s", 100]],
+      [["p", 0], ["s", 40], ["s", 60], ["s", 80]],
       [["b", 0, 120, 20], ["s", 40, 20], ["s", 160]],
       [["s", 0], ["b", 110, 60, 30], ["s", 190]],
       [["b", 0, 40, 40], ["s", 40], ["s", 60], ["b", 80, 40, 40]]
@@ -1292,7 +1292,7 @@
           if (o.k === "s") { // a slightly forgiving triangle hitbox
             if (R - 4 > o.x && L + 4 < o.x + o.w && cy + C - 4 > o.y + 6) { die(); return; }
           } else if (o.k === "p") {
-            if (R > o.x && L < o.x + o.w && cy + C >= GY - 6) { jump(PAD); burstAt(o.x - cam + 10, GY - 4); }
+            if (R > o.x && L < o.x + o.w && cy + C >= GY - 14 && vy >= 0) { jump(PAD); burstAt(o.x - cam + 10, GY - 4); }
           } else if (R > o.x && L < o.x + o.w) {
             if (vy >= 0 && cy + C - vy <= o.y + 2) { cy = o.y - C; vy = 0; ground = true; }   // landed on top
             else if (cy + C > o.y + 3) { die(); return; }   // hit the side
