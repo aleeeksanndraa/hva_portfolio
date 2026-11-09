@@ -1110,14 +1110,30 @@
       // bright drum & bass: A minor (Am F C G), arps on top, reese underneath
       const s = n % 16, bar = Math.floor(n / 16) % 8, ch = CH[bar % 4];
       dnbDrums(s, bar, at, bar === 7);
-      if (s === 0 || s === 8 || s === 11) reese(at, ch[0] / 2, S * (s === 11 ? 5 : 3), 0.07, 1600);
+      if (s === 0 || s === 8 || s === 11) chipBass(at, ch[0] / 2, S * (s === 11 ? 5 : 3), 0.07);
       if (s % 2 === 0) tone(at, ch[(s / 2 + bar) % 3] * 2, S * 0.9, "square", 0.02);   // arp
-      if (bar >= 4 && MEL[(s + bar * 3) % 16] !== 1 && s % 3 !== 2) pluck(at, ch[MEL[(s + bar * 3) % 16]] * 4, 0.03);   // lead in the second half
+      if (bar >= 4 && MEL[(s + bar * 3) % 16] !== 1 && s % 3 !== 2) chipLead(at, ch[MEL[(s + bar * 3) % 16]] * 4, 0.03);   // lead in the second half
     }
+
+    // ---- 8-bit voices (square / triangle / noise only, like an old console) ----
+    function chipKick(at, v) {
+      const o = actx.createOscillator(), g = actx.createGain(); o.type = "triangle";
+      o.frequency.setValueAtTime(220, at); o.frequency.exponentialRampToValueAtTime(45, at + 0.09);
+      env(g, at, (v || 0.5) * 1.3, 0.16); o.connect(g).connect(gain); o.start(at); o.stop(at + 0.18);
+    }
+    function chipChord(at, freqs, dur, v) {   // fast arpeggio instead of a pad
+      const step = S / 2;
+      for (let i = 0; i * step < dur - 0.01; i++) tone(at + i * step, freqs[i % freqs.length] * 2, step * 0.95, "square", v);
+    }
+    function chipBass(at, f, dur, v) {
+      tone(at, f * 2, dur, "triangle", v * 2.2);
+      tone(at, f * 2, Math.min(dur, S * 1.5), "square", v * 0.45, f * 1.98);
+    }
+    function chipLead(at, f, v) { tone(at, f, S * 1.6, "square", v * 0.9); tone(at + S * 0.5, f * 1.003, S, "square", v * 0.35); }
 
     // ---- drum & bass toolkit: two-step break + rolling reese bass ----
     function dnbDrums(s, bar, at, fill) {
-      if (s === 0 || s === 10 || (bar % 2 === 1 && s === 7)) kick(at, 0.55);
+      if (s === 0 || s === 10 || (bar % 2 === 1 && s === 7)) chipKick(at, 0.55);
       if (s === 4 || s === 12) snare(at, 0.34);
       if (s === 7 || s === 15 || (bar % 2 === 0 && s === 9)) snare(at, 0.07);   // ghost notes
       hat(at, s % 2 ? 0.022 : 0.04); if (s === 6 || s === 14) hat(at, 0.035, true);
@@ -1168,14 +1184,14 @@
     function melo(n, at) {
       // melodic drum & bass: intro bars 0-3 (pads, pluck, light hats), full roll bars 4-15
       const s = n % 16, bar = Math.floor(n / 16) % 16, c = bar % 4, intro = bar < 4;
-      if (s === 0) supersaw(at, PROG[c], S * 16, intro ? 0.012 : 0.014);
+      if (s === 0) chipChord(at, PROG[c], S * 16, intro ? 0.016 : 0.014);
       if (intro) { if (s % 2 === 0) hat(at, 0.025); if (bar === 3) { if (s >= 8) snare(at, 0.08 + (s - 8) * 0.03); if (s === 8) tone(at, 300, S * 8, "sawtooth", 0.03, 2400); } }
       else {
         dnbDrums(s, bar, at, bar % 8 === 7);
-        if (s === 0 || s === 6 || s === 10) reese(at, ROOT[c] * 2, S * (s === 6 ? 4 : 6), 0.07, s === 10 ? 1400 : 800);
+        if (s === 0 || s === 6 || s === 10) chipBass(at, ROOT[c] * 2, S * (s === 6 ? 4 : 6), 0.07);
       }
       const k = HOOK[(s + (bar % 2) * 3) % 16];
-      if (k >= 0) pluck(at, SCALE[k] * (!intro && bar % 4 >= 2 ? 2 : 1), intro ? 0.045 : 0.032);
+      if (k >= 0) chipLead(at, SCALE[k] * (!intro && bar % 4 >= 2 ? 2 : 1), intro ? 0.04 : 0.032);
     }
 
     const fn = kind === "dub" ? dub : kind === "melo" ? melo : dash;
@@ -1190,7 +1206,7 @@
           actx = actx || new (window.AudioContext || window.webkitAudioContext)();
           if (actx.state === "suspended") actx.resume();
           gain = actx.createGain(); gain.gain.value = kind === "dash" ? 0.6 : 0.7; gain.connect(actx.destination);
-          t = t0 = actx.currentTime + 0.05; step = 0;
+          t = t0 = actx.currentTime + 0.05; step = kind === "melo" ? 64 : 0;   // skip the intro, start on the drop
           timer = setInterval(pump, 60); pump();
         } catch (e) { /* audio unavailable */ }
       },
