@@ -1298,14 +1298,14 @@
       const e = +DASH.E[i], X = bx(i) + 36;   // jump on the beat to clear what sits at X
       if (e <= 1) { i += 4; continue; }
       if (e <= 4) { spike(X); i += 4; continue; }
-      if (e <= 6) { spike(X); i += 3; continue; }
+      if (e <= 6) { if (i % 8 === 0) { spike(X); spike(X + C); } else spike(X); i += 2; continue; }
       // loud: a little 4-beat move
       const r = rnd();
-      if (r < 0.3) { spike(X); spike(bx(i + 2) + 36); }
+      if (r < 0.3) { spike(X); spike(bx(i + 2) + 36); spike(bx(i + 2) + 36 + C); }
       else if (r < 0.5) { pad(bx(i) + 10); spike(bx(i) + 50); spike(bx(i) + 70); spike(bx(i) + 90); }
       else if (r < 0.7) { block(X, 40, 20); block(bx(i + 2) + 36, 40, 40); }
-      else if (r < 0.85) { spike(X); spike(X + C); }
-      else { block(X, 120, 20); spike(X + 50, 20); }
+      else if (r < 0.85) { spike(X); spike(X + C); spike(bx(i + 2) + 36); }
+      else { block(X, 120, 20); }   // a long white block to hop onto and run along
       i += 4;
     }
     return obs;
