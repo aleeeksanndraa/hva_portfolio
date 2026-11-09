@@ -731,6 +731,34 @@
   }
 
   let blocksApi = null, beatZero = 0, danced = false;
+  // beat_dash drops: rainbow eye beams, colour cycling and the melting face
+  let beams = null;
+  function dashTrip(now, dt) {
+    const el = document.getElementById("head-px");
+    const lv = dashApi && !reduceMotion ? dashApi.level() : 0;
+    const target = lv >= 7 ? Math.min(1, (lv - 5) / 4) : 0;
+    trip += (target - trip) * Math.min(1, dt / (target > trip ? 250 : 700));
+    tripT = now / 1000;
+    if (!el) return;
+    if (trip < 0.02) {
+      if (beams) { beams.remove(); beams = null; el.style.filter = ""; }
+      return;
+    }
+    el.style.filter = "hue-rotate(" + Math.round((now / 6) % 360 * trip) + "deg) saturate(" + (1 + trip * 0.9).toFixed(2) + ")";
+    if (!beams) {
+      beams = h("div", "eye-beams"); beams.append(h("i", "beam l"), h("i", "beam r"));
+      el.parentNode.appendChild(beams);
+    }
+    const r = el.getBoundingClientRect(), pr = el.parentNode.getBoundingClientRect(), k = r.width / 420;
+    const ex = r.left - pr.left + r.width / 2 + tYaw * 1.6 * k, ey = r.top - pr.top + r.height * 0.5;
+    beams.style.opacity = Math.min(1, trip * 1.4).toFixed(2);
+    [...beams.children].forEach((b, i) => {
+      const side = i ? 1 : -1, sway = Math.sin(now / 260 + i) * 9;
+      b.style.left = (ex + side * 46 * k) + "px"; b.style.top = ey + "px";
+      b.style.rotate = (side < 0 ? 160 + sway : 20 + sway) + tYaw * 0.8 + "deg";   // out and slightly down from each eye
+      b.style.filter = "hue-rotate(" + Math.round(now / 4 % 360) + "deg)";
+    });
+  }
   // while blocks.exe is open the big head bops along to the 144 bpm tune
   function danceStep(now) {
     const el = document.getElementById("head-px");
@@ -752,7 +780,7 @@
   function openBlocks(from) {
     return createWin({
       id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
-      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; if (!flapApi) setPixelFace(false); },
+      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; if (!flapApi && !dashApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app blocks-app");
         const row = h("div", "blocks-row");
@@ -915,7 +943,7 @@
   function openFlap(from) {
     return createWin({
       id: "flap", title: "mlg_flap.exe", w: 300, h: "auto", from, dx: 260, dy: 10, flat: true,
-      onClose() { if (flapApi) flapApi.stop(); flapApi = null; setShades(false); if (!blocksApi) setPixelFace(false); },
+      onClose() { if (flapApi) flapApi.stop(); flapApi = null; setShades(false); if (!blocksApi && !dashApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app flap-app");
         const lcd = h("div", "lcd flap-lcd");
@@ -1259,7 +1287,7 @@
   function openDash(from) {
     return createWin({
       id: "dash", title: "beat_dash.exe", w: 380, h: "auto", from, dx: 0, dy: 160, flat: true,
-      onClose() { if (dashApi) dashApi.stop(); dashApi = null; },
+      onClose() { if (dashApi) dashApi.stop(); dashApi = null; if (!blocksApi && !flapApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app dash-app");
         const lcd = h("div", "lcd dash-lcd");
@@ -1273,6 +1301,7 @@
         app.append(lcd, sc, h("div", "snake-tip", "JUMP ON THE BEAT · SOUND ON FOR THE TRACK"), h("div", "snake-tip", "♪ Feint – Snake Eyes (feat. CoMa) · 8-bit edit by Sasha"));
         body.appendChild(app);
         dashApi = makeDash(cv, msg, sA, sB);
+        setPixelFace(true);
       }
     });
   }
@@ -1462,6 +1491,7 @@
       },
       keyup(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") held = false; },
       tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
+      level() { if (!running) return 0; const b = Math.floor((t - DASH.T0) / DASH.BEAT); return b < 0 ? 0 : +(DASH.E[b] || 0); },
       stop() { running = false; music.stop(); }
     };
   }
@@ -1799,13 +1829,31 @@
   const ready = (img) => img.complete && img.naturalWidth > 0;
   // one frame, or a crossfade between two: layers = [[img, sheet, index, alpha], ...]
   function paint(layers) {
-    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix + "/" + shadesP.toFixed(2) + "/" + Math.round(tYaw);
+    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix + "/" + shadesP.toFixed(2) + "/" + Math.round(tYaw) + (trip > 0.02 ? "/m" + Math.round(tripT * 20) + ":" + trip.toFixed(2) : "");
     if (key === lastKey) return;
     if (!layers.every((l) => ready(l[0]))) return;
     lastKey = key;
     hx.clearRect(0, 0, hc.width, hc.height);
     layers.forEach((l) => blit(l[0], l[1], l[2], l[3]));
     if (shadesP > 0) drawShades();
+    if (trip > 0.02) meltHead();
+  }
+  // beat_dash drop FX: the pixel face melts downward in drips (columns stretched by a moving wave)
+  let trip = 0, tripT = 0;
+  const meltC = document.createElement("canvas"), meltX = meltC.getContext("2d");
+  function meltHead() {
+    const W = hc.width, H = hc.height;
+    meltC.width = W; meltC.height = H; meltX.drawImage(hc, 0, 0);
+    hx.clearRect(0, 0, W, H); hx.imageSmoothingEnabled = false;
+    const strip = Math.max(4, Math.round(W / 70));
+    for (let c = 0; c < W; c += strip) {
+      const wave = Math.sin(c * 0.045 + tripT * 2.1) * 0.5 + 0.5, wave2 = Math.sin(c * 0.13 - tripT * 3.3) * 0.5 + 0.5;
+      const drip = trip * H * (0.06 + 0.32 * wave * wave2);
+      // the top half stays put, everything below the eyes stretches down
+      const cut = H * 0.5;
+      hx.drawImage(meltC, c, 0, strip, cut, c, 0, strip, cut);
+      hx.drawImage(meltC, c, cut, strip, H - cut, c, cut, strip, H - cut + drip);
+    }
   }
   // meme pixel shades for mlg_flap.exe: they drop down from above onto her eyes
   const SHADES = [
@@ -2129,6 +2177,7 @@
     if (flapApi) flapApi.tick(dt);
     if (dashApi) dashApi.tick(dt);
     danceStep(performance.now());
+    dashTrip(performance.now(), dt);
     const spinning = Math.abs(targetAngle - angle) > 0.5;
     if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();

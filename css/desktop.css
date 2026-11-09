@@ -817,3 +817,13 @@ body.booting #desktop { visibility: hidden; }
 @keyframes mg-ring { from { transform: scale(1); opacity: 1; } to { transform: scale(30); opacity: 0; } }
 @keyframes mg-glitter { 0% { opacity: 0; transform: translateY(0) rotate(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(160px) rotate(180deg); } }
 @keyframes mg-flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+/* beat_dash drop: rainbow beams from her eyes */
+.eye-beams { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; z-index: 2; }
+.eye-beams .beam {
+  position: absolute; width: 140vmax; height: 14px; margin-top: -7px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, #fff 0%, #ff6ad5 8%, #ffd36a 22%, #8affc1 38%, #6ad8ff 55%, #b48aff 72%, rgba(180,138,255,0) 100%);
+  filter: blur(0.5px);
+  box-shadow: 0 0 18px 6px rgba(255, 255, 255, 0.35);
+  border-radius: 7px;
+}
