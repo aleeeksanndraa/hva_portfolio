@@ -782,66 +782,42 @@
     setTimeout(() => { drag = null; }, 0);
   });
 
-  /* ---------- face: the portrait redrawn every frame ----------
-     The cutout is 840x840. Each frame it is drawn into a tiny canvas (PIX x PIX)
-     together with the eye overlay, then shown scaled up with crisp pixels, so the
-     moving irises, blinks and sheen all become part of the pixel art. */
+  /* ---------- face: a head-turn video cut into a sprite sheet ----------
+     assets/face-turn.webp holds 57 frames (420px each, 10 per row) cut from a
+     turning-head video with the background removed. Each frame is tagged with
+     its head pose [yaw, pitch] in degrees; we show the frame whose pose is
+     closest to "looking at the cursor". */
   const faceWin = $("face-win");
   const faceBody = $("face");
-  const head = $("head");
   const hc = $("head-px");
-  const hx = hc.getContext("2d", { willReadFrequently: true });
-  const PIX = hc.width, U = PIX / 840;
-  const loadImg = (src) => { const im = new Image(); im.src = src; return im; };
-  const faceImg = loadImg("assets/face-cutout.webp");
-  const EYES = [{ cx: 343, ix: 343, iris: loadImg("assets/iris-l.png") }, { cx: 535, ix: 527, iris: loadImg("assets/iris-r.png") }];
+  const hx = hc.getContext("2d");
+  const SHEET = { src: "assets/face-turn.webp", size: 420, cols: 10, poses: [[0.2,15.8],[3.8,16.4],[7.8,17.0],[11.0,17.9],[14.0,18.5],[18.2,19.3],[20.3,17.3],[22.8,17.5],[25.8,15.0],[27.3,17.2],[29.4,14.9],[34.5,14.9],[36.7,13.2],[39.1,12.3],[36.5,11.7],[32.3,15.0],[-2.7,15.5],[-5.4,15.3],[-8.1,15.1],[-10.4,15.5],[-13.7,17.3],[-16.1,15.5],[-20.7,14.7],[-24.8,14.9],[-30.2,15.9],[-33.1,15.6],[-33.1,13.8],[-23.5,16.5],[-19.3,15.9],[-12.6,15.7],[1.0,12.0],[1.0,9.0],[1.1,6.9],[0.5,4.4],[0.1,1.7],[0.1,-0.9],[0.2,-2.7],[0.3,17.3],[0.8,14.1],[-1.6,3.8],[-5.4,4.8],[-13.1,2.5],[-17.7,4.7],[-23.9,5.0],[-27.8,3.8],[-37.4,7.8],[-43.7,6.0],[32.3,11.7],[27.2,10.8],[27.4,7.5],[22.9,9.3],[19.0,9.9],[14.7,9.0],[12.2,8.8],[7.9,7.5],[5.1,7.0],[0.9,10.5]] };
+  const sheet = new Image(); sheet.src = SHEET.src;
+  const NEUTRAL_PITCH = 16;
   let look = { x: innerWidth / 2, y: innerHeight };
-  let eyeX = 0, eyeY = 0, tiltX = 0, tiltY = 0, pokes = 0, pokeReset = null, blinking = false;
-  function blink() { blinking = true; setTimeout(() => { blinking = false; }, 130); }
-  (function blinkLoop() { setTimeout(() => { blink(); blinkLoop(); }, 2600 + Math.random() * 3200); })();
-  function drawFace() {
-    if (!faceImg.complete || !faceImg.naturalWidth) return;
-    hx.clearRect(0, 0, PIX, PIX);
-    hx.imageSmoothingEnabled = true;
-    hx.drawImage(faceImg, 0, 0, PIX, PIX);
-    hx.save();
-    hx.scale(U, U);
-    EYES.forEach((e) => {
-      hx.save();
-      hx.beginPath(); hx.ellipse(e.cx, 441, 33, 10.5, 0, 0, Math.PI * 2); hx.clip();
-      const g = hx.createRadialGradient(e.cx, 444, 2, e.cx, 444, 36);
-      g.addColorStop(0, "#b8a5ac"); g.addColorStop(0.6, "#9c868c"); g.addColorStop(1, "#7d6264");
-      hx.fillStyle = g; hx.fillRect(e.cx - 45, 418, 90, 46);
-      if (e.iris.complete) hx.drawImage(e.iris, e.ix - 18 + eyeX, 423 + eyeY, 36, 36);
-      const l = hx.createLinearGradient(0, 418, 0, 464);
-      l.addColorStop(0.12, "rgba(42,21,19,0.85)"); l.addColorStop(0.5, "rgba(42,21,19,0)"); l.addColorStop(1, "rgba(90,52,54,0.45)");
-      hx.fillStyle = l; hx.fillRect(e.cx - 45, 418, 90, 46);
-      if (blinking) { hx.fillStyle = "#86625e"; hx.fillRect(e.cx - 45, 418, 90, 32); hx.fillStyle = "#2e1a15"; hx.fillRect(e.cx - 34, 447, 68, 5); }
-      hx.restore();
-    });
-    hx.restore();
-    // lacquer sheen, only on the face pixels
-    hx.globalCompositeOperation = "source-atop";
-    const sx = PIX * (0.5 - tiltX * 0.45);
-    const sh = hx.createLinearGradient(sx - PIX * 0.25, 0, sx + PIX * 0.25, PIX * 0.4);
-    sh.addColorStop(0, "rgba(255,255,255,0)"); sh.addColorStop(0.42, "rgba(255,200,230,0.22)"); sh.addColorStop(0.5, "rgba(200,220,255,0.3)"); sh.addColorStop(0.58, "rgba(210,245,255,0.2)"); sh.addColorStop(1, "rgba(255,255,255,0)");
-    hx.fillStyle = sh; hx.fillRect(0, 0, PIX, PIX);
-    hx.globalCompositeOperation = "source-over";
+  let tYaw = 0, tPitch = NEUTRAL_PITCH, shown = -1, pokes = 0, pokeReset = null;
+  function blink() { /* the video has no blink */ }
+  function drawFrame(i) {
+    if (i === shown || !sheet.complete || !sheet.naturalWidth) return;
+    shown = i;
+    const s = SHEET.size, sx = (i % SHEET.cols) * s, sy = Math.floor(i / SHEET.cols) * s;
+    hx.clearRect(0, 0, hc.width, hc.height);
+    hx.drawImage(sheet, sx, sy, s, s, 0, 0, hc.width, hc.height);
   }
   function updateEyes() {
     const r = faceBody.getBoundingClientRect();
     if (!r.width) return;
-    const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.5);
-    const dist = Math.hypot(dx, dy) || 1, k = Math.min(1, dist / 320);
-    const ease = reduceMotion ? 1 : 0.16;
-    eyeX += ((dx / dist) * 11 * k - eyeX) * ease;
-    eyeY += ((dy / dist) * 3 * k - eyeY) * ease;
-    const nx = Math.max(-1, Math.min(1, dx / (innerWidth / 2))), ny = Math.max(-1, Math.min(1, dy / (innerHeight / 2)));
-    tiltX += (nx - tiltX) * (reduceMotion ? 1 : 0.08);
-    tiltY += (ny - tiltY) * (reduceMotion ? 1 : 0.08);
-    // whole-pixel shifts only, so the pixel art stays crisp
-    if (!reduceMotion) head.style.transform = "translate(" + Math.round(tiltX * 8) + "px," + Math.round(tiltY * 5) + "px)";
-    drawFace();
+    const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.45);
+    const nx = Math.max(-1, Math.min(1, dx / (innerWidth * 0.45)));
+    const ny = Math.max(-1, Math.min(1, dy / (innerHeight * 0.45)));
+    const wantYaw = nx * 38;
+    const wantPitch = ny < 0 ? NEUTRAL_PITCH + ny * 20 : NEUTRAL_PITCH + ny * 3;
+    const ease = reduceMotion ? 1 : 0.12;
+    tYaw += (wantYaw - tYaw) * ease;
+    tPitch += (wantPitch - tPitch) * ease;
+    let best = 0, bd = Infinity;
+    SHEET.poses.forEach((p, i) => { const d = (p[0] - tYaw) ** 2 + 2.2 * (p[1] - tPitch) ** 2; if (d < bd) { bd = d; best = i; } });
+    drawFrame(best);
   }
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
