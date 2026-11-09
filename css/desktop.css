@@ -339,6 +339,7 @@ button { font: inherit; color: inherit; }
   height: 100%;
   aspect-ratio: 1;
   transform: translateX(-50%);
+  transform-origin: 50% 88%;   /* the dance squashes from the chin */
 }
 .face-win.poked .head { animation: wobble 0.45s ease; }
 @keyframes wobble {

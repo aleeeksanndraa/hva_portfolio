@@ -721,7 +721,7 @@
       },
       stop() {
         if (!timer) return;
-        clearInterval(timer); timer = null;
+        clearInterval(timer); timer = null; beatZero = 0;
         try { gain.gain.setTargetAtTime(0, actx.currentTime, 0.03); const g = gain; setTimeout(() => g.disconnect(), 300); } catch (e) { /* ignore */ }
       },
       get on() { return !!timer; }
@@ -732,17 +732,21 @@
   // while blocks.exe is open the big head bops along to the 144 bpm tune
   function danceStep(now) {
     const el = document.getElementById("head-px");
-    if (!blocksApi || reduceMotion || !el) {
+    // only while blocks.exe is open AND its tune is actually playing
+    if (!blocksApi || !beatZero || now < beatZero || reduceMotion || !el) {
       if (danced && el) { el.style.translate = el.style.rotate = el.style.scale = ""; danced = false; }
       return;
     }
     danced = true;
-    const BEAT = 60000 / 144, t = now - beatZero, n = Math.floor(t / BEAT), ph = (t / BEAT) - n;
-    const hit = Math.pow(1 - ph, 2.4), side = n % 2 ? 1 : -1, sway = Math.sin(ph * Math.PI);
-    el.style.translate = (side * 10 * sway).toFixed(1) + "px " + (-16 * Math.sin(Math.min(1, ph * 1.6) * Math.PI) ).toFixed(1) + "px";
-    el.style.rotate = (side * 7 * sway).toFixed(2) + "deg";
-    el.style.scale = (1 + 0.05 * hit).toFixed(3) + " " + (1 - 0.05 * hit).toFixed(3);
+    const BEAT = 60000 / 144, t = now - beatZero, ph = (t / BEAT) % 1;
+    // a hop on every beat: up in an arc, squash when she lands, stretch on the way up
+    const up = Math.sin(ph * Math.PI), land = Math.max(0, 1 - ph / 0.18) + Math.max(0, (ph - 0.9) / 0.1);
+    const sq = Math.min(1, land) * 0.09, st = up * 0.04;
+    el.style.translate = "0 " + (-26 * up).toFixed(1) + "px";
+    el.style.rotate = "";
+    el.style.scale = (1 + sq - st).toFixed(3) + " " + (1 - sq + st).toFixed(3);
   }
+
   function openBlocks(from) {
     return createWin({
       id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
@@ -932,7 +936,7 @@
     const GAP = 96, PW = 40, SPD = 1.6, GRAV = 0.32, JUMP = -5.6;
     let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
     let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
-    const dubs = makeBeat("dub");
+    const dubs = makeBeat("melo");
     function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 20); addPipe(W + 20 + 150); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
@@ -1026,7 +1030,7 @@
 
   /* ---------- beat engine: synthesized drums, wobble bass and leads (no samples) ---------- */
   function makeBeat(kind) {
-    const BPM = kind === "dub" ? 140 : 150, S = 60 / BPM / 4;   // one 16th note
+    const BPM = kind === "dub" ? 140 : kind === "melo" ? 174 : 150, S = 60 / BPM / 4;   // one 16th note
     let timer = null, gain = null, t = 0, step = 0, noise = null, t0 = 0;
     const ctx = () => actx;
     function nz() {
@@ -1113,7 +1117,50 @@
       if (bar === 7 && s >= 12) snare(at, 0.1 + (s - 12) * 0.04);
     }
 
-    const fn = kind === "dub" ? dub : dash;
+    // ---- "melo": emotional melodic dubstep, 174 bpm half-time, F minor (Db Ab Eb Fm) ----
+    // supersaw chords that duck under the kick, a pluck lead, a growl bass on the drop
+    const PROG = [[138.59, 174.61, 207.65], [103.83, 130.81, 155.56], [155.56, 196, 233.08], [174.61, 207.65, 261.63]];
+    const ROOT = [34.65, 51.91, 38.89, 43.65];
+    const HOOK = [5, -1, 4, -1, 3, -1, 4, 2, -1, 3, -1, 2, 1, -1, 2, -1];   // index into the scale, -1 = rest
+    const SCALE = [349.23, 392, 415.3, 466.16, 523.25, 622.25, 698.46];
+    function supersaw(at, freqs, dur, v) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain();
+      f1.type = "lowpass"; f1.frequency.setValueAtTime(900, at); f1.frequency.linearRampToValueAtTime(3200, at + dur * 0.3);
+      // sidechain pump: dip on every beat
+      g.gain.setValueAtTime(0.0001, at);
+      for (let b = 0; b < dur / (S * 4) - 0.01; b++) {
+        const bt = at + b * S * 4;
+        g.gain.setValueAtTime(0.0001, bt); g.gain.exponentialRampToValueAtTime(v, bt + S * 2.4);
+      }
+      g.gain.setValueAtTime(v, at + dur - 0.05); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      freqs.forEach((f) => [-14, -6, 0, 7, 15].forEach((c) => {
+        const o = actx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f * 2; o.detune.value = c;
+        o.connect(f1); o.start(at); o.stop(at + dur + 0.02);
+      }));
+      f1.connect(g).connect(gain);
+    }
+    function pluck(at, f, v) {
+      const o = actx.createOscillator(), o2 = actx.createOscillator(), f1 = actx.createBiquadFilter(), g = actx.createGain();
+      o.type = "square"; o2.type = "sawtooth"; o.frequency.value = f; o2.frequency.value = f * 2.003;
+      f1.type = "lowpass"; f1.Q.value = 4; f1.frequency.setValueAtTime(5000, at); f1.frequency.exponentialRampToValueAtTime(500, at + 0.25);
+      env(g, at, v, 0.32); o.connect(f1); o2.connect(f1); f1.connect(g).connect(gain);
+      o.start(at); o2.start(at); o.stop(at + 0.34); o2.stop(at + 0.34);
+    }
+    function melo(n, at) {
+      const s = n % 16, bar = Math.floor(n / 16) % 8, c = bar % 4, drop = bar >= 4;
+      if (s === 0) supersaw(at, PROG[c], S * 16, drop ? 0.016 : 0.012);
+      if (s === 0 || (drop && s === 10)) kick(at, 0.55);
+      if (s === 8) snare(at, 0.32);
+      if (s % 2 === 0) hat(at, 0.03); if (s % 4 === 3) hat(at, 0.02);
+      if (bar === 3 && s >= 12) snare(at, 0.12 + (s - 12) * 0.05);   // little fill into the drop
+      const k = HOOK[(s + (bar % 2) * 3) % 16];
+      if (k >= 0) pluck(at, SCALE[k] * (drop && bar % 2 ? 2 : 1), drop ? 0.035 : 0.045);
+      if (drop) { if (s % 8 === 0) wob(at, ROOT[c] * 2, S * 6, s === 8 ? 10.9 : 5.4, 0.1, 0); }
+      else if (s === 0) tone(at, ROOT[c] * 2, S * 15, "sine", 0.18);
+      if (bar === 7 && s === 14) tone(at, 1800, 0.2, "square", 0.02, 120);
+    }
+
+    const fn = kind === "dub" ? dub : kind === "melo" ? melo : dash;
     function pump() {
       const ahead = actx.currentTime + 0.2;
       while (t < ahead) { fn(step, t); t += S; step++; }
@@ -1124,7 +1171,7 @@
         try {
           actx = actx || new (window.AudioContext || window.webkitAudioContext)();
           if (actx.state === "suspended") actx.resume();
-          gain = actx.createGain(); gain.gain.value = kind === "dub" ? 0.7 : 0.6; gain.connect(actx.destination);
+          gain = actx.createGain(); gain.gain.value = kind === "dash" ? 0.6 : 0.7; gain.connect(actx.destination);
           t = t0 = actx.currentTime + 0.05; step = 0;
           timer = setInterval(pump, 60); pump();
         } catch (e) { /* audio unavailable */ }
