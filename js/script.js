@@ -1402,7 +1402,7 @@
     const idleLayer = [sImg, sSh, turnFrame(tYaw, tPitch, sSh), 1];
 
     // all stars found: transform once the head is free
-    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) { pendingGlasses = false; magicFx(); }
+    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) { pendingGlasses = false; magicSound(); magicFx(); }
 
     // cursor resting (just scrolling / using arrows): look ahead and blink
     if (c.state === "idle" && skin === "plain" && now - lastMove > IDLE_AFTER && EMOTIONS.idle_blink) character.play("idle_blink");
@@ -1475,6 +1475,25 @@
 
   /* magical-girl transformation effects around the spin: glow + light rays behind the head,
      a spiral of stars closing in, then a starburst flash as the glasses land and glitter after */
+  // magical-girl transformation sound, synced with magicFx (flash at 3.3s)
+  function magicSound() {
+    if (!soundOn) return;
+    const at = (ms, fn) => setTimeout(fn, ms);
+    // 1. rising shimmer while the stars spiral in
+    const up = [523, 659, 784, 988, 1047, 1319, 1568, 1976];
+    for (let r = 0; r < 3; r++) up.forEach((f, i) => at(200 + r * 1000 + i * 110, () => blip(f * (r === 2 ? 1.5 : 1), 0.18, "triangle", 0.035 + r * 0.01)));
+    // twinkles on top
+    for (let i = 0; i < 14; i++) at(300 + Math.random() * 2900, () => blip(2400 + Math.random() * 1600, 0.06, "sine", 0.025));
+    // 2. swell into the flash
+    at(2700, () => blip(220, 0.6, "sawtooth", 0.03, 880));
+    // 3. the flash: a big bright chord
+    at(3300, () => { [523, 659, 784, 1047, 1319].forEach((f) => blip(f, 1.1, "square", 0.028)); blip(130, 0.8, "triangle", 0.09, 65); });
+    // 4. glitter falling down
+    [3136, 2637, 2349, 2093, 1760, 1568, 1319, 1175, 1047].forEach((f, i) => at(3500 + i * 70, () => blip(f, 0.09, "sine", 0.035)));
+    // 5. ta-da
+    at(4400, () => seq([784, 1047], 110, "square", 0.045));
+    at(4650, () => [659, 784, 1047, 1568].forEach((f) => blip(f, 0.9, "triangle", 0.05)));
+  }
   function magicFx() {
     if (reduceMotion) return;
     const r = faceBody.getBoundingClientRect();
