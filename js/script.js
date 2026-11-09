@@ -49,7 +49,9 @@
     eat: () => blip(880, 0.06, "square", 0.04, 1320),
     die: () => blip(300, 0.4, "sawtooth", 0.05, 60),
     boot: () => seq([523, 659, 784, 1047, 784, 1047], 110, "triangle", 0.06),
-    error: () => seq([220, 220], 140, "square", 0.05)
+    error: () => seq([220, 220], 140, "square", 0.05),
+    pixelOn: () => seq([262, 392, 523, 784, 1047], 60, "square", 0.04),
+    pixelOff: () => seq([1047, 784, 523, 392], 50, "square", 0.035)
   };
   const soundBtn = $("tray-sound");
   function setSound(on) {
@@ -729,7 +731,7 @@
   function openBlocks(from) {
     return createWin({
       id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
-      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; },
+      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app blocks-app");
         const row = h("div", "blocks-row");
@@ -751,6 +753,7 @@
         app.append(row, pad, h("div", "snake-tip", "← → MOVE · ↑ TURN · ↓ DROP · SPACE SLAM"));
         body.appendChild(app);
         blocksApi = makeBlocks(cv, nx, msg, sS, sL, sB, pad, mus);
+        setPixelFace(true);
       }
     });
   }
@@ -1273,12 +1276,49 @@
   function blink() { /* the video has no blink */ }
   // mosaic: 0 = big blocks, 1 = the clear photo (animated in after loading)
   let mosaic = 0, lastKey = "";
+  // pix: 0 = the normal photo, 1 = a chunky pixel sprite of her
+  const PIX_RES = 56;
+  let pix = 0, pixAnim = 0;
+  function setPixelFace(on) {
+    const from = pix, to = on ? 1 : 0;
+    if (from === to) return;
+    if (reduceMotion) { pix = to; return; }
+    const t0 = performance.now(), id = ++pixAnim;
+    sfx[on ? "pixelOn" : "pixelOff"]();
+    (function step(now) {
+      if (id !== pixAnim) return;
+      const p = Math.min(1, (now - t0) / 700);
+      // jump through a few resolutions, like a retro transform
+      const q = Math.round(p * 6) / 6;
+      pix = p >= 1 ? to : from + (to - from) * Math.min(0.97, q);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
   const mc = document.createElement("canvas"), mx = mc.getContext("2d");
   // draw frame i of a sprite sheet into the head canvas (same size + position for every sheet)
   function blit(img, sh, i, alpha) {
     const s = sh.size, sx = (i % sh.cols) * s, sy = Math.floor(i / sh.cols) * s;
     hx.globalAlpha = alpha == null ? 1 : alpha;
-    if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(img, sx, sy, s, s, 0, 0, hc.width, hc.height); }
+    if (pix > 0 && mosaic >= 1) {
+      // pixel-sprite version of the face (while blocks.exe is open)
+      const n = Math.round(hc.width - (hc.width - PIX_RES) * pix);
+      mc.width = n; mc.height = n; mx.clearRect(0, 0, n, n);
+      mx.imageSmoothingEnabled = true;
+      mx.drawImage(img, sx, sy, s, s, 0, 0, n, n);
+      if (pix >= 1) {
+        // crisp sprite edges + a reduced palette
+        const d = mx.getImageData(0, 0, n, n), a = d.data;
+        for (let k = 0; k < a.length; k += 4) {
+          if (a[k + 3] < 110) { a[k + 3] = 0; continue; }
+          a[k + 3] = 255;
+          for (let c = 0; c < 3; c++) a[k + c] = Math.min(255, Math.round(a[k + c] / 36) * 36 + 10);
+        }
+        mx.putImageData(d, 0, 0);
+      }
+      hx.imageSmoothingEnabled = false;
+      hx.drawImage(mc, 0, 0, n, n, 0, 0, hc.width, hc.height);
+    }
+    else if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(img, sx, sy, s, s, 0, 0, hc.width, hc.height); }
     else {
       const n = Math.max(8, Math.round(hc.width * mosaic * mosaic));
       mc.width = n; mc.height = n; mx.clearRect(0, 0, n, n);
@@ -1291,7 +1331,7 @@
   const ready = (img) => img.complete && img.naturalWidth > 0;
   // one frame, or a crossfade between two: layers = [[img, sheet, index, alpha], ...]
   function paint(layers) {
-    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic;
+    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix;
     if (key === lastKey) return;
     if (!layers.every((l) => ready(l[0]))) return;
     lastKey = key;
