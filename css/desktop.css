@@ -52,14 +52,45 @@ button { font: inherit; color: inherit; }
 }
 /* pixel Amsterdam canal skyline along the bottom, drawn in the desktop's own palette */
 .wp-city {
+  --u: calc(64vh / 128);            /* one art pixel */
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: 64vh;
+  height: calc(var(--u) * 128);
+  overflow: hidden;
   background: url("../assets/amsterdam-pixel.png") repeat-x left bottom / auto 100%;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
-@media (max-width: 700px) { .wp-city { height: 40vh; } }
+@media (max-width: 700px) { .wp-city { --u: calc(40vh / 128); } }
+/* window lights: three sets that slowly switch on and off */
+.wp-lights {
+  position: absolute; inset: 0;
+  background: repeat-x left bottom / auto 100%;
+  image-rendering: pixelated;
+  opacity: 0;
+  animation: win-glow 14s ease-in-out infinite;
+}
+.wp-lights.l1 { background-image: url("../assets/amsterdam-lights1.png"); }
+.wp-lights.l2 { background-image: url("../assets/amsterdam-lights2.png"); animation-delay: -4.7s; animation-duration: 17s; }
+.wp-lights.l3 { background-image: url("../assets/amsterdam-lights3.png"); animation-delay: -9.3s; animation-duration: 11s; }
+@keyframes win-glow { 0%, 100% { opacity: 0.15; } 35%, 70% { opacity: 0.85; } }
+/* a little tour boat drifting down the canal */
+.wp-boat {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--u) * 19);
+  width: calc(var(--u) * 46);
+  height: calc(var(--u) * 14);
+  background: url("../assets/amsterdam-boat.png") no-repeat 0 0 / 100% 100%;
+  image-rendering: pixelated;
+  animation: boat-drift 70s linear infinite, boat-bob 2.4s steps(2) infinite;
+}
+@keyframes boat-drift { from { translate: calc(var(--u) * -50) 0; } to { translate: 100vw 0; } }
+@keyframes boat-bob { 0%, 100% { margin-bottom: 0; } 50% { margin-bottom: calc(var(--u) * -1); } }
+@media (prefers-reduced-motion: reduce) {
+  .wp-lights { animation: none; opacity: 0.6; }
+  .wp-boat { animation: none; translate: 62vw 0; }
+}
 .wp-obj { position: absolute; height: auto; opacity: 0.95; filter: drop-shadow(0 10px 24px rgba(46, 36, 82, 0.18)); }
 .wp-word {
   position: absolute;
