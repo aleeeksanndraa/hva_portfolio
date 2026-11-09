@@ -19,6 +19,7 @@
    * Sound — synthesized 8-bit blips, off until the visitor turns it on
    * ------------------------------------------------------------------ */
   let soundOn = store.get("sound", false);
+  const songs = [];   // audio files that must stop when sound is switched off
   let actx = null;
   function blip(freq, dur, type, vol, slide) {
     if (!soundOn) return;
@@ -49,11 +50,14 @@
     eat: () => blip(880, 0.06, "square", 0.04, 1320),
     die: () => blip(300, 0.4, "sawtooth", 0.05, 60),
     boot: () => seq([523, 659, 784, 1047, 784, 1047], 110, "triangle", 0.06),
-    error: () => seq([220, 220], 140, "square", 0.05)
+    error: () => seq([220, 220], 140, "square", 0.05),
+    pixelOn: () => seq([262, 392, 523, 784, 1047], 60, "square", 0.04),
+    pixelOff: () => seq([1047, 784, 523, 392], 50, "square", 0.035)
   };
   const soundBtn = $("tray-sound");
   function setSound(on) {
     soundOn = on;
+    if (!on) songs.forEach((a) => a.pause());
     store.set("sound", on);
     soundBtn.textContent = on ? "🔊" : "🔇";
     soundBtn.setAttribute("aria-pressed", String(on));
@@ -91,6 +95,24 @@
       parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "215,163,189" : "35,38,79")), g: 0.25 });
     }
   }
+  // shooting stars across the wallpaper sky, every few seconds
+  (function shootingStars() {
+    const wp = document.getElementById("wallpaper");
+    if (reduceMotion || !wp) return;
+    const one = () => {
+      if (!document.hidden) {
+        const st = h("i", "wp-shoot");
+        st.style.left = (35 + Math.random() * 60) + "vw";
+        st.style.top = (2 + Math.random() * 28) + "vh";
+        st.style.width = (80 + Math.random() * 90) + "px";
+        st.style.animationDuration = (1.1 + Math.random() * 0.8) + "s";
+        st.addEventListener("animationend", () => st.remove());
+        wp.appendChild(st);
+      }
+      setTimeout(one, 3500 + Math.random() * 5500);
+    };
+    setTimeout(one, 2500);
+  })();
   function drawPixels() {
     px.clearRect(0, 0, innerWidth, innerHeight);
     for (let i = parts.length - 1; i >= 0; i--) {
@@ -370,6 +392,8 @@
     if (app === "archive") return openArchive(fromRect);
     if (app === "snake") return openSnake(fromRect);
     if (app === "blocks") return openBlocks(fromRect);
+    if (app === "flap") return openFlap(fromRect);
+    if (app === "dash") return openDash(fromRect);
     if (app === "stars") return openStars(fromRect);
     if (app === "trash") return openTrash(fromRect);
     return null;
@@ -693,24 +717,42 @@
           actx = actx || new (window.AudioContext || window.webkitAudioContext)();
           if (actx.state === "suspended") actx.resume();
           gain = actx.createGain(); gain.gain.value = 0.8; gain.connect(actx.destination);
-          leadT = bassT = actx.currentTime + 0.05;
+          leadT = bassT = actx.currentTime + 0.05; beatZero = performance.now() + 50;
           timer = setInterval(pump, 80); pump();
         } catch (e) { /* audio unavailable */ }
       },
       stop() {
         if (!timer) return;
-        clearInterval(timer); timer = null;
+        clearInterval(timer); timer = null; beatZero = 0;
         try { gain.gain.setTargetAtTime(0, actx.currentTime, 0.03); const g = gain; setTimeout(() => g.disconnect(), 300); } catch (e) { /* ignore */ }
       },
       get on() { return !!timer; }
     };
   }
 
-  let blocksApi = null;
+  let blocksApi = null, beatZero = 0, danced = false;
+  // while blocks.exe is open the big head bops along to the 144 bpm tune
+  function danceStep(now) {
+    const el = document.getElementById("head-px");
+    // only while blocks.exe is open AND its tune is actually playing
+    if (!blocksApi || !beatZero || now < beatZero || reduceMotion || !el) {
+      if (danced && el) { el.style.translate = el.style.rotate = el.style.scale = ""; danced = false; }
+      return;
+    }
+    danced = true;
+    const BEAT = 60000 / 144, t = now - beatZero, ph = (t / BEAT) % 1;
+    // a hop on every beat: up in an arc, squash when she lands, stretch on the way up
+    const up = Math.sin(ph * Math.PI), land = Math.max(0, 1 - ph / 0.18) + Math.max(0, (ph - 0.9) / 0.1);
+    const sq = Math.min(1, land) * 0.04, st = up * 0.02;
+    el.style.translate = "0 " + (-12 * up).toFixed(1) + "px";
+    el.style.rotate = "";
+    el.style.scale = (1 + sq - st).toFixed(3) + " " + (1 - sq + st).toFixed(3);
+  }
+
   function openBlocks(from) {
     return createWin({
       id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
-      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; },
+      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; if (!flapApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app blocks-app");
         const row = h("div", "blocks-row");
@@ -732,6 +774,7 @@
         app.append(row, pad, h("div", "snake-tip", "← → MOVE · ↑ TURN · ↓ DROP · SPACE SLAM"));
         body.appendChild(app);
         blocksApi = makeBlocks(cv, nx, msg, sS, sL, sB, pad, mus);
+        setPixelFace(true);
       }
     });
   }
@@ -846,6 +889,585 @@
     };
   }
 
+  /* ---------- flap.exe: a flappy game, MLG montage edition (her head is the bird) ---------- */
+  const mlg = {
+    // synthesized: no sampled audio, all made on the fly
+    hit() { blip(1800, 0.05, "square", 0.05, 900); blip(2600, 0.03, "square", 0.03); },
+    horn() {
+      if (!soundOn) return;
+      try {
+        actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+        const t = actx.currentTime;
+        [0, 0.28, 0.56].forEach((d, k) => [233, 294, 349].forEach((f) => {
+          const o = actx.createOscillator(), g = actx.createGain();
+          o.type = "sawtooth"; o.frequency.setValueAtTime(f, t + d); o.frequency.linearRampToValueAtTime(f * 0.97, t + d + (k === 2 ? 0.6 : 0.22));
+          g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.035, t + d + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + d + (k === 2 ? 0.65 : 0.24));
+          o.connect(g).connect(actx.destination); o.start(t + d); o.stop(t + d + 0.7);
+        }));
+      } catch (e) { /* audio unavailable */ }
+    },
+    flap() { blip(520, 0.07, "triangle", 0.05, 900); },
+    wow() { seq([392, 523, 784], 60, "square", 0.04); }
+  };
+  const FLAP_WORDS = ["WOW", "+1", "OH BABY", "NICE", "MOM GET THE CAMERA", "SICK", "360", "EZ", "CRISP", "OMG"];
+  let flapApi = null;
+  function openFlap(from) {
+    return createWin({
+      id: "flap", title: "mlg_flap.exe", w: 300, h: "auto", from, dx: 260, dy: 10, flat: true,
+      onClose() { if (flapApi) flapApi.stop(); flapApi = null; setShades(false); if (!blocksApi) setPixelFace(false); },
+      fill(body) {
+        const app = h("div", "snake-app flap-app");
+        const lcd = h("div", "lcd flap-lcd");
+        const cv = h("canvas"); cv.width = 240; cv.height = 340;
+        const msg = h("div", "lcd-msg"); msg.innerHTML = "SPACE / CLICK TO FLAP<br>GET READY TO GET REKT";
+        lcd.append(cv, msg);
+        const sc = h("div", "snake-score");
+        const sS = h("b", null, "0"), sB = h("b", null, String(store.get("flap-best", 0)));
+        const s1 = h("span", null, "SCORE "), s2 = h("span", null, "BEST ");
+        s1.appendChild(sS); s2.appendChild(sB); sc.append(s1, s2);
+        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"), h("div", "snake-tip", "♪ Bytesize – Dig Dug")); 
+        body.appendChild(app);
+        flapApi = makeFlap(cv, msg, sS, sB, lcd);
+        setPixelFace(true); setTimeout(() => setShades(true), 500);
+      }
+    });
+  }
+  function makeFlap(cv, msg, scoreEl, bestEl, lcd) {
+    const x = cv.getContext("2d"), W = cv.width, H = cv.height;
+    const head = new Image(); head.src = "assets/face-cutout.webp";
+    const GAP = 122, PW = 40, SPD = 1.5, GRAV = 0.28, JUMP = -5.2;
+    let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
+    let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
+    // Bytesize – Dig Dug (Sasha's Monstercat Gold license), from 0:55
+    const song = new Audio("assets/flap-dubstep.mp3"); song.loop = true; song.volume = 0.55; song.preload = "none"; songs.push(song);
+    const dubs = {
+      play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
+      stop() { song.pause(); }
+    };
+    function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 40); addPipe(W + 40 + 175); draw(); }
+    function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
+    function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
+    function hitmark(X, Y) { fx.push({ hm: true, x: X, y: Y, life: 1 }); }
+    function flap() { if (!running) { start(); return; } vy = JUMP; mlg.flap(); }
+    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; dubs.play(); }
+    function die() {
+      alive = false; running = false; shake = 18; dubs.stop(); mlg.horn(); sfx.die();
+      pop("GET REKT", W / 2, H / 2 - 30, true); hitmark(60, by); hitmark(70, by - 12);
+      msg.innerHTML = "WASTED · " + score + "<br>SPACE / TAP TO RETRY"; msg.hidden = false;
+      lcd.classList.remove("mlg-flash"); void lcd.offsetWidth; lcd.classList.add("mlg-flash");
+    }
+    function scored() {
+      score++; scoreEl.textContent = String(score);
+      if (score > best) { best = score; store.set("flap-best", best); bestEl.textContent = String(best); }
+      mlg.hit(); hitmark(60 + 18, by - 6); shake = 6; hue = 1;
+      pop(FLAP_WORDS[Math.floor(Math.random() * FLAP_WORDS.length)], 70 + Math.random() * 120, 60 + Math.random() * 200, false);
+      if (score % 5 === 0) { mlg.horn(); pop(score % 10 === 0 ? "WOMBO COMBO" : "OH BABY A TRIPLE", W / 2, 90, true); tri = 1; shake = 14; }
+      if (score === 10) { shades = 1; pop("DEAL WITH IT", W / 2, H - 70, true); }
+    }
+    function drawPipe(px, y0, y1) {
+      const g = x.createLinearGradient(px, 0, px + PW, 0);
+      g.addColorStop(0, "#c3c5d0"); g.addColorStop(0.35, "#fbfbfd"); g.addColorStop(0.55, "#a9abb8"); g.addColorStop(1, "#e6e7ee");
+      x.fillStyle = g; x.fillRect(px, y0, PW, y1 - y0);
+      x.strokeStyle = "#2e2452"; x.lineWidth = 2; x.strokeRect(px + 1, y0 + 1, PW - 2, y1 - y0 - 2);
+    }
+    function draw() {
+      x.save();
+      if (shake > 0) x.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+      // sky: lavender, with a rainbow wash after each point
+      const sky = x.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#cdc3ea"); sky.addColorStop(1, "#e3ddf4");
+      x.fillStyle = sky; x.fillRect(-20, -20, W + 40, H + 40);
+      if (hue > 0) { x.fillStyle = "hsla(" + (frame * 9 % 360) + ",80%,75%," + (hue * 0.35).toFixed(2) + ")"; x.fillRect(-20, -20, W + 40, H + 40); }
+      if (tri > 0) { // the triangle with the eye
+        x.globalAlpha = tri * 0.8; x.fillStyle = "#2e2452";
+        x.beginPath(); x.moveTo(W / 2, 110); x.lineTo(W / 2 - 50, 196); x.lineTo(W / 2 + 50, 196); x.closePath(); x.fill();
+        x.fillStyle = "#f6f3fa"; x.beginPath(); x.ellipse(W / 2, 168, 15, 8, 0, 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#2e2452"; x.beginPath(); x.arc(W / 2, 168, 4, 0, Math.PI * 2); x.fill(); x.globalAlpha = 1;
+      }
+      pipes.forEach((p) => { drawPipe(p.x, -4, p.gy); drawPipe(p.x, p.gy + GAP, H + 4); });
+      x.fillStyle = "#b4a7dd"; x.fillRect(-20, H - 10, W + 40, 14);
+      // her head, tilting with speed
+      x.save(); x.translate(60, by); x.rotate(Math.max(-0.5, Math.min(1.2, vy * 0.08)));
+      if (head.complete && head.naturalWidth) x.drawImage(head, -18, -18, 36, 36); else { x.fillStyle = "#6d1d2b"; x.fillRect(-12, -12, 24, 24); }
+      if (shades > 0) { x.fillStyle = "#111"; x.fillRect(-13, -6 - (1 - shades) * 40, 11, 5); x.fillRect(1, -6 - (1 - shades) * 40, 11, 5); x.fillRect(-2, -5 - (1 - shades) * 40, 4, 2); }
+      x.restore();
+      fx.forEach((f) => {
+        x.globalAlpha = Math.max(0, f.life);
+        if (f.hm) { // hitmarker
+          x.strokeStyle = "#fff"; x.lineWidth = 3; const s = 6, g = 3;
+          [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => { x.beginPath(); x.moveTo(f.x + a * g, f.y + b * g); x.lineTo(f.x + a * (g + s), f.y + b * (g + s)); x.stroke(); });
+          x.strokeStyle = "#2e2452"; x.lineWidth = 1;
+          [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => { x.beginPath(); x.moveTo(f.x + a * g, f.y + b * g); x.lineTo(f.x + a * (g + s), f.y + b * (g + s)); x.stroke(); });
+        } else {
+          x.save(); x.translate(f.x, f.y); x.rotate(f.r); const sz = f.big ? 22 : 15;
+          x.font = "900 " + sz + "px Impact, Archivo, sans-serif"; x.textAlign = "center";
+          x.lineWidth = 4; x.strokeStyle = "#2e2452"; x.strokeText(f.t, 0, 0);
+          x.fillStyle = f.big ? "#fff200" : "hsl(" + (frame * 12 % 360) + ",90%,70%)"; x.fillText(f.t, 0, 0); x.restore();
+        }
+        x.globalAlpha = 1;
+      });
+      x.font = "900 34px Impact, Archivo, sans-serif"; x.textAlign = "center"; x.lineWidth = 5; x.strokeStyle = "#2e2452";
+      x.strokeText(String(score), W / 2, 44); x.fillStyle = "#fff"; x.fillText(String(score), W / 2, 44);
+      x.restore();
+    }
+    function step() {
+      frame++;
+      if (running) {
+        vy += GRAV; by += vy;
+        if (by < 14) { by = 14; vy = Math.max(vy, 0); }   // soft ceiling
+        pipes.forEach((p) => { p.x -= SPD + Math.min(0.8, score * 0.03); if (!p.done && p.x + PW < 60 - 14) { p.done = true; scored(); } });
+        if (pipes[0].x < -PW) { pipes.shift(); addPipe(pipes[pipes.length - 1].x + 175); }
+        const hitPipe = pipes.some((p) => 60 + 11 > p.x && 60 - 11 < p.x + PW && (by - 11 < p.gy || by + 11 > p.gy + GAP));   // forgiving hitbox
+        if (by > H - 24 || hitPipe) die();
+      }
+      fx.forEach((f) => { f.life -= f.hm ? 0.05 : 0.018; if (!f.hm) f.y -= 0.6; });
+      fx = fx.filter((f) => f.life > 0);
+      shake *= 0.85; if (shake < 0.5) shake = 0;
+      hue *= 0.93; tri *= 0.97; if (shades > 0 && shades < 1) shades = Math.min(1, shades + 0.05);
+      draw();
+    }
+    cv.addEventListener("pointerdown", (e) => { e.preventDefault(); flap(); });
+    reset(); draw();
+    return {
+      key(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); flap(); return true; } return false; },
+      tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
+      stop() { running = false; dubs.stop(); }
+    };
+  }
+
+  /* ---------- beat engine: synthesized drums, wobble bass and leads (no samples) ---------- */
+  function makeBeat(kind) {
+    const BPM = kind === "dub" ? 140 : 174, S = 60 / BPM / 4;   // one 16th note
+    let timer = null, gain = null, t = 0, step = 0, noise = null, t0 = 0;
+    const ctx = () => actx;
+    function nz() {
+      if (noise) return noise;
+      const b = actx.createBuffer(1, actx.sampleRate * 0.5, actx.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return (noise = b);
+    }
+    function env(g, at, v, dec) { g.gain.setValueAtTime(v, at); g.gain.exponentialRampToValueAtTime(0.0001, at + dec); }
+    function kick(at, v) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.setValueAtTime(160, at); o.frequency.exponentialRampToValueAtTime(38, at + 0.14);
+      env(g, at, v || 0.55, 0.3); o.connect(g).connect(gain); o.start(at); o.stop(at + 0.32);
+    }
+    function hiss(at, v, dec, hp) {
+      const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      s.buffer = nz(); f.type = "highpass"; f.frequency.value = hp; env(g, at, v, dec);
+      s.connect(f).connect(g).connect(gain); s.start(at); s.stop(at + dec + 0.02);
+    }
+    function snare(at, v) { hiss(at, v || 0.3, 0.18, 1400); tone(at, 190, 0.08, "triangle", 0.12); }
+    function hat(at, v, open) { hiss(at, v || 0.05, open ? 0.12 : 0.035, 7500); }
+    function tone(at, f, dur, type, v, slide) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, at); if (slide) o.frequency.exponentialRampToValueAtTime(slide, at + dur);
+      g.gain.setValueAtTime(v, at); g.gain.setValueAtTime(v, at + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      o.connect(g).connect(gain); o.start(at); o.stop(at + dur + 0.02);
+    }
+    // the wub: detuned saws through a resonant lowpass that an LFO opens and closes
+    function wob(at, f, dur, rate, v, bend) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain(), l = actx.createOscillator(), lg = actx.createGain();
+      f1.type = "lowpass"; f1.Q.value = 9; f1.frequency.value = 380;
+      l.type = "sine"; l.frequency.value = rate; lg.gain.value = 1300; l.connect(lg).connect(f1.frequency);
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.01);
+      g.gain.setValueAtTime(v, at + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      [1, 1.012, 0.5].forEach((m, k) => {
+        const o = actx.createOscillator(); o.type = k === 2 ? "square" : "sawtooth";
+        o.frequency.setValueAtTime(f * m, at); if (bend) o.frequency.exponentialRampToValueAtTime(f * m * bend, at + dur);
+        o.connect(f1); o.start(at); o.stop(at + dur + 0.02);
+      });
+      f1.connect(g).connect(gain); l.start(at); l.stop(at + dur + 0.02);
+    }
+    function sawBass(at, f, dur, v) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain(), o = actx.createOscillator();
+      f1.type = "lowpass"; f1.Q.value = 6; f1.frequency.setValueAtTime(2200, at); f1.frequency.exponentialRampToValueAtTime(300, at + dur);
+      o.type = "sawtooth"; o.frequency.value = f; env(g, at, v, dur);
+      o.connect(f1).connect(g).connect(gain); o.start(at); o.stop(at + dur + 0.02);
+    }
+
+    // ---- "dub": hard half-time dubstep at 140, F minor. 8-bar loop: 2 bars build, 6 bars drop ----
+    let curve = null;
+    function dist() {   // a hard clipper for the growls
+      const ws = actx.createWaveShaper();
+      if (!curve) { curve = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const v = i / 512 - 1; curve[i] = Math.tanh(v * 6); } }
+      ws.curve = curve; return ws;
+    }
+    function growl(at, f, dur, rate, v, bend, shape) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain(), l = actx.createOscillator(), lg = actx.createGain(), d = dist(), post = actx.createBiquadFilter();
+      f1.type = "lowpass"; f1.Q.value = 14; f1.frequency.value = 300;
+      l.type = shape || "sine"; l.frequency.value = rate; lg.gain.value = 2200; l.connect(lg).connect(f1.frequency);
+      post.type = "lowpass"; post.frequency.value = 4200;
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.008);
+      g.gain.setValueAtTime(v, at + dur * 0.9); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      [[1, "sawtooth"], [1.007, "sawtooth"], [0.5, "square"], [2.003, "square"]].forEach(([m, ty]) => {
+        const o = actx.createOscillator(); o.type = ty;
+        o.frequency.setValueAtTime(f * m, at); if (bend) o.frequency.exponentialRampToValueAtTime(f * m * bend, at + dur);
+        o.connect(f1); o.start(at); o.stop(at + dur + 0.02);
+      });
+      f1.connect(d).connect(post).connect(g).connect(gain); l.start(at); l.stop(at + dur + 0.02);
+    }
+    function sub(at, f, dur, v) { tone(at, f, dur, "sine", v); }
+    const DF = 43.65, DN = [DF, DF, DF * 1.189, DF, DF * 0.891, DF, DF * 1.498, DF * 1.335];
+    const DR = [4.67, 9.33, 2.33, 18.67, 7, 14, 3.5, 28];
+    function dub(n, at) {
+      const s = n % 16, bar = Math.floor(n / 16) % 8;
+      if (bar < 2) {   // build: kick on the beat, snare roll speeding up, riser, then silence and a zap
+        if (s % 4 === 0 && bar === 0) kick(at, 0.5);
+        if (bar === 0 && s % 4 === 0) snare(at, 0.12);
+        if (bar === 1) { if (s < 8 ? s % 2 === 0 : true) snare(at, 0.1 + s * 0.015); if (s >= 12) snare(at + S / 2, 0.14); }
+        if (bar === 0 && s === 0) tone(at, 120, S * 30, "sawtooth", 0.04, 3200);
+        if (bar === 1 && s === 15) tone(at, 3000, 0.2, "square", 0.04, 60);
+        hat(at, 0.02 + bar * 0.02);
+        return;
+      }
+      // the drop
+      if (s === 0) { kick(at, 0.7); sub(at, DF, S * 3, 0.22); }
+      if (s === 10 || (bar % 2 && s === 3)) kick(at, 0.55);
+      if (s === 8) { snare(at, 0.42); hiss(at, 0.12, 0.25, 3000); }
+      if (s % 2 === 0) hat(at, 0.035);
+      if (bar === 7 && s >= 12) snare(at, 0.2 + (s - 12) * 0.05);
+      const k = (bar * 4 + Math.floor(s / 4)) % 8;
+      if (s % 4 === 0 && !(bar === 7 && s >= 12)) {
+        const r = DR[(k * 3 + bar) % DR.length], b = bar % 2 && s === 12 ? 0.5 : (k % 3 === 2 ? 1.5 : 0);
+        growl(at, DN[k], S * 3.8, r, 0.2, b, k % 2 ? "square" : "sine");
+      } else if (s % 4 === 2 && (bar + s) % 3 === 0) growl(at, DN[(k + 2) % 8] * 2, S * 1.6, 28, 0.16, 0.7, "square");   // stutter screech
+      if (s === 14 && bar % 2 === 0) tone(at, 1600, 0.12, "square", 0.04, 4000);   // metallic yelp
+    }
+
+    // ---- "dash": bright 150bpm four-on-the-floor in A minor (Am F C G) ----
+    const CH = [[220, 261.63, 329.63], [174.61, 220, 261.63], [261.63, 329.63, 392], [196, 246.94, 293.66]];
+    const MEL = [0, 0, 2, 0, 1, 0, 2, 1, 0, 2, 1, 0, 2, 0, 1, 2];
+    function dash(n, at) {
+      // bright drum & bass: A minor (Am F C G), arps on top, reese underneath
+      const s = n % 16, bar = Math.floor(n / 16) % 8, ch = CH[bar % 4];
+      dnbDrums(s, bar, at, bar === 7);
+      if (s === 0 || s === 8 || s === 11) chipBass(at, ch[0] / 2, S * (s === 11 ? 5 : 3), 0.07);
+      if (s % 2 === 0) tone(at, ch[(s / 2 + bar) % 3] * 2, S * 0.9, "square", 0.02);   // arp
+      if (bar >= 4 && MEL[(s + bar * 3) % 16] !== 1 && s % 3 !== 2) chipLead(at, ch[MEL[(s + bar * 3) % 16]] * 4, 0.03);   // lead in the second half
+    }
+
+    // ---- 8-bit voices (square / triangle / noise only, like an old console) ----
+    function chipKick(at, v) {
+      const o = actx.createOscillator(), g = actx.createGain(); o.type = "triangle";
+      o.frequency.setValueAtTime(220, at); o.frequency.exponentialRampToValueAtTime(45, at + 0.09);
+      env(g, at, (v || 0.5) * 1.3, 0.16); o.connect(g).connect(gain); o.start(at); o.stop(at + 0.18);
+    }
+    function chipChord(at, freqs, dur, v) {   // fast arpeggio instead of a pad
+      const step = S / 2;
+      for (let i = 0; i * step < dur - 0.01; i++) tone(at + i * step, freqs[i % freqs.length] * 2, step * 0.95, "square", v);
+    }
+    function chipBass(at, f, dur, v) {
+      tone(at, f * 2, dur, "triangle", v * 2.2);
+      tone(at, f * 2, Math.min(dur, S * 1.5), "square", v * 0.45, f * 1.98);
+    }
+    function chipLead(at, f, v) { tone(at, f, S * 1.6, "square", v * 0.9); tone(at + S * 0.5, f * 1.003, S, "square", v * 0.35); }
+
+    // ---- drum & bass toolkit: two-step break + rolling reese bass ----
+    function dnbDrums(s, bar, at, fill) {
+      if (s === 0 || s === 10 || (bar % 2 === 1 && s === 7)) chipKick(at, 0.55);
+      if (s === 4 || s === 12) snare(at, 0.34);
+      if (s === 7 || s === 15 || (bar % 2 === 0 && s === 9)) snare(at, 0.07);   // ghost notes
+      hat(at, s % 2 ? 0.022 : 0.04); if (s === 6 || s === 14) hat(at, 0.035, true);
+      if (fill && s >= 12) { snare(at, 0.12 + (s - 12) * 0.05); if (s % 2) snare(at + S / 2, 0.1); }
+    }
+    function reese(at, f, dur, v, open) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain();
+      f1.type = "lowpass"; f1.Q.value = 5;
+      f1.frequency.setValueAtTime(220, at); f1.frequency.linearRampToValueAtTime(open || 900, at + dur * 0.5); f1.frequency.linearRampToValueAtTime(260, at + dur);
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.02);
+      g.gain.setValueAtTime(v, at + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      [-18, 18].forEach((c) => { const o = actx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = c; o.connect(f1); o.start(at); o.stop(at + dur + 0.02); });
+      const sub = actx.createOscillator(), sg = actx.createGain(); sub.type = "sine"; sub.frequency.value = f / 2;
+      sg.gain.setValueAtTime(0.0001, at); sg.gain.exponentialRampToValueAtTime(v * 1.6, at + 0.02); sg.gain.setValueAtTime(v * 1.6, at + dur * 0.85); sg.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      sub.connect(sg).connect(gain); sub.start(at); sub.stop(at + dur + 0.02);
+      f1.connect(g).connect(gain);
+    }
+
+    // ---- "melo": emotional melodic dubstep, 174 bpm half-time, F minor (Db Ab Eb Fm) ----
+    // supersaw chords that duck under the kick, a pluck lead, a growl bass on the drop
+    const PROG = [[138.59, 174.61, 207.65], [103.83, 130.81, 155.56], [155.56, 196, 233.08], [174.61, 207.65, 261.63]];
+    const ROOT = [34.65, 51.91, 38.89, 43.65];
+    const HOOK = [5, -1, 4, -1, 3, -1, 4, 2, -1, 3, -1, 2, 1, -1, 2, -1];   // index into the scale, -1 = rest
+    const SCALE = [349.23, 392, 415.3, 466.16, 523.25, 622.25, 698.46];
+    function supersaw(at, freqs, dur, v) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain();
+      f1.type = "lowpass"; f1.frequency.setValueAtTime(900, at); f1.frequency.linearRampToValueAtTime(3200, at + dur * 0.3);
+      // sidechain pump: dip on every beat
+      g.gain.setValueAtTime(0.0001, at);
+      for (let b = 0; b < dur / (S * 4) - 0.01; b++) {
+        const bt = at + b * S * 4;
+        g.gain.setValueAtTime(0.0001, bt); g.gain.exponentialRampToValueAtTime(v, bt + S * 2.4);
+      }
+      g.gain.setValueAtTime(v, at + dur - 0.05); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      freqs.forEach((f) => [-14, -6, 0, 7, 15].forEach((c) => {
+        const o = actx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f * 2; o.detune.value = c;
+        o.connect(f1); o.start(at); o.stop(at + dur + 0.02);
+      }));
+      f1.connect(g).connect(gain);
+    }
+    function pluck(at, f, v) {
+      const o = actx.createOscillator(), o2 = actx.createOscillator(), f1 = actx.createBiquadFilter(), g = actx.createGain();
+      o.type = "square"; o2.type = "sawtooth"; o.frequency.value = f; o2.frequency.value = f * 2.003;
+      f1.type = "lowpass"; f1.Q.value = 4; f1.frequency.setValueAtTime(5000, at); f1.frequency.exponentialRampToValueAtTime(500, at + 0.25);
+      env(g, at, v, 0.32); o.connect(f1); o2.connect(f1); f1.connect(g).connect(gain);
+      o.start(at); o2.start(at); o.stop(at + 0.34); o2.stop(at + 0.34);
+    }
+    function melo(n, at) {
+      // melodic drum & bass: intro bars 0-3 (pads, pluck, light hats), full roll bars 4-15
+      const s = n % 16, bar = Math.floor(n / 16) % 16, c = bar % 4, intro = bar < 4;
+      if (s === 0) chipChord(at, PROG[c], S * 16, intro ? 0.016 : 0.014);
+      if (intro) { if (s % 2 === 0) hat(at, 0.025); if (bar === 3) { if (s >= 8) snare(at, 0.08 + (s - 8) * 0.03); if (s === 8) tone(at, 300, S * 8, "sawtooth", 0.03, 2400); } }
+      else {
+        dnbDrums(s, bar, at, bar % 8 === 7);
+        if (s === 0 || s === 6 || s === 10) chipBass(at, ROOT[c] * 2, S * (s === 6 ? 4 : 6), 0.07);
+      }
+      const k = HOOK[(s + (bar % 2) * 3) % 16];
+      if (k >= 0) chipLead(at, SCALE[k] * (!intro && bar % 4 >= 2 ? 2 : 1), intro ? 0.04 : 0.032);
+    }
+
+    const fn = kind === "dub" ? dub : kind === "melo" ? melo : dash;
+    function pump() {
+      const ahead = actx.currentTime + 0.2;
+      while (t < ahead) { fn(step, t); t += S; step++; }
+    }
+    return {
+      play() {
+        if (timer || !soundOn) return;
+        try {
+          actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+          if (actx.state === "suspended") actx.resume();
+          gain = actx.createGain(); gain.gain.value = kind === "dub" ? 0.55 : kind === "dash" ? 0.6 : 0.7; gain.connect(actx.destination);
+          t = t0 = actx.currentTime + 0.05; step = kind === "melo" ? 64 : 0;   // skip the intro, start on the drop
+          timer = setInterval(pump, 60); pump();
+        } catch (e) { /* audio unavailable */ }
+      },
+      stop() {
+        if (!timer) return;
+        clearInterval(timer); timer = null;
+        try { gain.gain.setTargetAtTime(0, actx.currentTime, 0.04); const g = gain; setTimeout(() => g.disconnect(), 400); } catch (e) { /* ignore */ }
+      },
+      // 0..1 position inside the current beat (for visuals), or -1 when silent
+      pulse() { if (!timer) return -1; const b = (ctx().currentTime - t0) / (S * 4); return b - Math.floor(b); },
+      get on() { return !!timer; }
+    };
+  }
+
+  /* ---------- beat_dash.exe: a one-button rhythm runner (her face on the cube) ---------- */
+  let dashApi = null;
+  function openDash(from) {
+    return createWin({
+      id: "dash", title: "beat_dash.exe", w: 380, h: "auto", from, dx: 0, dy: 160, flat: true,
+      onClose() { if (dashApi) dashApi.stop(); dashApi = null; },
+      fill(body) {
+        const app = h("div", "snake-app dash-app");
+        const lcd = h("div", "lcd dash-lcd");
+        const cv = h("canvas"); cv.width = 340; cv.height = 200;
+        const msg = h("div", "lcd-msg"); msg.innerHTML = "SPACE / CLICK TO JUMP<br>HOLD TO KEEP JUMPING";
+        lcd.append(cv, msg);
+        const sc = h("div", "snake-score");
+        const sA = h("b", null, "1"), sB = h("b", null, store.get("dash-best", 0) + "%");
+        const s1 = h("span", null, "ATTEMPT "), s2 = h("span", null, "BEST ");
+        s1.appendChild(sA); s2.appendChild(sB); sc.append(s1, s2);
+        app.append(lcd, sc, h("div", "snake-tip", "JUMP ON THE BEAT · SOUND ON FOR THE TRACK"), h("div", "snake-tip", "♪ Feint – Snake Eyes (feat. CoMa) · 8-bit edit by Sasha"));
+        body.appendChild(app);
+        dashApi = makeDash(cv, msg, sA, sB);
+      }
+    });
+  }
+  // beat_dash level: laid out on the beat grid of the song (175 bpm), denser where the track is loud
+  const DASH = { T0: 0.2177, BEAT: 60 / 175.15, PPS: 252, END: 85,
+    // loudness per beat, 0-9 (measured from the track)
+    E: "95893991000000853976799759883987496879894958498859699979696949597979997978575607474987596969686857488769687978796899999966885389679989996599637112110200321023200102010022202330010201002221233022232252244343479797969996929699969296939699949997929799" };
+  // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases, then night phrases for the loud parts
+  const DASH_THEMES = [
+    ["#b9aee3", "#e7e1f6", "rgba(255,255,255,A)", "s"], ["#d9b3cf", "#f4e3ee", "rgba(255,255,255,A)", "o"],
+    ["#a9bde6", "#e1e8f7", "rgba(255,255,255,A)", "d"], ["#c6b5ea", "#f1e6f6", "rgba(255,255,255,A)", "t"],
+    ["#2e2452", "#6d5aa8", "rgba(215,163,189,A)", "x"], ["#3a1f45", "#a0607f", "rgba(255,255,255,A)", "d"],
+    ["#1f2a52", "#5a74b4", "rgba(180,167,221,A)", "o"], ["#2e2452", "#8a6fc4", "rgba(255,242,0,A)", "t"]
+  ];
+  function dashLevel(GY, C, PX) {
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const obs = [], bx = (i) => (DASH.T0 + i * DASH.BEAT) * DASH.PPS + PX;
+    const spike = (X, up) => obs.push({ k: "s", x: X, y: GY - C - (up || 0), w: C, h: C });
+    const block = (X, w, hh) => obs.push({ k: "b", x: X, y: GY - hh, w, h: hh });
+    const pad = (X) => obs.push({ k: "p", x: X, y: GY - 5, w: C, h: 5 });
+    let i = 6;   // a short run-up before the first obstacle
+    while (i < DASH.E.length - 4) {
+      const e = +DASH.E[i], X = bx(i) + 36;   // jump on the beat to clear what sits at X
+      if (e <= 1) { i += 4; continue; }
+      if (e <= 4) { spike(X); i += 4; continue; }
+      if (e <= 6) { if (i % 8 === 0) { spike(X); spike(X + C); } else spike(X); i += 2; continue; }
+      // loud: a little 4-beat move
+      const r = rnd();
+      if (r < 0.3) { spike(X); spike(bx(i + 2) + 36); spike(bx(i + 2) + 36 + C); }
+      else if (r < 0.5) { pad(bx(i) + 10); spike(bx(i) + 50); spike(bx(i) + 70); spike(bx(i) + 90); }
+      else if (r < 0.7) { block(X, 40, 20); block(bx(i + 2) + 36, 40, 40); }
+      else if (r < 0.85) { spike(X); spike(X + C); spike(bx(i + 2) + 36); }
+      else { block(X, 120, 20); }   // a long white block to hop onto and run along
+      i += 4;
+    }
+    return obs;
+  }
+  function makeDash(cv, msg, attEl, bestEl) {
+    const x = cv.getContext("2d"), W = cv.width, H = cv.height, GY = 164, C = 20, PX = 70;
+    const head = new Image(); head.src = "assets/face-cutout.webp";
+    // Sasha's own 8-bit edit of Feint – Snake Eyes (licensed via Monstercat Gold), starting at 1:01
+    const song = new Audio("assets/flap-song.mp3"); song.volume = 0.6; song.preload = "auto"; songs.push(song);
+    const music = {
+      play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
+      stop() { song.pause(); },
+      get on() { return !song.paused; }
+    };
+    const GRAV = 0.92, JUMP = -10.2, PAD = -15, LEN = DASH.END * DASH.PPS;
+    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false, t = 0;
+    let attempt = 1, best = store.get("dash-best", 0), acc = 0, frame = 0, dead = 0, spd = DASH.PPS / 60, won = 0;
+    function build() { obs = dashLevel(GY, C, PX); }
+    function reset() { cy = GY - C; vy = 0; rot = 0; ground = true; cam = 0; t = 0; parts = []; trail = []; dead = 0; won = 0; build(); }
+    function start() {
+      if (dead) return;
+      if (!alive) { reset(); alive = true; }
+      running = true; msg.hidden = true; music.stop(); music.play();
+    }
+    function die() {
+      running = false; alive = false; dead = 1; music.stop(); sfx.die();
+      const pct = Math.min(100, Math.floor(cam / LEN * 100));
+      if (pct > best) { best = pct; store.set("dash-best", best); bestEl.textContent = best + "%"; }
+      for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * 4; parts.push({ x: PX + C / 2, y: cy + C / 2, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, c: i % 3 }); }
+      setTimeout(() => { dead = 0; attempt++; attEl.textContent = String(attempt); reset(); alive = true; running = true; music.play(); }, 900);
+    }
+    function win() {
+      running = false; alive = false; won = 1; music.stop(); sfx.star();
+      best = 100; store.set("dash-best", 100); bestEl.textContent = "100%";
+      msg.innerHTML = "LEVEL COMPLETE ✦<br>SPACE / TAP TO GO AGAIN"; msg.hidden = false;
+    }
+    function jump(force) { vy = force || JUMP; ground = false; }
+    function press() { held = true; if (!running) { start(); if (running) jump(); return; } if (ground) jump(); }
+    function step() {
+      frame++;
+      if (running) {
+        // the song is the clock: stay locked to it while it plays
+        if (music.on && song.currentTime > 0) { t = song.currentTime; cam = t * DASH.PPS; } else { t += 1 / 60; cam = t * DASH.PPS; }
+        if (held && ground) jump();
+        vy += GRAV; cy += vy; ground = false;
+        if (vy < 0 || !ground) rot += 0.11;
+        if (cy >= GY - C) { cy = GY - C; vy = 0; ground = true; }
+        const L = PX + cam, R = L + C;
+        for (const o of obs) {
+          if (o.x > R + 4 || o.x + o.w < L - 4) continue;
+          if (o.k === "s") { // a slightly forgiving triangle hitbox
+            if (R - 6 > o.x && L + 6 < o.x + o.w && cy + C - 4 > o.y + 9) { die(); return; }
+          } else if (o.k === "p") {
+            if (R > o.x && L < o.x + o.w && cy + C >= GY - 14 && vy >= 0) { jump(PAD); burstAt(o.x - cam + 10, GY - 4); }
+          } else if (R > o.x && L < o.x + o.w) {
+            if (vy >= 0 && cy + C - vy <= o.y + 2) { cy = o.y - C; vy = 0; ground = true; }   // landed on top
+            else if (cy + C > o.y + 3) { die(); return; }   // hit the side
+          }
+        }
+        if (ground) rot = Math.round(rot / (Math.PI / 2)) * (Math.PI / 2);
+        trail.push({ x: PX + cam, y: cy + C / 2, life: 1 }); if (trail.length > 14) trail.shift();
+        if (cam >= LEN) win();
+      }
+      parts.forEach((p) => { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.025; });
+      parts = parts.filter((p) => p.life > 0);
+      trail.forEach((t) => (t.life -= 0.07));
+      draw();
+    }
+    function burstAt(X, Y) { for (let i = 0; i < 8; i++) parts.push({ x: X + cam - cam, y: Y, vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 3, life: 0.8, c: 1 }); }
+    const COL = ["#2e2452", "#d7a3bd", "#ffffff"];
+    function draw() {
+      const bt = (t - DASH.T0) / DASH.BEAT, beat = running ? bt - Math.floor(bt) : (frame % 24) / 24, kick = Math.pow(1 - beat, 3);
+      // the world changes every 16 beats (a phrase); loud phrases get the night palette
+      const phrase = Math.max(0, Math.floor(bt / 16)), pb = bt - phrase * 16;
+      let loudSum = 0; for (let k = phrase * 16; k < phrase * 16 + 16; k++) loudSum += +(DASH.E[k] || 0);
+      const th = running ? DASH_THEMES[(loudSum / 16 >= 7 ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
+      const sky = x.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, th[0]); sky.addColorStop(1, th[1]);
+      x.fillStyle = sky; x.fillRect(0, 0, W, H);
+      // background shapes that pulse with the kick (the shape changes with the phrase)
+      x.strokeStyle = th[2].replace("A", (0.22 + kick * 0.35).toFixed(2)); x.fillStyle = x.strokeStyle; x.lineWidth = 2;
+      for (let i = 0; i < 10; i++) {
+        const bx = ((i * 61 - cam * 0.25) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 110, sz = 16 + (i % 3) * 10 + kick * 6;
+        x.save(); x.translate(bx, by); x.rotate((th[3] === "d" ? Math.PI / 4 : 0) + (th[3] === "x" ? bt * 0.4 : 0));
+        if (th[3] === "o") { x.beginPath(); x.arc(0, 0, sz / 2, 0, 6.29); x.stroke(); }
+        else if (th[3] === "t") { x.beginPath(); x.moveTo(0, -sz / 2); x.lineTo(sz / 2, sz / 2); x.lineTo(-sz / 2, sz / 2); x.closePath(); x.stroke(); }
+        else if (th[3] === "x") { x.font = (sz + 6) + "px sans-serif"; x.textAlign = "center"; x.fillText("✦", 0, sz / 3); }
+        else x.strokeRect(-sz / 2, -sz / 2, sz, sz);
+        x.restore();
+      }
+      // a flash as each new phrase comes in
+      if (running && pb < 1) { x.fillStyle = "rgba(255,255,255," + ((1 - pb) * 0.45).toFixed(2) + ")"; x.fillRect(0, 0, W, H); }
+      // ground: chrome tiles
+      const gg = x.createLinearGradient(0, GY, 0, H);
+      gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8");
+      x.fillStyle = gg; x.fillRect(0, GY, W, H - GY);
+      x.fillStyle = "#2e2452"; x.fillRect(0, GY, W, 2);
+      // floor seams sit exactly on the beat grid: when a seam reaches the cube, that's the beat
+      const bi = Math.floor(bt), eNow = +(DASH.E[Math.max(0, bi)] || 0);
+      for (let i = Math.max(0, bi - 2); i < bi + 6; i++) {
+        const sx = (DASH.T0 + i * DASH.BEAT) * DASH.PPS + PX - cam;
+        if (sx < -4 || sx > W + 4) continue;
+        const loud = +(DASH.E[i] || 0) >= 7;
+        x.fillStyle = i === bi ? "rgba(215,163,189," + (0.4 + kick * 0.6).toFixed(2) + ")" : (loud ? "rgba(46,36,82,.4)" : "rgba(46,36,82,.2)");
+        x.fillRect(Math.floor(sx), GY + 2, i % 4 === 0 ? 3 : 2, H - GY);
+        if (i % 4 === 0) { x.fillStyle = "#d7a3bd"; x.fillRect(Math.floor(sx) - 1, GY - 3, 5, 3); }
+      }
+      // obstacles
+      obs.forEach((o) => {
+        const ox = o.x - cam; if (ox > W + 10 || ox + o.w < -10) return;
+        if (o.k === "s") {
+          x.save(); const pz = 1 + kick * 0.12; x.translate(ox + o.w / 2, o.y + o.h); x.scale(pz, pz); x.translate(-(ox + o.w / 2), -(o.y + o.h));
+          x.fillStyle = "#2e2452"; x.beginPath(); x.moveTo(ox, o.y + o.h); x.lineTo(ox + o.w / 2, o.y); x.lineTo(ox + o.w, o.y + o.h); x.closePath(); x.fill();
+          x.fillStyle = "#d7a3bd"; x.beginPath(); x.moveTo(ox + 5, o.y + o.h - 2); x.lineTo(ox + o.w / 2, o.y + 7); x.lineTo(ox + o.w - 5, o.y + o.h - 2); x.closePath(); x.fill();
+          x.restore();
+        } else if (o.k === "p") {
+          x.fillStyle = "#fff200"; x.fillRect(ox + 2, o.y + 1, o.w - 4, o.h); x.strokeStyle = "#2e2452"; x.lineWidth = 1.5; x.strokeRect(ox + 2, o.y + 1, o.w - 4, o.h);
+        } else {
+          x.fillStyle = "#f6f3fa"; x.fillRect(ox, o.y, o.w, o.h);
+          x.strokeStyle = "#2e2452"; x.lineWidth = 2; x.strokeRect(ox + 1, o.y + 1, o.w - 2, o.h - 2);
+          x.strokeStyle = "rgba(215,163,189," + (0.5 + kick * 0.5).toFixed(2) + ")"; x.strokeRect(ox + 5, o.y + 5, o.w - 10, o.h - 10);
+        }
+      });
+      // trail
+      trail.forEach((t) => { if (t.life <= 0) return; x.fillStyle = "rgba(215,163,189," + (t.life * 0.6).toFixed(2) + ")"; const s = 6 * t.life; x.fillRect(t.x - cam - s / 2 - 4, t.y - s / 2, s, s); });
+      // the cube with her face
+      if (!dead) {
+        x.save(); x.translate(PX + C / 2, cy + C / 2); x.rotate(rot);
+        const s = C * (1 + kick * 0.08);
+        x.fillStyle = "#d7a3bd"; x.fillRect(-s / 2, -s / 2, s, s);
+        if (head.complete && head.naturalWidth) { x.save(); x.beginPath(); x.rect(-s / 2 + 2, -s / 2 + 2, s - 4, s - 4); x.clip(); x.drawImage(head, -s / 2 - 3, -s / 2 - 2, s + 6, s + 6); x.restore(); }
+        x.strokeStyle = "#2e2452"; x.lineWidth = 2; x.strokeRect(-s / 2, -s / 2, s, s);
+        x.restore();
+      }
+      parts.forEach((q) => { x.globalAlpha = Math.max(0, q.life); x.fillStyle = COL[q.c]; x.fillRect(q.x - 2, q.y - 2, 4, 4); });
+      x.globalAlpha = 1;
+      // loud beats flash the whole screen a little
+      if (running && eNow >= 7) { x.fillStyle = "rgba(255,255,255," + (kick * (eNow - 6) * 0.06).toFixed(3) + ")"; x.fillRect(0, 0, W, H); }
+      // progress bar
+      const pr = Math.min(1, cam / LEN);
+      x.fillStyle = "rgba(46,36,82,.35)"; x.fillRect(W / 2 - 80, 8, 160, 6);
+      x.fillStyle = "#fff"; x.fillRect(W / 2 - 80, 8, 160 * pr, 6);
+      x.font = "700 9px 'Space Mono', monospace"; x.textAlign = "center"; x.fillStyle = "#2e2452";
+      x.fillText(Math.floor(pr * 100) + "%", W / 2, 26);
+      if (dead) { x.fillStyle = "rgba(255,255,255," + (0.5 * dead).toFixed(2) + ")"; x.fillRect(0, 0, W, H); dead = Math.max(0.01, dead * 0.9); }
+    }
+    cv.addEventListener("pointerdown", (e) => { e.preventDefault(); press(); });
+    window.addEventListener("pointerup", () => (held = false));
+    reset(); draw();
+    return {
+      key(e) {
+        if (e.key === " " || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); if (!e.repeat) press(); return true; }
+        return false;
+      },
+      keyup(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") held = false; },
+      tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
+      stop() { running = false; music.stop(); }
+    };
+  }
+
+  window.addEventListener("keyup", (e) => { if (dashApi) dashApi.keyup(e); });
+
   /* ---------- welcome dialog (first visit) ---------- */
   function openWelcome() {
     createWin({
@@ -891,9 +1513,12 @@
     item("▣", "All projects", () => openApp("archive", startBtn));
     item("▸", "Snake", () => openApp("snake", startBtn));
     item("▦", "Blocks", () => openApp("blocks", startBtn));
+    item("✈", "MLG Flap", () => openApp("flap", startBtn));
+    item("◆", "Beat Dash", () => openApp("dash", startBtn));
     item("✦", "Stars (" + got.length + "/" + STARS.length + ")", () => openApp("stars", startBtn));
     box.appendChild(h("div", "sm-sep"));
     item(soundOn ? "🔊" : "🔇", soundOn ? "Turn sound off" : "Turn sound on", () => { setSound(!soundOn); sfx.click(); });
+    item("↻", "Restart (reset stars)", restartOS);
     item("⏻", "Shut down…", shutDown);
   }
   function closeStart() { startMenu.hidden = true; startBtn.setAttribute("aria-expanded", "false"); }
@@ -905,6 +1530,12 @@
     startBtn.setAttribute("aria-expanded", String(open));
     sfx.click();
   });
+  // restart: forget the found stars (and the glasses reward) and boot again
+  function restartOS() {
+    sfx.close();
+    try { localStorage.removeItem("sasha:stars"); localStorage.removeItem("sasha:skin"); } catch (e) { /* private mode */ }
+    setTimeout(() => location.reload(), 250);
+  }
   function shutDown() {
     sfx.close();
     const s = h("div");
@@ -1113,12 +1744,49 @@
   function blink() { /* the video has no blink */ }
   // mosaic: 0 = big blocks, 1 = the clear photo (animated in after loading)
   let mosaic = 0, lastKey = "";
+  // pix: 0 = the normal photo, 1 = a chunky pixel sprite of her
+  const PIX_RES = 56;
+  let pix = 0, pixAnim = 0;
+  function setPixelFace(on) {
+    const from = pix, to = on ? 1 : 0;
+    if (from === to) return;
+    if (reduceMotion) { pix = to; return; }
+    const t0 = performance.now(), id = ++pixAnim;
+    sfx[on ? "pixelOn" : "pixelOff"]();
+    (function step(now) {
+      if (id !== pixAnim) return;
+      const p = Math.min(1, (now - t0) / 700);
+      // jump through a few resolutions, like a retro transform
+      const q = Math.round(p * 6) / 6;
+      pix = p >= 1 ? to : from + (to - from) * Math.min(0.97, q);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
   const mc = document.createElement("canvas"), mx = mc.getContext("2d");
   // draw frame i of a sprite sheet into the head canvas (same size + position for every sheet)
   function blit(img, sh, i, alpha) {
     const s = sh.size, sx = (i % sh.cols) * s, sy = Math.floor(i / sh.cols) * s;
     hx.globalAlpha = alpha == null ? 1 : alpha;
-    if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(img, sx, sy, s, s, 0, 0, hc.width, hc.height); }
+    if (pix > 0 && mosaic >= 1) {
+      // pixel-sprite version of the face (while blocks.exe is open)
+      const n = Math.round(hc.width - (hc.width - PIX_RES) * pix);
+      mc.width = n; mc.height = n; mx.clearRect(0, 0, n, n);
+      mx.imageSmoothingEnabled = true;
+      mx.drawImage(img, sx, sy, s, s, 0, 0, n, n);
+      if (pix >= 1) {
+        // crisp sprite edges + a reduced palette
+        const d = mx.getImageData(0, 0, n, n), a = d.data;
+        for (let k = 0; k < a.length; k += 4) {
+          if (a[k + 3] < 110) { a[k + 3] = 0; continue; }
+          a[k + 3] = 255;
+          for (let c = 0; c < 3; c++) a[k + c] = Math.min(255, Math.round(a[k + c] / 36) * 36 + 10);
+        }
+        mx.putImageData(d, 0, 0);
+      }
+      hx.imageSmoothingEnabled = false;
+      hx.drawImage(mc, 0, 0, n, n, 0, 0, hc.width, hc.height);
+    }
+    else if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(img, sx, sy, s, s, 0, 0, hc.width, hc.height); }
     else {
       const n = Math.max(8, Math.round(hc.width * mosaic * mosaic));
       mc.width = n; mc.height = n; mx.clearRect(0, 0, n, n);
@@ -1131,12 +1799,42 @@
   const ready = (img) => img.complete && img.naturalWidth > 0;
   // one frame, or a crossfade between two: layers = [[img, sheet, index, alpha], ...]
   function paint(layers) {
-    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic;
+    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix + "/" + shadesP.toFixed(2) + "/" + Math.round(tYaw);
     if (key === lastKey) return;
     if (!layers.every((l) => ready(l[0]))) return;
     lastKey = key;
     hx.clearRect(0, 0, hc.width, hc.height);
     layers.forEach((l) => blit(l[0], l[1], l[2], l[3]));
+    if (shadesP > 0) drawShades();
+  }
+  // meme pixel shades for mlg_flap.exe: they drop down from above onto her eyes
+  const SHADES = [
+    "XXXXXXXXXXXXXXXXXXXXXX",
+    "XWWXXXXXXXXXXWWXXXXXXX",
+    ".XWWXXXXX..XXXWWXXXXX.",
+    "..XXXXXX....XXXXXX...."
+  ];
+  let shadesP = 0, shadesAnim = 0;
+  function drawShades() {
+    const cell = 11 * hc.width / 420, w = SHADES[0].length * cell;
+    const cx = hc.width / 2 + tYaw * 1.6 * hc.width / 420, y0 = hc.height * 0.455 - (1 - shadesP) * hc.height * 0.6;
+    hx.globalAlpha = Math.min(1, shadesP * 1.5);
+    SHADES.forEach((row, r) => [...row].forEach((ch, c) => {
+      if (ch === ".") return;
+      hx.fillStyle = ch === "W" ? "#ffffff" : "#0b0b0f";
+      hx.fillRect(Math.round(cx - w / 2 + c * cell), Math.round(y0 + r * cell), Math.ceil(cell), Math.ceil(cell));
+    }));
+    hx.globalAlpha = 1;
+  }
+  function setShades(on) {
+    const id = ++shadesAnim, from = shadesP, to = on ? 1 : 0, t0 = performance.now();
+    if (reduceMotion) { shadesP = to; return; }
+    (function step(now) {
+      if (id !== shadesAnim) return;
+      const p = Math.min(1, (now - t0) / (on ? 900 : 300));
+      shadesP = from + (to - from) * (on ? 1 - Math.pow(1 - p, 3) : p);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
   }
   function resolveFace(dur) {
     if (reduceMotion) { mosaic = 1; return; }
@@ -1202,7 +1900,7 @@
     const idleLayer = [sImg, sSh, turnFrame(tYaw, tPitch, sSh), 1];
 
     // all stars found: transform once the head is free
-    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) { pendingGlasses = false; magicFx(); }
+    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) { pendingGlasses = false; magicSound(); magicFx(); }
 
     // cursor resting (just scrolling / using arrows): look ahead and blink
     if (c.state === "idle" && skin === "plain" && now - lastMove > IDLE_AFTER && EMOTIONS.idle_blink) character.play("idle_blink");
@@ -1275,6 +1973,25 @@
 
   /* magical-girl transformation effects around the spin: glow + light rays behind the head,
      a spiral of stars closing in, then a starburst flash as the glasses land and glitter after */
+  // magical-girl transformation sound, synced with magicFx (flash at 3.3s)
+  function magicSound() {
+    if (!soundOn) return;
+    const at = (ms, fn) => setTimeout(fn, ms);
+    // 1. rising shimmer while the stars spiral in
+    const up = [523, 659, 784, 988, 1047, 1319, 1568, 1976];
+    for (let r = 0; r < 3; r++) up.forEach((f, i) => at(200 + r * 1000 + i * 110, () => blip(f * (r === 2 ? 1.5 : 1), 0.18, "triangle", 0.035 + r * 0.01)));
+    // twinkles on top
+    for (let i = 0; i < 14; i++) at(300 + Math.random() * 2900, () => blip(2400 + Math.random() * 1600, 0.06, "sine", 0.025));
+    // 2. swell into the flash
+    at(2700, () => blip(220, 0.6, "sawtooth", 0.03, 880));
+    // 3. the flash: a big bright chord
+    at(3300, () => { [523, 659, 784, 1047, 1319].forEach((f) => blip(f, 1.1, "square", 0.028)); blip(130, 0.8, "triangle", 0.09, 65); });
+    // 4. glitter falling down
+    [3136, 2637, 2349, 2093, 1760, 1568, 1319, 1175, 1047].forEach((f, i) => at(3500 + i * 70, () => blip(f, 0.09, "sine", 0.035)));
+    // 5. ta-da
+    at(4400, () => seq([784, 1047], 110, "square", 0.045));
+    at(4650, () => [659, 784, 1047, 1568].forEach((f) => blip(f, 0.9, "triangle", 0.05)));
+  }
   function magicFx() {
     if (reduceMotion) return;
     const r = faceBody.getBoundingClientRect();
@@ -1372,6 +2089,8 @@
   window.addEventListener("keydown", (e) => {
     if (wins.snake && wins.snake.el.classList.contains("is-active") && snakeApi && snakeApi.key(e)) return;
     if (wins.blocks && wins.blocks.el.classList.contains("is-active") && blocksApi && blocksApi.key(e)) return;
+    if (wins.flap && wins.flap.el.classList.contains("is-active") && flapApi && flapApi.key(e)) return;
+    if (wins.dash && wins.dash.el.classList.contains("is-active") && dashApi && dashApi.key(e)) return;
     if (e.key === "Escape") {
       if (!startMenu.hidden) { closeStart(); return; }
       const act = Object.values(wins).find((w) => w.el.classList.contains("is-active") && !w.el.classList.contains("is-min"));
@@ -1407,6 +2126,9 @@
     updateEyes();
     if (snakeApi) snakeApi.tick(dt);
     if (blocksApi) blocksApi.tick(dt);
+    if (flapApi) flapApi.tick(dt);
+    if (dashApi) dashApi.tick(dt);
+    danceStep(performance.now());
     const spinning = Math.abs(targetAngle - angle) > 0.5;
     if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();
