@@ -985,12 +985,6 @@
   // kept under its old name for the main loop
   function updateEyes() { stepCharacter(performance.now()); }
 
-  registerEmotion("sassy_smirk", {
-    // 4 s clip: side-eye, mischievous smirk, back to looking forward
-    src: "assets/face-smirk.webp", size: 420, cols: 10, frames: 49, fps: 12,
-    still: 30, stillFor: 1800, cooldown: 8000
-  });
-
   // idle: front-facing blink loop while the cursor rests
   const IDLE_AFTER = 1600;
   registerEmotion("idle_blink", {
@@ -1004,21 +998,9 @@
     still: 21, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
   });
 
-  // trigger: hover a project card for 2 s; once per hover
-  cardEls.forEach((el) => {
-    let timer = null, fired = false;
-    el.addEventListener("pointerenter", (ev) => {
-      if (ev.pointerType !== "mouse") return;
-      clearTimeout(timer);
-      if (fired) return;
-      timer = setTimeout(() => { fired = character.play("sassy_smirk") || fired; }, 2000);
-    });
-    el.addEventListener("pointerleave", () => { clearTimeout(timer); timer = null; fired = false; });
-  });
-
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
-    // another emotion (the smirk) is mid-play: don't stack a second one on top
+    // another one-shot emotion is mid-play: don't stack a second one on top
     if (character.busy() && character.emotion !== EMOTIONS.pout && !character.emotion.loop) return;
     character.play("pout");
     sfx.poke();
@@ -1122,7 +1104,7 @@
     const screen = $("boot");
     const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
     const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
-    const urls = [SHEET.src, "assets/face-smirk.webp", "assets/face-pout.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+    const urls = [SHEET.src, "assets/face-pout.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
       .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
     let loaded = 0;
     const uniq = Array.from(new Set(urls));
