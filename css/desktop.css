@@ -257,8 +257,6 @@ button { font: inherit; color: inherit; }
   height: 100%;
   aspect-ratio: 1;
   transform: translateX(-50%);
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
 }
 .face-win.poked .head { animation: wobble 0.45s ease; }
 @keyframes wobble {
@@ -532,7 +530,7 @@ button { font: inherit; color: inherit; }
 .dialog { display: flex; gap: 14px; align-items: center; padding: 18px 18px 12px; background: var(--paper); font-size: 12px; line-height: 1.5; }
 .dialog .d-ico { font-size: 30px; line-height: 1; color: var(--pink-3); -webkit-text-stroke: 1px var(--navy); }
 .dialog .d-face { flex: 0 0 auto; width: 64px; height: 64px; border: var(--line); border-radius: 50%; background: var(--holo); overflow: hidden; }
-.dialog .d-face img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.dialog .d-face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; transform: scale(1.6); }
 .dialog .d-big { font-family: var(--pix); font-size: 14px; display: block; margin-bottom: 4px; }
 .loadbar { margin: 0 18px 14px; height: 14px; border: var(--line); border-radius: 999px; overflow: hidden; background: #fff; }
 .loadbar i { display: block; height: 100%; width: 0; background: var(--holo); border-right: var(--line); animation: load 1.6s steps(12) forwards; }

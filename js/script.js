@@ -601,7 +601,7 @@
       id: "welcome", title: "hello.exe", w: 380, h: "auto", flat: true, dy: -60,
       fill(body, w) {
         const d = h("div", "dialog");
-        const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-pixel.png"; im.alt = ""; face.appendChild(im);
+        const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-cutout.webp"; im.alt = ""; face.appendChild(im);
         const t = h("div");
         t.append(h("b", "d-big", "I am not a robot :)"),
           "Welcome to Sasha OS, my process book. Spin the windows around my head and open a project. " + STARS.length + " ✦ are hidden around.");
@@ -780,7 +780,7 @@
     setTimeout(() => { drag = null; }, 0);
   });
 
-  /* ---------- face: the portrait redrawn as pixel art every frame ----------
+  /* ---------- face: the portrait redrawn every frame ----------
      The cutout is 840x840. Each frame it is drawn into a tiny canvas (PIX x PIX)
      together with the eye overlay, then shown scaled up with crisp pixels, so the
      moving irises, blinks and sheen all become part of the pixel art. */
@@ -825,12 +825,6 @@
     sh.addColorStop(0, "rgba(255,255,255,0)"); sh.addColorStop(0.42, "rgba(255,200,230,0.22)"); sh.addColorStop(0.5, "rgba(200,220,255,0.3)"); sh.addColorStop(0.58, "rgba(210,245,255,0.2)"); sh.addColorStop(1, "rgba(255,255,255,0)");
     hx.fillStyle = sh; hx.fillRect(0, 0, PIX, PIX);
     hx.globalCompositeOperation = "source-over";
-    // hard pixel edges: no half-transparent blocks
-    try {
-      const d = hx.getImageData(0, 0, PIX, PIX), a = d.data;
-      for (let i = 0; i < a.length; i += 4) { a[i + 3] = a[i + 3] > 110 ? 255 : 0; for (let c = 0; c < 3; c++) a[i + c] = Math.min(255, Math.round(a[i + c] / 20) * 20); }
-      hx.putImageData(d, 0, 0);
-    } catch (err) { /* canvas tainted when opened from disk: keep soft edges */ }
   }
   function updateEyes() {
     const r = faceBody.getBoundingClientRect();
