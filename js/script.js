@@ -741,8 +741,8 @@
     const BEAT = 60000 / 144, t = now - beatZero, ph = (t / BEAT) % 1;
     // a hop on every beat: up in an arc, squash when she lands, stretch on the way up
     const up = Math.sin(ph * Math.PI), land = Math.max(0, 1 - ph / 0.18) + Math.max(0, (ph - 0.9) / 0.1);
-    const sq = Math.min(1, land) * 0.09, st = up * 0.04;
-    el.style.translate = "0 " + (-26 * up).toFixed(1) + "px";
+    const sq = Math.min(1, land) * 0.04, st = up * 0.02;
+    el.style.translate = "0 " + (-12 * up).toFixed(1) + "px";
     el.style.rotate = "";
     el.style.scale = (1 + sq - st).toFixed(3) + " " + (1 - sq + st).toFixed(3);
   }
