@@ -19,6 +19,7 @@
    * Sound — synthesized 8-bit blips, off until the visitor turns it on
    * ------------------------------------------------------------------ */
   let soundOn = store.get("sound", false);
+  const songs = [];   // audio files that must stop when sound is switched off
   let actx = null;
   function blip(freq, dur, type, vol, slide) {
     if (!soundOn) return;
@@ -56,6 +57,7 @@
   const soundBtn = $("tray-sound");
   function setSound(on) {
     soundOn = on;
+    if (!on) songs.forEach((a) => a.pause());
     store.set("sound", on);
     soundBtn.textContent = on ? "🔊" : "🔇";
     soundBtn.setAttribute("aria-pressed", String(on));
@@ -924,7 +926,7 @@
         const sS = h("b", null, "0"), sB = h("b", null, String(store.get("flap-best", 0)));
         const s1 = h("span", null, "SCORE "), s2 = h("span", null, "BEST ");
         s1.appendChild(sS); s2.appendChild(sB); sc.append(s1, s2);
-        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"));
+        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"), h("div", "snake-tip", "♪ Feint – Snake Eyes (feat. CoMa) · 8-bit edit by Sasha"));
         body.appendChild(app);
         flapApi = makeFlap(cv, msg, sS, sB, lcd);
       }
@@ -936,7 +938,12 @@
     const GAP = 96, PW = 40, SPD = 1.6, GRAV = 0.32, JUMP = -5.6;
     let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
     let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
-    const dubs = makeBeat("melo");
+    // Sasha's own 8-bit edit of Feint – Snake Eyes (licensed), starting at 1:00
+    const song = new Audio("assets/flap-song.mp3"); song.loop = true; song.volume = 0.55; song.preload = "none"; songs.push(song);
+    const dubs = {
+      play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
+      stop() { song.pause(); }
+    };
     function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 20); addPipe(W + 20 + 150); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
