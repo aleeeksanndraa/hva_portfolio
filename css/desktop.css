@@ -717,3 +717,44 @@ body.booting #desktop { visibility: hidden; }
 .pix-cover { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; z-index: 30; }
 .pix-cover.fixed { position: fixed; z-index: 1500; }
 @media (prefers-reduced-motion: reduce) { .boot-chrome { animation: none; } }
+
+/* ---------- star-glasses transformation (magical-girl sparkle sequence) ---------- */
+.mg-back { position: absolute; inset: -40%; z-index: -1; pointer-events: none; transition: opacity 0.8s; }
+.mg-aura { position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(246,220,236,0.8) 22%, rgba(205,191,240,0.55) 42%, rgba(193,182,230,0) 68%);
+  animation: mg-aura 1.6s ease-in-out infinite alternate, mg-in 0.8s ease-out both; }
+.mg-rays { position: absolute; inset: 6%; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255,255,255,0.7) 0 5deg, rgba(255,255,255,0) 5deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 70%); mask: radial-gradient(circle, #000 18%, transparent 70%);
+  animation: mg-spin 6s linear infinite, mg-in 1.2s 0.3s ease-out both; }
+.mg-front { position: fixed; width: 0; height: 0; z-index: 70; pointer-events: none; transition: opacity 0.8s; }
+.mg-back.out, .mg-front.out { opacity: 0; }
+.mg-orbit { position: absolute; left: 0; top: 0; width: 0; height: 0; rotate: var(--a);
+  animation: mg-orbit-spin 3.4s var(--d) cubic-bezier(.45,.05,.55,.95) both; }
+.mg-orbit b { position: absolute; left: 0; top: 0; translate: -50% -50%; font-weight: normal; line-height: 1; color: #fff;
+  font-family: var(--type);
+  text-shadow: 0 0 6px #fff, 0 0 14px rgba(215,163,189,0.9), 0 0 2px var(--navy);
+  animation: mg-orbit-in 3.4s var(--d) cubic-bezier(.45,.05,.55,.95) both; }
+.mg-orbit.p b { color: #f3c6dc; }
+.mg-orbit.l b { color: #d9cff5; }
+.mg-ring { position: absolute; left: 0; top: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
+  border: 3px solid #fff; box-shadow: 0 0 18px #fff, inset 0 0 12px rgba(215,163,189,0.8);
+  animation: mg-ring 0.9s ease-out forwards; }
+.mg-glitter { position: absolute; font-style: normal; color: #fff; text-shadow: 0 0 8px #fff; opacity: 0;
+  animation: mg-glitter 2s ease-in forwards; }
+.mg-glitter.p { color: #f3c6dc; }
+.mg-flash { position: fixed; inset: 0; z-index: 75; pointer-events: none;
+  background: radial-gradient(circle at var(--x) var(--y), rgba(255,255,255,0.95), rgba(246,220,236,0.6) 25%, rgba(255,255,255,0) 60%);
+  animation: mg-flash 1.1s ease-out forwards; }
+@keyframes mg-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+@keyframes mg-aura { from { filter: brightness(1); } to { filter: brightness(1.15); } }
+@keyframes mg-spin { to { rotate: 360deg; } }
+@keyframes mg-orbit-spin { from { rotate: var(--a); } to { rotate: calc(var(--a) + 540deg); } }
+@keyframes mg-orbit-in {
+  0%   { opacity: 0; transform: translateX(calc(var(--R) * 1.05)) scale(0.9) rotate(0deg); }
+  15%, 85% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(calc(var(--R) * 0.1)) scale(1.5) rotate(-540deg); }
+}
+@keyframes mg-ring { from { transform: scale(1); opacity: 1; } to { transform: scale(30); opacity: 0; } }
+@keyframes mg-glitter { 0% { opacity: 0; transform: translateY(0) rotate(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(160px) rotate(180deg); } }
+@keyframes mg-flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }

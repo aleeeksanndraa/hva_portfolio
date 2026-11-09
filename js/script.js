@@ -1006,7 +1006,7 @@
     const idleLayer = [sImg, sSh, turnFrame(tYaw, tPitch, sSh), 1];
 
     // all stars found: transform once the head is free
-    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) pendingGlasses = false;
+    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) { pendingGlasses = false; magicFx(); }
 
     // cursor resting (just scrolling / using arrows): look ahead and blink
     if (c.state === "idle" && skin === "plain" && now - lastMove > IDLE_AFTER && EMOTIONS.idle_blink) character.play("idle_blink");
@@ -1076,6 +1076,51 @@
     still: 24, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 300, settle: false
   });
   let pendingGlasses = false;
+
+  /* magical-girl transformation effects around the spin: glow + light rays behind the head,
+     a spiral of stars closing in, then a starburst flash as the glasses land and glitter after */
+  function magicFx() {
+    if (reduceMotion) return;
+    const r = faceBody.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height * 0.45, R = Math.max(r.width, r.height);
+    const back = h("div", "mg-back");
+    back.append(h("i", "mg-aura"), h("i", "mg-rays"));
+    faceWin.prepend(back);
+    const front = h("div", "mg-front");
+    front.style.left = cx + "px"; front.style.top = cy + "px"; front.style.setProperty("--R", R * 0.75 + "px");
+    const N = 16;
+    for (let i = 0; i < N; i++) {
+      // outer spins round the head, inner star slides inwards: together a closing spiral
+      const st = h("i", "mg-orbit" + (i % 3 === 0 ? " p" : i % 3 === 1 ? " l" : ""));
+      st.style.setProperty("--a", (360 / N) * i + "deg");
+      st.style.setProperty("--d", (i % 4) * 0.12 + "s");
+      const star = h("b", null, "✦"); star.style.fontSize = 20 + (i % 4) * 9 + "px";
+      st.appendChild(star);
+      front.appendChild(st);
+    }
+    document.body.appendChild(front);
+    const flash = () => {
+      const f = h("div", "mg-flash"); f.style.setProperty("--x", cx + "px"); f.style.setProperty("--y", cy + "px");
+      document.body.appendChild(f); setTimeout(() => f.remove(), 1200);
+      const ring = h("i", "mg-ring"); front.appendChild(ring);
+      burst(cx, cy, 40, "255,255,255"); burst(cx, cy, 30, "215,163,189"); burst(cx, cy, 24, "193,182,230");
+      sfx.star();
+      // glitter drifting down around her
+      for (let i = 0; i < 26; i++) {
+        const g = h("i", "mg-glitter" + (i % 2 ? " p" : ""), i % 3 ? "✦" : "✧");
+        g.style.left = (Math.random() - 0.5) * R * 1.6 + "px";
+        g.style.top = (Math.random() - 0.8) * R * 0.9 + "px";
+        g.style.fontSize = 8 + Math.random() * 16 + "px";
+        g.style.animationDelay = Math.random() * 0.9 + "s";
+        front.appendChild(g);
+      }
+    };
+    // the glasses come round at ~3.3 s into the clip, after up to 0.7 s of settling
+    const sparkleTimer = setInterval(() => burst(cx + (Math.random() - 0.5) * R, cy + (Math.random() - 0.5) * R * 0.9, 4, Math.random() < 0.5 ? "255,255,255" : "215,163,189"), 140);
+    setTimeout(() => { clearInterval(sparkleTimer); flash(); }, 3300);
+    setTimeout(() => { back.classList.add("out"); front.classList.add("out"); }, 5600);
+    setTimeout(() => { back.remove(); front.remove(); }, 6400);
+  }
   window.addEventListener("sasha:allstars", () => { if (skin !== "glasses") pendingGlasses = true; });
   if (skin !== "glasses" && got.length >= STARS.length) pendingGlasses = true;
 
