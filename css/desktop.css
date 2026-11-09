@@ -613,6 +613,10 @@ button { font: inherit; color: inherit; }
 /* mlg_flap.exe */
 .flap-lcd { width: 240px; aspect-ratio: 240 / 340; }
 .flap-lcd .lcd-msg { text-shadow: 0 0 4px #fff; }
+/* beat_dash.exe */
+.dash-lcd { width: 340px; max-width: 100%; aspect-ratio: 340 / 200; }
+.dash-lcd canvas { width: 100%; height: 100%; }
+.dash-lcd .lcd-msg { text-shadow: 0 0 4px #fff; }
 .lcd.mlg-flash { animation: mlg-flash 0.5s steps(2) 3; }
 @keyframes mlg-flash { 50% { filter: invert(1) hue-rotate(180deg); } }
 /* blocks.exe */
@@ -648,10 +652,10 @@ button { font: inherit; color: inherit; }
 @media (max-width: 760px) {
   #icons, #icons.free { display: grid; width: auto; height: auto; }
   #icons .icon { position: static !important; }
-  #icons { grid-auto-flow: column; left: 50%; transform: translateX(-50%); top: 8px; gap: 2px; }
-  .icon { width: 50px; font-size: 7px; }
-  .icon img, .icon canvas, .icon-svg, .icon-glyph { width: 30px; height: 30px; }
-  .icon-glyph { font-size: 26px; line-height: 30px; }
+  #icons { grid-template-columns: repeat(4, 80px); left: 50%; transform: translateX(-50%); top: 6px; gap: 0 4px; }
+  .icon { width: 80px; font-size: 8px; padding: 2px 0; }
+  .icon img, .icon canvas, .icon-svg, .icon-glyph { width: 26px; height: 26px; }
+  .icon-glyph { font-size: 22px; line-height: 26px; }
   .win.app { left: 6px !important; top: 6px !important; width: calc(100% - 12px) !important; height: calc(100% - 56px) !important; }
   .chap { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 20px 16px; }
   .doc-head { padding: 22px 16px; }

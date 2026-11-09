@@ -391,6 +391,7 @@
     if (app === "snake") return openSnake(fromRect);
     if (app === "blocks") return openBlocks(fromRect);
     if (app === "flap") return openFlap(fromRect);
+    if (app === "dash") return openDash(fromRect);
     if (app === "stars") return openStars(fromRect);
     if (app === "trash") return openTrash(fromRect);
     return null;
@@ -714,7 +715,7 @@
           actx = actx || new (window.AudioContext || window.webkitAudioContext)();
           if (actx.state === "suspended") actx.resume();
           gain = actx.createGain(); gain.gain.value = 0.8; gain.connect(actx.destination);
-          leadT = bassT = actx.currentTime + 0.05;
+          leadT = bassT = actx.currentTime + 0.05; beatZero = performance.now() + 50;
           timer = setInterval(pump, 80); pump();
         } catch (e) { /* audio unavailable */ }
       },
@@ -727,7 +728,21 @@
     };
   }
 
-  let blocksApi = null;
+  let blocksApi = null, beatZero = 0, danced = false;
+  // while blocks.exe is open the big head bops along to the 144 bpm tune
+  function danceStep(now) {
+    const el = document.getElementById("head-px");
+    if (!blocksApi || reduceMotion || !el) {
+      if (danced && el) { el.style.translate = el.style.rotate = el.style.scale = ""; danced = false; }
+      return;
+    }
+    danced = true;
+    const BEAT = 60000 / 144, t = now - beatZero, n = Math.floor(t / BEAT), ph = (t / BEAT) - n;
+    const hit = Math.pow(1 - ph, 2.4), side = n % 2 ? 1 : -1, sway = Math.sin(ph * Math.PI);
+    el.style.translate = (side * 10 * sway).toFixed(1) + "px " + (-16 * Math.sin(Math.min(1, ph * 1.6) * Math.PI) ).toFixed(1) + "px";
+    el.style.rotate = (side * 7 * sway).toFixed(2) + "deg";
+    el.style.scale = (1 + 0.05 * hit).toFixed(3) + " " + (1 - 0.05 * hit).toFixed(3);
+  }
   function openBlocks(from) {
     return createWin({
       id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
@@ -917,14 +932,15 @@
     const GAP = 96, PW = 40, SPD = 1.6, GRAV = 0.32, JUMP = -5.6;
     let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
     let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
+    const dubs = makeBeat("dub");
     function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 20); addPipe(W + 20 + 150); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
     function hitmark(X, Y) { fx.push({ hm: true, x: X, y: Y, life: 1 }); }
     function flap() { if (!running) { start(); return; } vy = JUMP; mlg.flap(); }
-    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; }
+    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; dubs.play(); }
     function die() {
-      alive = false; running = false; shake = 18; mlg.horn(); sfx.die();
+      alive = false; running = false; shake = 18; dubs.stop(); mlg.horn(); sfx.die();
       pop("GET REKT", W / 2, H / 2 - 30, true); hitmark(60, by); hitmark(70, by - 12);
       msg.innerHTML = "WASTED · " + score + "<br>SPACE / TAP TO RETRY"; msg.hidden = false;
       lcd.classList.remove("mlg-flash"); void lcd.offsetWidth; lcd.classList.add("mlg-flash");
@@ -1004,9 +1020,298 @@
     return {
       key(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); flap(); return true; } return false; },
       tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
-      stop() { running = false; }
+      stop() { running = false; dubs.stop(); }
     };
   }
+
+  /* ---------- beat engine: synthesized drums, wobble bass and leads (no samples) ---------- */
+  function makeBeat(kind) {
+    const BPM = kind === "dub" ? 140 : 150, S = 60 / BPM / 4;   // one 16th note
+    let timer = null, gain = null, t = 0, step = 0, noise = null, t0 = 0;
+    const ctx = () => actx;
+    function nz() {
+      if (noise) return noise;
+      const b = actx.createBuffer(1, actx.sampleRate * 0.5, actx.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return (noise = b);
+    }
+    function env(g, at, v, dec) { g.gain.setValueAtTime(v, at); g.gain.exponentialRampToValueAtTime(0.0001, at + dec); }
+    function kick(at, v) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.setValueAtTime(160, at); o.frequency.exponentialRampToValueAtTime(38, at + 0.14);
+      env(g, at, v || 0.55, 0.3); o.connect(g).connect(gain); o.start(at); o.stop(at + 0.32);
+    }
+    function hiss(at, v, dec, hp) {
+      const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      s.buffer = nz(); f.type = "highpass"; f.frequency.value = hp; env(g, at, v, dec);
+      s.connect(f).connect(g).connect(gain); s.start(at); s.stop(at + dec + 0.02);
+    }
+    function snare(at, v) { hiss(at, v || 0.3, 0.18, 1400); tone(at, 190, 0.08, "triangle", 0.12); }
+    function hat(at, v, open) { hiss(at, v || 0.05, open ? 0.12 : 0.035, 7500); }
+    function tone(at, f, dur, type, v, slide) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, at); if (slide) o.frequency.exponentialRampToValueAtTime(slide, at + dur);
+      g.gain.setValueAtTime(v, at); g.gain.setValueAtTime(v, at + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      o.connect(g).connect(gain); o.start(at); o.stop(at + dur + 0.02);
+    }
+    // the wub: detuned saws through a resonant lowpass that an LFO opens and closes
+    function wob(at, f, dur, rate, v, bend) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain(), l = actx.createOscillator(), lg = actx.createGain();
+      f1.type = "lowpass"; f1.Q.value = 9; f1.frequency.value = 380;
+      l.type = "sine"; l.frequency.value = rate; lg.gain.value = 1300; l.connect(lg).connect(f1.frequency);
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.01);
+      g.gain.setValueAtTime(v, at + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      [1, 1.012, 0.5].forEach((m, k) => {
+        const o = actx.createOscillator(); o.type = k === 2 ? "square" : "sawtooth";
+        o.frequency.setValueAtTime(f * m, at); if (bend) o.frequency.exponentialRampToValueAtTime(f * m * bend, at + dur);
+        o.connect(f1); o.start(at); o.stop(at + dur + 0.02);
+      });
+      f1.connect(g).connect(gain); l.start(at); l.stop(at + dur + 0.02);
+    }
+    function sawBass(at, f, dur, v) {
+      const f1 = actx.createBiquadFilter(), g = actx.createGain(), o = actx.createOscillator();
+      f1.type = "lowpass"; f1.Q.value = 6; f1.frequency.setValueAtTime(2200, at); f1.frequency.exponentialRampToValueAtTime(300, at + dur);
+      o.type = "sawtooth"; o.frequency.value = f; env(g, at, v, dur);
+      o.connect(f1).connect(g).connect(gain); o.start(at); o.stop(at + dur + 0.02);
+    }
+
+    // ---- "dub": weird half-time dubstep in F minor, 4-bar phrase with a stutter build ----
+    const F1 = 43.65, NOTES = [F1, F1, 51.91, F1, 38.89, F1, 65.41, 58.27];
+    const RATES = [2.33, 4.67, 9.33, 3.5, 14, 7, 1.17, 18.7];
+    function dub(n, at) {
+      const s = n % 16, bar = Math.floor(n / 16) % 4;
+      if (bar === 3 && s >= 8) {                    // build: snare roll speeding up + riser
+        if (s >= 12 || s % 2 === 0) snare(at, 0.12 + (s - 8) * 0.03);
+        if (s === 8) tone(at, 200, S * 8, "sawtooth", 0.035, 1600);
+        if (s === 15) { tone(at, 2400, 0.25, "square", 0.03, 90); }   // laser zap into the drop
+        return;
+      }
+      if (s === 0 || s === 10) kick(at);
+      if (s === 8) snare(at);
+      if (s % 2 === 0) hat(at, 0.04); if (s === 14) hat(at, 0.05, true);
+      if (s % 4 === 0) {
+        const k = (Math.floor(n / 4) + bar * 3) % NOTES.length;
+        const r = RATES[(k * 5 + bar) % RATES.length];
+        wob(at, NOTES[k], S * (s === 12 ? 2 : 4) * 0.98, r, 0.16, Math.random() < 0.25 ? (Math.random() < 0.5 ? 0.5 : 2) : 0);
+        if (s === 12) wob(at + S * 2, NOTES[(k + 3) % NOTES.length] * 2, S * 2 * 0.95, 18.7, 0.12, 0.7);
+      }
+      if (Math.random() < 0.06) tone(at, 900 + Math.random() * 2000, 0.09, "square", 0.025, 60 + Math.random() * 200);   // random zaps
+      if (bar === 2 && s === 6) tone(at, 220, 0.3, "square", 0.04, 880);   // "yoi"
+    }
+
+    // ---- "dash": bright 150bpm four-on-the-floor in A minor (Am F C G) ----
+    const CH = [[220, 261.63, 329.63], [174.61, 220, 261.63], [261.63, 329.63, 392], [196, 246.94, 293.66]];
+    const MEL = [0, 0, 2, 0, 1, 0, 2, 1, 0, 2, 1, 0, 2, 0, 1, 2];
+    function dash(n, at) {
+      const s = n % 16, bar = Math.floor(n / 16) % 8, ch = CH[bar % 4];
+      if (s % 4 === 0) kick(at, 0.5);
+      if (s === 4 || s === 12) snare(at, 0.18);
+      if (s % 4 === 2) hat(at, 0.06, true); else hat(at, 0.025);
+      if (s % 2 === 0) sawBass(at, (s % 4 === 2 ? ch[0] : ch[0] / 2) / 2, S * 1.8, 0.11);
+      tone(at, ch[(s + bar) % 3] * 2, S * 0.9, "square", 0.022);   // arp
+      if (bar >= 4 && s % 2 === 0) tone(at, ch[MEL[(s + bar * 3) % 16]] * 4, S * 1.8, "triangle", 0.045);   // lead line in the second half
+      if (bar === 7 && s >= 12) snare(at, 0.1 + (s - 12) * 0.04);
+    }
+
+    const fn = kind === "dub" ? dub : dash;
+    function pump() {
+      const ahead = actx.currentTime + 0.2;
+      while (t < ahead) { fn(step, t); t += S; step++; }
+    }
+    return {
+      play() {
+        if (timer || !soundOn) return;
+        try {
+          actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+          if (actx.state === "suspended") actx.resume();
+          gain = actx.createGain(); gain.gain.value = kind === "dub" ? 0.7 : 0.6; gain.connect(actx.destination);
+          t = t0 = actx.currentTime + 0.05; step = 0;
+          timer = setInterval(pump, 60); pump();
+        } catch (e) { /* audio unavailable */ }
+      },
+      stop() {
+        if (!timer) return;
+        clearInterval(timer); timer = null;
+        try { gain.gain.setTargetAtTime(0, actx.currentTime, 0.04); const g = gain; setTimeout(() => g.disconnect(), 400); } catch (e) { /* ignore */ }
+      },
+      // 0..1 position inside the current beat (for visuals), or -1 when silent
+      pulse() { if (!timer) return -1; const b = (ctx().currentTime - t0) / (S * 4); return b - Math.floor(b); },
+      get on() { return !!timer; }
+    };
+  }
+
+  /* ---------- beat_dash.exe: a one-button rhythm runner (her face on the cube) ---------- */
+  let dashApi = null;
+  function openDash(from) {
+    return createWin({
+      id: "dash", title: "beat_dash.exe", w: 380, h: "auto", from, dx: 0, dy: 160, flat: true,
+      onClose() { if (dashApi) dashApi.stop(); dashApi = null; },
+      fill(body) {
+        const app = h("div", "snake-app dash-app");
+        const lcd = h("div", "lcd dash-lcd");
+        const cv = h("canvas"); cv.width = 340; cv.height = 200;
+        const msg = h("div", "lcd-msg"); msg.innerHTML = "SPACE / CLICK TO JUMP<br>HOLD TO KEEP JUMPING";
+        lcd.append(cv, msg);
+        const sc = h("div", "snake-score");
+        const sA = h("b", null, "1"), sB = h("b", null, store.get("dash-best", 0) + "%");
+        const s1 = h("span", null, "ATTEMPT "), s2 = h("span", null, "BEST ");
+        s1.appendChild(sA); s2.appendChild(sB); sc.append(s1, s2);
+        app.append(lcd, sc, h("div", "snake-tip", "SPACE / ↑ / CLICK · SOUND ON FOR THE TRACK"));
+        body.appendChild(app);
+        dashApi = makeDash(cv, msg, sA, sB);
+      }
+    });
+  }
+  function makeDash(cv, msg, attEl, bestEl) {
+    const x = cv.getContext("2d"), W = cv.width, H = cv.height, GY = 164, C = 20, PX = 70;
+    const head = new Image(); head.src = "assets/face-cutout.webp";
+    const music = makeBeat("dash");
+    const GRAV = 0.92, JUMP = -10.2, PAD = -14, LEN = 7200;
+    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false;
+    let attempt = 1, best = store.get("dash-best", 0), acc = 0, frame = 0, dead = 0, spd = 4.2, won = 0;
+    // level chunks, x relative to chunk start: s = spike, b = block (w,h), p = jump pad
+    const CHUNKS = [
+      [["s", 0]], [["s", 0], ["s", 20]], [["s", 0], ["s", 150]], [["b", 0, 40, 20], ["s", 40]],
+      [["b", 0, 40, 20], ["b", 100, 40, 40], ["b", 200, 40, 60]],
+      [["p", 0], ["s", 60], ["s", 80], ["s", 100]],
+      [["b", 0, 120, 20], ["s", 40, 20], ["s", 160]],
+      [["s", 0], ["b", 110, 60, 30], ["s", 190]],
+      [["b", 0, 40, 40], ["s", 40], ["s", 60], ["b", 80, 40, 40]]
+    ];
+    function build() {
+      obs = []; let px = 600, i = 0;
+      while (px < LEN - 300) {
+        const pool = i < 3 ? CHUNKS.slice(0, 3) : CHUNKS;
+        const ch = pool[Math.floor(Math.random() * pool.length)];
+        let end = px;
+        ch.forEach(([k, dx, a, b]) => {
+          if (k === "s") obs.push({ k, x: px + dx, y: GY - C - (a || 0), w: C, h: C });
+          else if (k === "p") obs.push({ k, x: px + dx, y: GY - 5, w: C, h: 5 });
+          else obs.push({ k, x: px + dx, y: GY - b, w: a, h: b });
+          end = Math.max(end, px + dx + (k === "b" ? a : C));
+        });
+        px = end + 170 + Math.random() * 90; i++;
+      }
+    }
+    function reset() { cy = GY - C; vy = 0; rot = 0; ground = true; cam = 0; parts = []; trail = []; dead = 0; won = 0; build(); }
+    function start() {
+      if (dead) return;
+      if (!alive) { reset(); alive = true; }
+      running = true; msg.hidden = true; music.stop(); music.play();
+    }
+    function die() {
+      running = false; alive = false; dead = 1; music.stop(); sfx.die();
+      const pct = Math.min(100, Math.floor(cam / LEN * 100));
+      if (pct > best) { best = pct; store.set("dash-best", best); bestEl.textContent = best + "%"; }
+      for (let i = 0; i < 26; i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * 4; parts.push({ x: PX + C / 2, y: cy + C / 2, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, c: i % 3 }); }
+      setTimeout(() => { dead = 0; attempt++; attEl.textContent = String(attempt); reset(); alive = true; running = true; music.play(); }, 900);
+    }
+    function win() {
+      running = false; alive = false; won = 1; music.stop(); sfx.star();
+      best = 100; store.set("dash-best", 100); bestEl.textContent = "100%";
+      msg.innerHTML = "LEVEL COMPLETE ✦<br>SPACE / TAP TO GO AGAIN"; msg.hidden = false;
+    }
+    function jump(force) { vy = force || JUMP; ground = false; }
+    function press() { held = true; if (!running) { start(); if (running) jump(); return; } if (ground) jump(); }
+    function step() {
+      frame++;
+      if (running) {
+        cam += spd;
+        if (held && ground) jump();
+        vy += GRAV; cy += vy; ground = false;
+        if (vy < 0 || !ground) rot += 0.11;
+        if (cy >= GY - C) { cy = GY - C; vy = 0; ground = true; }
+        const L = PX + cam, R = L + C;
+        for (const o of obs) {
+          if (o.x > R + 4 || o.x + o.w < L - 4) continue;
+          if (o.k === "s") { // a slightly forgiving triangle hitbox
+            if (R - 4 > o.x && L + 4 < o.x + o.w && cy + C - 4 > o.y + 6) { die(); return; }
+          } else if (o.k === "p") {
+            if (R > o.x && L < o.x + o.w && cy + C >= GY - 6) { jump(PAD); burstAt(o.x - cam + 10, GY - 4); }
+          } else if (R > o.x && L < o.x + o.w) {
+            if (vy >= 0 && cy + C - vy <= o.y + 2) { cy = o.y - C; vy = 0; ground = true; }   // landed on top
+            else if (cy + C > o.y + 3) { die(); return; }   // hit the side
+          }
+        }
+        if (ground) rot = Math.round(rot / (Math.PI / 2)) * (Math.PI / 2);
+        trail.push({ x: PX + cam, y: cy + C / 2, life: 1 }); if (trail.length > 14) trail.shift();
+        if (cam >= LEN) win();
+      }
+      parts.forEach((p) => { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.025; });
+      parts = parts.filter((p) => p.life > 0);
+      trail.forEach((t) => (t.life -= 0.07));
+      draw();
+    }
+    function burstAt(X, Y) { for (let i = 0; i < 8; i++) parts.push({ x: X + cam - cam, y: Y, vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 3, life: 0.8, c: 1 }); }
+    const COL = ["#2e2452", "#d7a3bd", "#ffffff"];
+    function draw() {
+      const p = music.pulse(), beat = p < 0 ? (frame % 24) / 24 : p, kick = Math.pow(1 - beat, 3);
+      const sky = x.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#b9aee3"); sky.addColorStop(1, "#e7e1f6");
+      x.fillStyle = sky; x.fillRect(0, 0, W, H);
+      // background squares that pulse with the kick
+      x.strokeStyle = "rgba(255,255,255," + (0.18 + kick * 0.3).toFixed(2) + ")"; x.lineWidth = 2;
+      for (let i = 0; i < 9; i++) {
+        const bx = ((i * 61 - cam * 0.25) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 100, s = 18 + (i % 3) * 10 + kick * 4;
+        x.strokeRect(bx - s / 2, by - s / 2, s, s);
+      }
+      // ground: chrome tiles
+      const gg = x.createLinearGradient(0, GY, 0, H);
+      gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8");
+      x.fillStyle = gg; x.fillRect(0, GY, W, H - GY);
+      x.fillStyle = "#2e2452"; x.fillRect(0, GY, W, 2);
+      x.fillStyle = "rgba(46,36,82,.25)";
+      for (let i = -1; i < W / 40 + 1; i++) x.fillRect(Math.floor(i * 40 - cam % 40), GY + 2, 2, H - GY);
+      // obstacles
+      obs.forEach((o) => {
+        const ox = o.x - cam; if (ox > W + 10 || ox + o.w < -10) return;
+        if (o.k === "s") {
+          x.fillStyle = "#2e2452"; x.beginPath(); x.moveTo(ox, o.y + o.h); x.lineTo(ox + o.w / 2, o.y); x.lineTo(ox + o.w, o.y + o.h); x.closePath(); x.fill();
+          x.fillStyle = "#d7a3bd"; x.beginPath(); x.moveTo(ox + 5, o.y + o.h - 2); x.lineTo(ox + o.w / 2, o.y + 7); x.lineTo(ox + o.w - 5, o.y + o.h - 2); x.closePath(); x.fill();
+        } else if (o.k === "p") {
+          x.fillStyle = "#fff200"; x.fillRect(ox + 2, o.y + 1, o.w - 4, o.h); x.strokeStyle = "#2e2452"; x.lineWidth = 1.5; x.strokeRect(ox + 2, o.y + 1, o.w - 4, o.h);
+        } else {
+          x.fillStyle = "#f6f3fa"; x.fillRect(ox, o.y, o.w, o.h);
+          x.strokeStyle = "#2e2452"; x.lineWidth = 2; x.strokeRect(ox + 1, o.y + 1, o.w - 2, o.h - 2);
+          x.strokeStyle = "rgba(215,163,189," + (0.5 + kick * 0.5).toFixed(2) + ")"; x.strokeRect(ox + 5, o.y + 5, o.w - 10, o.h - 10);
+        }
+      });
+      // trail
+      trail.forEach((t) => { if (t.life <= 0) return; x.fillStyle = "rgba(215,163,189," + (t.life * 0.6).toFixed(2) + ")"; const s = 6 * t.life; x.fillRect(t.x - cam - s / 2 - 4, t.y - s / 2, s, s); });
+      // the cube with her face
+      if (!dead) {
+        x.save(); x.translate(PX + C / 2, cy + C / 2); x.rotate(rot);
+        const s = C * (1 + kick * 0.08);
+        x.fillStyle = "#d7a3bd"; x.fillRect(-s / 2, -s / 2, s, s);
+        if (head.complete && head.naturalWidth) { x.save(); x.beginPath(); x.rect(-s / 2 + 2, -s / 2 + 2, s - 4, s - 4); x.clip(); x.drawImage(head, -s / 2 - 3, -s / 2 - 2, s + 6, s + 6); x.restore(); }
+        x.strokeStyle = "#2e2452"; x.lineWidth = 2; x.strokeRect(-s / 2, -s / 2, s, s);
+        x.restore();
+      }
+      parts.forEach((q) => { x.globalAlpha = Math.max(0, q.life); x.fillStyle = COL[q.c]; x.fillRect(q.x - 2, q.y - 2, 4, 4); });
+      x.globalAlpha = 1;
+      // progress bar
+      const pr = Math.min(1, cam / LEN);
+      x.fillStyle = "rgba(46,36,82,.35)"; x.fillRect(W / 2 - 80, 8, 160, 6);
+      x.fillStyle = "#fff"; x.fillRect(W / 2 - 80, 8, 160 * pr, 6);
+      x.font = "700 9px 'Space Mono', monospace"; x.textAlign = "center"; x.fillStyle = "#2e2452";
+      x.fillText(Math.floor(pr * 100) + "%", W / 2, 26);
+      if (dead) { x.fillStyle = "rgba(255,255,255," + (0.5 * dead).toFixed(2) + ")"; x.fillRect(0, 0, W, H); dead = Math.max(0.01, dead * 0.9); }
+    }
+    cv.addEventListener("pointerdown", (e) => { e.preventDefault(); press(); });
+    window.addEventListener("pointerup", () => (held = false));
+    reset(); draw();
+    return {
+      key(e) {
+        if (e.key === " " || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); if (!e.repeat) press(); return true; }
+        return false;
+      },
+      keyup(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") held = false; },
+      tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
+      stop() { running = false; music.stop(); }
+    };
+  }
+
+  window.addEventListener("keyup", (e) => { if (dashApi) dashApi.keyup(e); });
 
   /* ---------- welcome dialog (first visit) ---------- */
   function openWelcome() {
@@ -1054,6 +1359,7 @@
     item("▸", "Snake", () => openApp("snake", startBtn));
     item("▦", "Blocks", () => openApp("blocks", startBtn));
     item("✈", "MLG Flap", () => openApp("flap", startBtn));
+    item("◆", "Beat Dash", () => openApp("dash", startBtn));
     item("✦", "Stars (" + got.length + "/" + STARS.length + ")", () => openApp("stars", startBtn));
     box.appendChild(h("div", "sm-sep"));
     item(soundOn ? "🔊" : "🔇", soundOn ? "Turn sound off" : "Turn sound on", () => { setSound(!soundOn); sfx.click(); });
@@ -1592,6 +1898,7 @@
     if (wins.snake && wins.snake.el.classList.contains("is-active") && snakeApi && snakeApi.key(e)) return;
     if (wins.blocks && wins.blocks.el.classList.contains("is-active") && blocksApi && blocksApi.key(e)) return;
     if (wins.flap && wins.flap.el.classList.contains("is-active") && flapApi && flapApi.key(e)) return;
+    if (wins.dash && wins.dash.el.classList.contains("is-active") && dashApi && dashApi.key(e)) return;
     if (e.key === "Escape") {
       if (!startMenu.hidden) { closeStart(); return; }
       const act = Object.values(wins).find((w) => w.el.classList.contains("is-active") && !w.el.classList.contains("is-min"));
@@ -1628,6 +1935,8 @@
     if (snakeApi) snakeApi.tick(dt);
     if (blocksApi) blocksApi.tick(dt);
     if (flapApi) flapApi.tick(dt);
+    if (dashApi) dashApi.tick(dt);
+    danceStep(performance.now());
     const spinning = Math.abs(targetAngle - angle) > 0.5;
     if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();
