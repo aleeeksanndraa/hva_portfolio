@@ -1641,7 +1641,7 @@
    * Orbit: face window + project windows circling it
    * ------------------------------------------------------------------ */
   const COVERS = {
-    "01": { img: "assets/badge-tight.png" },
+    "01": { img: "assets/badge-pixel.png" },
     "02": { type: "IN //<br>BETWEEN" },
     "03": { img: "assets/tandem-pixel.png" },
     "04": { img: "assets/ei-little-tank-tank.jpg" },
