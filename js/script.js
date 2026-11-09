@@ -731,6 +731,60 @@
   }
 
   let blocksApi = null, beatZero = 0, danced = false;
+  // beat_dash drops: rainbow eye beams, colour cycling and the melting face
+  let beams = null;
+  function dashTrip(now, dt) {
+    const el = document.getElementById("head-px");
+    const lv = dashApi && !reduceMotion ? dashApi.level() : 0;
+    const target = lv >= 7 ? Math.min(1, (lv - 5) / 4) : 0;
+    trip += (target - trip) * Math.min(1, dt / (target > trip ? 250 : 700));
+    tripT = now / 1000;
+    if (!el) return;
+    if (trip < 0.02) {
+      if (beams) { beams.remove(); beams = null; el.style.filter = ""; }
+      return;
+    }
+    el.style.filter = "hue-rotate(" + Math.round((now / 6) % 360 * trip) + "deg) saturate(" + (1 + trip * 0.9).toFixed(2) + ")";
+    // pixel beams: drawn on a low-res canvas (1 px = 6 screen px) that is scaled up without smoothing
+    const PXS = 6;
+    if (!beams) {
+      beams = document.createElement("canvas"); beams.className = "eye-beams";
+      document.getElementById("orbit").appendChild(beams);
+    }
+    const cw = Math.ceil(innerWidth / PXS), ch = Math.ceil(innerHeight / PXS);
+    if (beams.width !== cw || beams.height !== ch) { beams.width = cw; beams.height = ch; }
+    const bx = beams.getContext("2d"); bx.clearRect(0, 0, cw, ch); bx.imageSmoothingEnabled = false;
+    const r = el.getBoundingClientRect(), k = r.width / 420;
+    const ex = r.left + r.width / 2 + tYaw * 1.6 * k, ey = r.top + r.height * 0.5;
+    const RAIN = [[255, 106, 213], [255, 211, 106], [255, 245, 138], [255, 255, 255], [138, 255, 193], [106, 216, 255], [180, 138, 255]];
+    const L = Math.hypot(cw, ch) * 0.8, hue = (now / 8) % 360;
+    [-1, 1].forEach((side, i) => {
+      const ox = (ex + side * 46 * k) / PXS, oy = ey / PXS;
+      const ang = (side < 0 ? Math.PI : 0) + Math.sin(now / 260 + i) * 0.04 + tYaw * 0.006;   // straight out of each eye
+      const spread = 0.24, n = RAIN.length;
+      RAIN.forEach((c, j) => {
+        const a0 = ang - spread + (2 * spread * j) / n, a1 = ang - spread + (2 * spread * (j + 1)) / n;
+        // stepped fade along the beam: hard alpha steps read as pixel fading
+        const g = bx.createRadialGradient(ox, oy, 0, ox, oy, L), rgb = c.join(",");
+        [[0, 1], [0.16, 1], [0.16, 0.82], [0.32, 0.82], [0.32, 0.6], [0.48, 0.6], [0.48, 0.38], [0.64, 0.38], [0.64, 0.18], [0.8, 0.18], [0.8, 0]]
+          .forEach(([o, al]) => g.addColorStop(o, "rgba(" + rgb + "," + (al * trip).toFixed(3) + ")"));
+        bx.fillStyle = g; bx.beginPath(); bx.moveTo(ox, oy);
+        bx.lineTo(ox + Math.cos(a0) * L, oy + Math.sin(a0) * L); bx.lineTo(ox + Math.cos(a1) * L, oy + Math.sin(a1) * L); bx.closePath(); bx.fill();
+      });
+      // sparkles: single bright pixels and little + crosses twinkling inside the cone
+      for (let q = 0; q < 26; q++) {
+        const seed = Math.sin(q * 91.7 + i * 13.1) * 43758.5, fr = seed - Math.floor(seed);
+        const d = ((fr * L * 0.8 + now / 18 * (0.5 + fr)) % (L * 0.8)) + 4;
+        const aa = ang + (fr - 0.5) * 2 * spread * 0.9;
+        const sx = Math.round(ox + Math.cos(aa) * d), sy = Math.round(oy + Math.sin(aa) * d);
+        const tw = (Math.sin(now / 90 + q * 2.3) + 1) / 2;
+        bx.fillStyle = "rgba(255,255,255," + (tw * trip * (1 - d / L)).toFixed(2) + ")";
+        bx.fillRect(sx, sy, 1, 1);
+        if (q % 4 === 0 && tw > 0.6) { bx.fillRect(sx - 1, sy, 3, 1); bx.fillRect(sx, sy - 1, 1, 3); }
+      }
+    });
+    beams.style.filter = "hue-rotate(" + Math.round(hue) + "deg) saturate(1.6)";
+  }
   // while blocks.exe is open the big head bops along to the 144 bpm tune
   function danceStep(now) {
     const el = document.getElementById("head-px");
@@ -752,7 +806,7 @@
   function openBlocks(from) {
     return createWin({
       id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
-      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; if (!flapApi) setPixelFace(false); },
+      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; if (!flapApi && !dashApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app blocks-app");
         const row = h("div", "blocks-row");
@@ -915,7 +969,7 @@
   function openFlap(from) {
     return createWin({
       id: "flap", title: "mlg_flap.exe", w: 300, h: "auto", from, dx: 260, dy: 10, flat: true,
-      onClose() { if (flapApi) flapApi.stop(); flapApi = null; setShades(false); if (!blocksApi) setPixelFace(false); },
+      onClose() { if (flapApi) flapApi.stop(); flapApi = null; setShades(false); if (!blocksApi && !dashApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app flap-app");
         const lcd = h("div", "lcd flap-lcd");
@@ -929,7 +983,7 @@
         app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"), h("div", "snake-tip", "♪ Bytesize – Dig Dug")); 
         body.appendChild(app);
         flapApi = makeFlap(cv, msg, sS, sB, lcd);
-        setPixelFace(true); setTimeout(() => setShades(true), 500);
+        setPixelFace(true);
       }
     });
   }
@@ -945,12 +999,20 @@
       play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
       stop() { song.pause(); }
     };
+    // where the track drops (per half second, measured from the file): the meme shades slam on there
+    const DROPS = "00011111111111111111111111110001111111111111111111111110001111111111111111111111110000111111111111111111111000000111111111111111111111111111111111111111111110000000000";
+    let shadesOn = false, playT = 0;
+    function dropShades() {
+      const t = !song.paused && song.currentTime > 0 ? song.currentTime : (running ? (playT += 1 / 60) : 0);
+      const want = running && DROPS[Math.floor(t * 2)] === "1";
+      if (want !== shadesOn) { shadesOn = want; setShades(want); if (want) { mlg.hit(); hitmark(60, by); } }
+    }
     function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 40); addPipe(W + 40 + 175); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
     function hitmark(X, Y) { fx.push({ hm: true, x: X, y: Y, life: 1 }); }
     function flap() { if (!running) { start(); return; } vy = JUMP; mlg.flap(); }
-    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; dubs.play(); }
+    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; playT = 0; dubs.play(); }
     function die() {
       alive = false; running = false; shake = 18; dubs.stop(); mlg.horn(); sfx.die();
       pop("GET REKT", W / 2, H / 2 - 30, true); hitmark(60, by); hitmark(70, by - 12);
@@ -1013,6 +1075,7 @@
     }
     function step() {
       frame++;
+      dropShades();
       if (running) {
         vy += GRAV; by += vy;
         if (by < 14) { by = 14; vy = Math.max(vy, 0); }   // soft ceiling
@@ -1259,7 +1322,7 @@
   function openDash(from) {
     return createWin({
       id: "dash", title: "beat_dash.exe", w: 380, h: "auto", from, dx: 0, dy: 160, flat: true,
-      onClose() { if (dashApi) dashApi.stop(); dashApi = null; },
+      onClose() { if (dashApi) dashApi.stop(); dashApi = null; if (!blocksApi && !flapApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app dash-app");
         const lcd = h("div", "lcd dash-lcd");
@@ -1273,6 +1336,7 @@
         app.append(lcd, sc, h("div", "snake-tip", "JUMP ON THE BEAT · SOUND ON FOR THE TRACK"), h("div", "snake-tip", "♪ Feint – Snake Eyes (feat. CoMa) · 8-bit edit by Sasha"));
         body.appendChild(app);
         dashApi = makeDash(cv, msg, sA, sB);
+        setPixelFace(true);
       }
     });
   }
@@ -1280,7 +1344,10 @@
   const DASH = { T0: 0.2177, BEAT: 60 / 175.15, PPS: 252, END: 85,
     // loudness per beat, 0-9 (measured from the track)
     E: "95893991000000853976799759883987496879894958498859699979696949597979997978575607474987596969686857488769687978796899999966885389679989996599637112110200321023200102010022202330010201002221233022232252244343479797969996929699969296939699949997929799" };
-  // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases, then night phrases for the loud parts
+  // the drops of the track, in beats: the first hits ~5% into the run, the second after the breakdown
+  const DASH_DROPS = [[12, 143], [209, 1e9]];
+  const dashInDrop = (b) => DASH_DROPS.some(([a, z]) => b >= a && b < z);
+  // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases outside the drops, night phrases inside them
   const DASH_THEMES = [
     ["#b9aee3", "#e7e1f6", "rgba(255,255,255,A)", "s"], ["#d9b3cf", "#f4e3ee", "rgba(255,255,255,A)", "o"],
     ["#a9bde6", "#e1e8f7", "rgba(255,255,255,A)", "d"], ["#c6b5ea", "#f1e6f6", "rgba(255,255,255,A)", "t"],
@@ -1321,7 +1388,7 @@
       get on() { return !song.paused; }
     };
     const GRAV = 0.92, JUMP = -10.2, PAD = -15, LEN = DASH.END * DASH.PPS;
-    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false, t = 0;
+    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false, t = 0, wasDrop = false, dropHit = 0;
     let attempt = 1, best = store.get("dash-best", 0), acc = 0, frame = 0, dead = 0, spd = DASH.PPS / 60, won = 0;
     function build() { obs = dashLevel(GY, C, PX); }
     function reset() { cy = GY - C; vy = 0; rot = 0; ground = true; cam = 0; t = 0; parts = []; trail = []; dead = 0; won = 0; build(); }
@@ -1381,14 +1448,20 @@
       // the world changes every 16 beats (a phrase); loud phrases get the night palette
       const phrase = Math.max(0, Math.floor(bt / 16)), pb = bt - phrase * 16;
       let loudSum = 0; for (let k = phrase * 16; k < phrase * 16 + 16; k++) loudSum += +(DASH.E[k] || 0);
-      const th = running ? DASH_THEMES[(loudSum / 16 >= 7 ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
+      const drop = running && dashInDrop(Math.floor(bt));
+      if (drop && !wasDrop) dropHit = 1;   // the drop lands: instant scene swap + big flash + shake
+      wasDrop = drop; dropHit *= 0.93;
+      const th = running ? DASH_THEMES[(drop ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
+      x.save();
+      if (dropHit > 0.05) x.translate((Math.random() - 0.5) * 14 * dropHit, (Math.random() - 0.5) * 14 * dropHit);
       const sky = x.createLinearGradient(0, 0, 0, H);
       sky.addColorStop(0, th[0]); sky.addColorStop(1, th[1]);
       x.fillStyle = sky; x.fillRect(0, 0, W, H);
       // background shapes that pulse with the kick (the shape changes with the phrase)
-      x.strokeStyle = th[2].replace("A", (0.22 + kick * 0.35).toFixed(2)); x.fillStyle = x.strokeStyle; x.lineWidth = 2;
-      for (let i = 0; i < 10; i++) {
-        const bx = ((i * 61 - cam * 0.25) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 110, sz = 16 + (i % 3) * 10 + kick * 6;
+      x.strokeStyle = th[2].replace("A", (0.22 + kick * 0.35).toFixed(2)); x.fillStyle = x.strokeStyle; x.lineWidth = drop ? 3 : 2;
+      for (let i = 0; i < (drop ? 16 : 10); i++) {
+        const bx = ((i * 61 - cam * (drop ? 0.5 : 0.25)) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 110, sz = (16 + (i % 3) * 10) * (drop ? 1.4 : 1) + kick * (drop ? 14 : 6);
+        if (drop) { x.strokeStyle = "hsla(" + Math.round((i * 47 + bt * 40) % 360) + ",90%,72%," + (0.45 + kick * 0.5).toFixed(2) + ")"; x.fillStyle = x.strokeStyle; }
         x.save(); x.translate(bx, by); x.rotate((th[3] === "d" ? Math.PI / 4 : 0) + (th[3] === "x" ? bt * 0.4 : 0));
         if (th[3] === "o") { x.beginPath(); x.arc(0, 0, sz / 2, 0, 6.29); x.stroke(); }
         else if (th[3] === "t") { x.beginPath(); x.moveTo(0, -sz / 2); x.lineTo(sz / 2, sz / 2); x.lineTo(-sz / 2, sz / 2); x.closePath(); x.stroke(); }
@@ -1397,10 +1470,18 @@
         x.restore();
       }
       // a flash as each new phrase comes in
+      if (drop) {   // rainbow speed lines rushing past during the drop
+        for (let i = 0; i < 7; i++) {
+          const ly = 12 + i * 21, lx = ((i * 137 - cam * 1.6) % (W + 200) + W + 200) % (W + 200) - 100;
+          x.fillStyle = "hsla(" + Math.round((i * 51 + bt * 30) % 360) + ",95%,70%," + (0.35 + kick * 0.4).toFixed(2) + ")";
+          x.fillRect(Math.floor(lx), ly, 90, 3);
+        }
+      }
       if (running && pb < 1) { x.fillStyle = "rgba(255,255,255," + ((1 - pb) * 0.45).toFixed(2) + ")"; x.fillRect(0, 0, W, H); }
       // ground: chrome tiles
       const gg = x.createLinearGradient(0, GY, 0, H);
-      gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8");
+      if (drop) { gg.addColorStop(0, "#d7a3bd"); gg.addColorStop(0.3, "#5b4a8f"); gg.addColorStop(1, "#1a1233"); }
+      else { gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8"); }
       x.fillStyle = gg; x.fillRect(0, GY, W, H - GY);
       x.fillStyle = "#2e2452"; x.fillRect(0, GY, W, 2);
       // floor seams sit exactly on the beat grid: when a seam reaches the cube, that's the beat
@@ -1448,8 +1529,10 @@
       const pr = Math.min(1, cam / LEN);
       x.fillStyle = "rgba(46,36,82,.35)"; x.fillRect(W / 2 - 80, 8, 160, 6);
       x.fillStyle = "#fff"; x.fillRect(W / 2 - 80, 8, 160 * pr, 6);
-      x.font = "700 9px 'Space Mono', monospace"; x.textAlign = "center"; x.fillStyle = "#2e2452";
+      x.font = "700 9px 'Space Mono', monospace"; x.textAlign = "center"; x.fillStyle = drop ? "#fff" : "#2e2452";
       x.fillText(Math.floor(pr * 100) + "%", W / 2, 26);
+      x.restore();
+      if (dropHit > 0.05) { x.fillStyle = "rgba(255,255,255," + (dropHit * 0.9).toFixed(2) + ")"; x.fillRect(0, 0, W, H); }
       if (dead) { x.fillStyle = "rgba(255,255,255," + (0.5 * dead).toFixed(2) + ")"; x.fillRect(0, 0, W, H); dead = Math.max(0.01, dead * 0.9); }
     }
     cv.addEventListener("pointerdown", (e) => { e.preventDefault(); press(); });
@@ -1462,6 +1545,12 @@
       },
       keyup(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") held = false; },
       tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
+      // laser eyes only during the drops (beat ranges of the track: first drop hits ~5% into the run, second after the breakdown)
+      level() {
+        if (!running) return 0;
+        const b = Math.floor((t - DASH.T0) / DASH.BEAT);
+        return dashInDrop(b) ? 9 : 0;
+      },
       stop() { running = false; music.stop(); }
     };
   }
@@ -1799,13 +1888,31 @@
   const ready = (img) => img.complete && img.naturalWidth > 0;
   // one frame, or a crossfade between two: layers = [[img, sheet, index, alpha], ...]
   function paint(layers) {
-    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix + "/" + shadesP.toFixed(2) + "/" + Math.round(tYaw);
+    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix + "/" + shadesP.toFixed(2) + "/" + Math.round(tYaw) + (trip > 0.02 ? "/m" + Math.round(tripT * 20) + ":" + trip.toFixed(2) : "");
     if (key === lastKey) return;
     if (!layers.every((l) => ready(l[0]))) return;
     lastKey = key;
     hx.clearRect(0, 0, hc.width, hc.height);
     layers.forEach((l) => blit(l[0], l[1], l[2], l[3]));
     if (shadesP > 0) drawShades();
+    if (trip > 0.02) meltHead();
+  }
+  // beat_dash drop FX: the pixel face melts downward in drips (columns stretched by a moving wave)
+  let trip = 0, tripT = 0;
+  const meltC = document.createElement("canvas"), meltX = meltC.getContext("2d");
+  function meltHead() {
+    const W = hc.width, H = hc.height;
+    meltC.width = W; meltC.height = H; meltX.drawImage(hc, 0, 0);
+    hx.clearRect(0, 0, W, H); hx.imageSmoothingEnabled = false;
+    const strip = Math.max(4, Math.round(W / 70));
+    for (let c = 0; c < W; c += strip) {
+      const wave = Math.sin(c * 0.045 + tripT * 2.1) * 0.5 + 0.5, wave2 = Math.sin(c * 0.13 - tripT * 3.3) * 0.5 + 0.5;
+      const drip = trip * H * (0.06 + 0.32 * wave * wave2);
+      // the top half stays put, everything below the eyes stretches down
+      const cut = H * 0.5;
+      hx.drawImage(meltC, c, 0, strip, cut, c, 0, strip, cut);
+      hx.drawImage(meltC, c, cut, strip, H - cut, c, cut, strip, H - cut + drip);
+    }
   }
   // meme pixel shades for mlg_flap.exe: they drop down from above onto her eyes
   const SHADES = [
@@ -2129,6 +2236,7 @@
     if (flapApi) flapApi.tick(dt);
     if (dashApi) dashApi.tick(dt);
     danceStep(performance.now());
+    dashTrip(performance.now(), dt);
     const spinning = Math.abs(targetAngle - angle) > 0.5;
     if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();

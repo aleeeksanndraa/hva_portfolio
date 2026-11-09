@@ -817,3 +817,10 @@ body.booting #desktop { visibility: hidden; }
 @keyframes mg-ring { from { transform: scale(1); opacity: 1; } to { transform: scale(30); opacity: 0; } }
 @keyframes mg-glitter { 0% { opacity: 0; transform: translateY(0) rotate(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(160px) rotate(180deg); } }
 @keyframes mg-flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+/* beat_dash drop: pixel rainbow beams from her eyes (low-res canvas scaled up) */
+.eye-beams {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  pointer-events: none; z-index: 60;   /* above the face so the beams start right at her eyes */
+  image-rendering: pixelated; image-rendering: crisp-edges;
+}
+
