@@ -1,377 +1,1267 @@
 (() => {
   "use strict";
 
-  const PROJECTS = [
-    {
-      index: "01", title: "CUSTOM BADGE", year: "2026", course: "Digital Design", role: "Concept, fabrication, styling", status: "Complete",
-      chapters: [
-        { n: "OVERVIEW", title: "A name tag that became a keychain", text: "Made in the first week of Digital Design, when nobody in class knew each other's names yet. What started as a slick metal debit-card concept ended up as a bedazzled clear-acrylic keychain covered in rhinestones — the material changed the whole idea.", media: [{ label: "FIG. 01 — FINAL KEYCHAIN", kind: "wide", img: "assets/process-final-bedazzled-charm.png" }] },
-        { n: "BRIEF", title: "Brief", text: "Introduction week: make a personal badge with your name on it, so the class could learn who's who. The real point of the assignment was hidden inside it — a first tour of the Makers Lab, shown the laser cutter, the material stock and the 3D printer.", media: [] },
-        { n: "RESEARCH", title: "Research", text: "Less research than reconnaissance: what does this lab actually have. I wanted aluminium and couldn't find any in the material stock, so the badge became a lesson in designing around what's on the shelf rather than what's in my head.", media: [{ label: "FIG. 02 — DEBIT CARD REFERENCE", kind: "small", img: "assets/moodboard-metal-card-01.png" }, { label: "FIG. 03 — DEBIT CARD REFERENCE", kind: "small", img: "assets/moodboard-metal-card-03.png" }, { label: "FIG. 04 — ALUMINIUM MATERIAL REFERENCE", kind: "small", img: "assets/moodboard-aluminum-texture.png" }] },
-        { n: "CONCEPT", title: "Concept", text: "First idea: a slim metal card, wallet-sized, name engraved into brushed aluminium — understated, a bit like a debit card. Drawn in Figma as a card shape with a cut into one edge, doubling as a bottle opener.", media: [{ label: "FIG. 05 — CONCEPT SKETCH", kind: "tall", img: "assets/process-sketch-card-01.png" }, { label: "FIG. 06 — ALUMINIUM CARD SKETCH", kind: "tall", img: "assets/process-sketch-card-02.png" }, { label: "FIG. 07 — HOW I ENVISIONED IT", kind: "wide", img: "assets/process-final-card-studio.png" }] },
-        { n: "SKETCHES", title: "Sketches", text: "The card outline, the bottle-opener notch and the lettering, all built as vectors in Figma before anything touched the laser cutter — the file the machine actually reads.", media: [{ label: "FIG. 08 — SKETCH & CUT PIECE", kind: "tall", img: "assets/process-sketch-vs-lasercut.png" }] },
-        { n: "EXPERIMENTS", title: "Experiments", text: "No aluminium, so clear acrylic instead. First pass out of the laser cutter: the card with \"Sasha\" engraved into it, plus a set of separate 3D letters cut from the same sheet. Held up to the light, the offcuts looked exactly like jelly sweets.", media: [{ label: "FIG. 09 — ACRYLIC MATERIAL REFERENCE", kind: "small", img: "assets/moodboard-acrylic-sheets.png" }, { label: "FIG. 10 — FIRST LASER-CUT PIECE", kind: "small", img: "assets/process-first-lasercut-card.png" }, { label: "FIG. 11 — LOOSE ACRYLIC LETTERS", kind: "small", img: "assets/process-lasercut-letters.png" }] },
-        { n: "ITERATIONS", title: "Iterations", text: "The jelly look changed the direction completely: from a slick metal card to a Y2K keychain. Raided my own nail kit for rhinestones and sparkles, bedazzled the acrylic card by hand, then built up the keychain with extra charms until it read as one deliberately messy, glamorous object.", media: [{ label: "FIG. 12 — Y2K KEYCHAIN REFERENCE", kind: "wide", img: "assets/moodboard-y2k-keychain-03.png" }, { label: "FIG. 13 — Y2K KEYCHAIN REFERENCE", kind: "wide", img: "assets/moodboard-y2k-keychain-poster.png" }] },
-        { n: "PRODUCTION", title: "Production", text: "Every rhinestone placed by hand, so no two badges from this batch would ever match. The 3D letters, the engraved card and the added charms were glued and wired together into one keychain.", media: [] },
-        { n: "OUTCOME", title: "Final outcome", text: "The bottle-opener notch never worked — acrylic that thin snaps before it opens anything. It's now where a hair scrunchie sits instead, which suits the badge better than the original idea did.", media: [{ label: "FIG. 14 — FINAL KEYCHAIN, PHOTO", kind: "wide", img: "assets/process-final-keychain-detail.png" }, { label: "FIG. 15 — FINAL KEYCHAIN, 3D-STYLE RENDER", kind: "tall", img: "assets/badge-tight.png" }] },
-        { n: "REFLECTION", title: "Reflection", text: "The best part of the badge wasn't the plan, it was the pivot: acrylic reading as jelly, jelly reading as Y2K, Y2K reading as a keychain nobody else in class had. Next time I'd let the material talk earlier instead of designing the metal version first.", media: [] }
-      ]
-    },
-    {
-      index: "02", title: "IN // BETWEEN", year: "2026", course: "Digital Design", role: "Group project — concept, spatial & interaction design", status: "Concept pitch",
-      chapters: [
-        { n: "OVERVIEW", title: "An experiential space for holographic fashion", text: "in//between is our concept pitch for Group 22 × Future Front Row 2026 — an installation that gives virtual fashion the materiality and presence it usually lacks. A holographic avatar stands on a central stage; the audience walks around it inside a room hung with fabric that catches projected light and the movement of the air itself. Made together with Norah, Nicole and Norton.", media: [] },
-        { n: "BRIEF", title: "Brief", text: "Future Front Row 2026 asked our group to design a spatial concept for showing virtual fashion. We started from a problem we kept running into in our research: virtual fashion exhibitions can read as flat and alienating — screens without a room around them — even though the format opens up storytelling a physical runway can't.", media: [] },
-        { n: "RESEARCH", title: "Research", text: "We looked at precedents for immersive, holographic and interactive exhibition environments — Sónar and Casa Batlló's \"Music:Response\" at The Cube in Barcelona, and \"UFO — Unidentified Fluid Other\" at the Nxt Museum in Amsterdam — alongside academic work on the sense of presence, or its absence, in virtual and phygital fashion shows. John Berger's line stuck with us: the meaning of an image changes with what you see beside it, or what comes after it.", media: [] },
-        { n: "CONCEPT", title: "Concept", text: "Our proposal: a central stage where the hologram is displayed through an inverted glass prism, letting the audience walk around it as it moves — sharing the space with the avatar rather than watching it on a screen. The surrounding area is hung in layers of fabric light enough to shift with the audience's own movement, giving the room a sense of organic, interactive motion.", media: [] },
-        { n: "EXPERIENCE", title: "Sound & projection", text: "Animations tied to the holographic look are projected onto the hanging fabric to carry the piece's emotional register, and the motion of both the hologram and the animations is set to music — so the room moves with the fashion instead of just displaying it.", media: [] },
-        { n: "NEXT STEPS", title: "Next steps", text: "This is a concept pitch, pending further research through prototyping. The next phase is testing the prism display and the fabric's response to real air movement, before we commit to a final material and spatial build for Future Front Row 2026.", media: [] }
-      ]
+  const PROJECTS = window.PROJECTS || [];
+  const $ = (id) => document.getElementById(id);
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isSmall = () => innerWidth < 760;
+  const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  /* ------------------------------------------------------------------
+   * Storage (per visitor, best effort)
+   * ------------------------------------------------------------------ */
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("sasha:" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem("sasha:" + k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
+  };
+
+  /* ------------------------------------------------------------------
+   * Sound — synthesized 8-bit blips, off until the visitor turns it on
+   * ------------------------------------------------------------------ */
+  let soundOn = store.get("sound", false);
+  let actx = null;
+  function blip(freq, dur, type, vol, slide) {
+    if (!soundOn) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = actx.currentTime;
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = type || "square";
+      o.frequency.setValueAtTime(freq, t);
+      if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+      g.gain.setValueAtTime(vol || 0.05, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    } catch (e) { /* audio unavailable */ }
+  }
+  const seq = (notes, gap, type, vol) => notes.forEach((f, i) => setTimeout(() => blip(f, gap / 1000 * 1.4, type || "square", vol || 0.04), i * gap));
+  const sfx = {
+    tick: () => blip(1400, 0.03, "square", 0.022),
+    click: () => blip(520, 0.06, "square", 0.04, 760),
+    open: () => seq([392, 523, 659], 55, "square", 0.04),
+    close: () => seq([659, 523, 392], 45, "square", 0.035),
+    min: () => blip(700, 0.12, "triangle", 0.06, 200),
+    poke: () => blip(240, 0.12, "triangle", 0.08, 160),
+    star: () => seq([784, 988, 1175, 1568], 70, "square", 0.045),
+    eat: () => blip(880, 0.06, "square", 0.04, 1320),
+    die: () => blip(300, 0.4, "sawtooth", 0.05, 60),
+    boot: () => seq([523, 659, 784, 1047, 784, 1047], 110, "triangle", 0.06),
+    error: () => seq([220, 220], 140, "square", 0.05)
+  };
+  const soundBtn = $("tray-sound");
+  function setSound(on) {
+    soundOn = on;
+    store.set("sound", on);
+    soundBtn.textContent = on ? "🔊" : "🔇";
+    soundBtn.setAttribute("aria-pressed", String(on));
+    soundBtn.title = on ? "Sound on" : "Sound off";
+    renderStartMenu();
+  }
+  soundBtn.addEventListener("click", (e) => { e.stopPropagation(); setSound(!soundOn); sfx.click(); });
+
+  /* ------------------------------------------------------------------
+   * Pixel layer — cursor trail and click bursts
+   * ------------------------------------------------------------------ */
+  const pc = $("pixels");
+  const px = pc.getContext("2d");
+  const CELL = 12;
+  const parts = [];
+  function sizePixels() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    pc.width = Math.round(innerWidth * dpr);
+    pc.height = Math.round(innerHeight * dpr);
+    px.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  let lastTrail = "";
+  function trail(x, y) {
+    if (reduceMotion) return;
+    const gx = Math.floor(x / CELL) * CELL, gy = Math.floor(y / CELL) * CELL;
+    const key = gx + ":" + gy;
+    if (key === lastTrail) return;
+    lastTrail = key;
+    parts.push({ x: gx, y: gy, vx: 0, vy: 0, life: 1, decay: 0.035, c: Math.random() < 0.25 ? "238,236,240" : "215,163,189", snap: true });
+  }
+  function burst(x, y, n, color) {
+    if (reduceMotion) return;
+    for (let i = 0; i < (n || 14); i++) {
+      const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "215,163,189" : "35,38,79")), g: 0.25 });
     }
+  }
+  function drawPixels() {
+    px.clearRect(0, 0, innerWidth, innerHeight);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.x += p.vx; p.y += p.vy; if (p.g) p.vy += p.g;
+      p.life -= p.decay;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      px.fillStyle = "rgba(" + p.c + "," + (p.snap ? p.life * 0.55 : p.life).toFixed(3) + ")";
+      if (p.snap) px.fillRect(p.x + 1, p.y + 1, CELL - 2, CELL - 2);
+      else px.fillRect(Math.round(p.x / 6) * 6, Math.round(p.y / 6) * 6, 6, 6);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   * Balloon notifications
+   * ------------------------------------------------------------------ */
+  let balloonT = null;
+  function balloon(title, text) {
+    const b = $("balloon");
+    b.innerHTML = "";
+    b.append(h("b", null, title), h("span", null, text || ""));
+    b.classList.add("show");
+    clearTimeout(balloonT);
+    balloonT = setTimeout(() => b.classList.remove("show"), 3200);
+  }
+
+  /* ------------------------------------------------------------------
+   * Stars (collectibles)
+   * ------------------------------------------------------------------ */
+  const STARS = [
+    { id: "corner", hint: "Lying around on the desktop" },
+    { id: "drift", hint: "Floating somewhere on the right" },
+    { id: "trash", hint: "Someone threw one away" },
+    { id: "readme", hint: "At the bottom of about_me.txt" },
+    { id: "poke", hint: "Poke the face five times" },
+    { id: "reader", hint: "Read any project to the very end" },
+    { id: "snake", hint: "Eat 10 ✦ in snake.exe" }
   ];
-
-  const root = document.getElementById("root");
-  const homeView = document.getElementById("home-view");
-  const projectView = document.getElementById("project-view");
-  const archiveView = document.getElementById("archive-view");
-  const track = document.getElementById("track");
-  const counterNum = document.getElementById("counter-num");
-  const progressBar = document.getElementById("progress-bar");
-
-  let view = "home";
-  let currentProject = 0;
-  let target = 0;
-  let current = 0;
-  let max = 0;
-  let vw = window.innerWidth;
-  let sections = [];
-  let raf = null;
-
-  const SCROLL_EASE = 0.1;
-  const MOVE_AMP_X = 4;
-  const MOVE_AMP_Y = 5;
-  const MOVE_AMP_ROT = 1.2;
-  const MOUSE_PARALLAX = 60;
-  const GLOBE_ROT_PER_VW = 68;
-  const GLOBE_MAX_ROT = 56;
-  const GLOBE_Z_PER_DEG = 4.2;
-
-  let mouseX = 0;
-  let mouseY = 0;
-  let mouseXEased = 0;
-  let mouseYEased = 0;
-  window.addEventListener("mousemove", (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-    mouseY = (e.clientY / window.innerHeight) * 2 - 1;
-  });
-
-  function setView(next) {
-    if (view === next) return;
-    view = next;
-    homeView.hidden = view !== "home";
-    projectView.hidden = view !== "project";
-    archiveView.hidden = view !== "archive";
-    root.classList.toggle("is-scrolling", view === "home");
-    root.classList.toggle("is-static", view !== "home");
-    if (view !== "home") window.scrollTo(0, 0);
-    else requestAnimationFrame(measure);
+  let got = store.get("stars", []);
+  if (!Array.isArray(got)) got = [];
+  function renderStarCount() {
+    $("stars-count").textContent = String(got.length);
+    $("stars-total").textContent = String(STARS.length);
+    if (wins.stars) fillStars(wins.stars.body);
   }
-
-  function measure() {
-    if (!track) return;
-    const kids = track.children;
-    const last = kids[kids.length - 1];
-    vw = window.innerWidth;
-    max = last ? Math.max(0, last.offsetLeft + last.offsetWidth - vw) : 0;
-    sections = Array.from(track.children);
-    let di = 0;
-    sections.forEach((sec) => {
-      sec.style.perspective = "900px";
-      sec.style.perspectiveOrigin = "50% 55%";
-      sec.__revealEl = sec.querySelector(".reveal");
-      sec.__parallaxEls = Array.from(sec.querySelectorAll("[data-p]"));
-      sec.__swingEls = Array.from(sec.querySelectorAll("[data-swing]"));
-      sec.__swingEls.forEach((el) => {
-        if (el.dataset.phase === undefined) el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
-        di++;
-      });
-      sec.__parallaxEls.forEach((el) => {
-        if (el.dataset.rot === undefined) {
-          const m = /rotate\((-?[\d.]+)deg\)/.exec(el.getAttribute("style") || "");
-          el.dataset.rot = m ? m[1] : "0";
-          el.dataset.phase = String((di % 7) * 0.9 + (di % 3) * 0.4);
-        }
-        di++;
-      });
-    });
-    target = Math.min(target, max);
-    current = target;
+  function collect(id, x, y) {
+    if (got.includes(id)) return false;
+    got.push(id);
+    store.set("stars", got);
+    renderStarCount();
+    sfx.star();
+    if (x != null) burst(x, y, 26);
+    const t = $("tray-stars");
+    t.classList.remove("bump"); void t.offsetWidth; t.classList.add("bump");
+    if (got.length >= STARS.length) { balloon("✦ All " + STARS.length + " stars found", "Look at me. New look unlocked."); window.dispatchEvent(new Event("sasha:allstars")); }
+    else balloon("✦ Star found", got.length + " of " + STARS.length + " collected.");
+    return true;
   }
-
-  function tick(now) {
-    current += (target - current) * SCROLL_EASE;
-    if (Math.abs(target - current) < 0.05) current = target;
-    track.style.transform = "translate3d(" + (-current).toFixed(2) + "px,0,0)";
-
-    mouseXEased += (mouseX - mouseXEased) * 0.06;
-    mouseYEased += (mouseY - mouseYEased) * 0.06;
-
-    if (progressBar) {
-      const p = max > 0 ? current / max : 0;
-      progressBar.style.transform = "scaleX(" + p.toFixed(4) + ")";
-    }
-
-    if (sections.length) {
-      let active = 0;
-      let bestDist = Infinity;
-      sections.forEach((sec, i) => {
-        const left = sec.offsetLeft - current;
-        const center = left + sec.offsetWidth / 2;
-        const dist = Math.abs(center - vw / 2);
-        if (dist < bestDist) { bestDist = dist; active = i; }
-
-        // globe/cylinder distortion — panels curve away like the surface of a
-        // sphere as they leave center, and the incoming one arrives already tilted
-        const signedOffset = center - vw / 2;
-        const rot = Math.max(-GLOBE_MAX_ROT, Math.min(GLOBE_MAX_ROT, (signedOffset / vw) * GLOBE_ROT_PER_VW));
-        const zPush = -Math.abs(rot) * GLOBE_Z_PER_DEG;
-        const curve = Math.abs(rot) / GLOBE_MAX_ROT;
-        const scale = 1 - curve * 0.16;
-        sec.style.transform = "rotateY(" + (-rot).toFixed(2) + "deg) translateZ(" + zPush.toFixed(1) + "px) scale(" + scale.toFixed(3) + ")";
-        sec.style.opacity = (1 - curve * 0.55).toFixed(3);
-
-        // skip offscreen sections entirely — nothing visible to animate
-        if (dist > vw * 1.2) return;
-
-        // 3D appearance reveal for text blocks, once per section entry
-        const enter = Math.max(0, Math.min(1, (vw - left) / (vw * 0.65)));
-        const eased = enter * enter * (3 - 2 * enter);
-        const rev = sec.__revealEl;
-        if (rev) {
-          rev.style.opacity = "1";
-          const kids = rev.children;
-          for (let k = 0; k < kids.length; k++) {
-            const raw = (eased - k * 0.1) / 0.9;
-            const s = Math.max(0, Math.min(1, raw));
-            const se = s * s * (3 - 2 * s);
-            const el = kids[k];
-            el.style.opacity = (0.04 + 0.96 * se).toFixed(3);
-            el.style.transform =
-              "translate3d(0," + ((1 - se) * 34).toFixed(2) + "px," + ((1 - se) * -520).toFixed(1) +
-              "px) rotateX(" + ((1 - se) * 58).toFixed(2) + "deg)";
-          }
-        }
-
-        // small idle movement for decorative elements only (not text)
-        const els = sec.__parallaxEls;
-        for (let k = 0; k < els.length; k++) {
-          const el = els[k];
-          const f = parseFloat(el.getAttribute("data-p"));
-          const ph = parseFloat(el.dataset.phase || "0");
-          const rot = parseFloat(el.dataset.rot || "0");
-          const dx = (center - vw / 2) * f + Math.cos(now * 0.00025 + ph * 1.7) * MOVE_AMP_X + mouseXEased * MOUSE_PARALLAX * f;
-          const dy = Math.sin(now * 0.00033 + ph) * MOVE_AMP_Y + mouseYEased * MOUSE_PARALLAX * f;
-          const dr = Math.sin(now * 0.00021 + ph * 1.3) * MOVE_AMP_ROT;
-          const dz = f * 90;
-          el.style.transform = "translate3d(" + dx.toFixed(2) + "px," + dy.toFixed(2) + "px," + dz.toFixed(1) + "px) rotate(" + (rot + dr).toFixed(2) + "deg)";
-        }
-
-        // pendulum swing, pivoting from the top anchor (e.g. a keyring loop)
-        const swings = sec.__swingEls;
-        for (let k = 0; k < swings.length; k++) {
-          const el = swings[k];
-          const ph = parseFloat(el.dataset.phase || "0");
-          const swing = Math.sin(now * 0.0006 + ph) * 4.5;
-          el.style.transform = "rotate(" + swing.toFixed(2) + "deg)";
-        }
-      });
-
-      const label = String(active + 1).padStart(2, "0");
-      if (counterNum.textContent !== label) counterNum.textContent = label;
-    }
-
-    raf = requestAnimationFrame(tick);
+  function starPick(id, cls, style) {
+    const b = h("button", "star-pick" + (cls ? " " + cls : ""), "✦");
+    b.type = "button";
+    b.dataset.star = id;
+    b.setAttribute("aria-label", "Hidden star");
+    if (style) b.setAttribute("style", style);
+    return b;
   }
-
-  function scrollToSection(i) {
-    setView("home");
-    requestAnimationFrame(() => {
-      measure();
-      const sec = sections[i];
-      if (sec) target = Math.max(0, Math.min(max, sec.offsetLeft));
+  function placeDesktopStars() {
+    [["corner", "right: 2.4vw; bottom: 54px;"], ["drift", "right: 9vw; top: 46vh;"]].forEach(([id, style]) => {
+      if (!got.includes(id)) $("desktop").appendChild(starPick(id, "", style));
     });
   }
 
-  function renderProjectDetail(i) {
-    currentProject = i;
+  /* ------------------------------------------------------------------
+   * Window manager
+   * ------------------------------------------------------------------ */
+  const wins = {};
+  let zTop = 100;
+  let cascade = 0;
+  const winLayer = $("windows");
+  const tasks = $("tasks");
+
+  /* ------------------------------------------------------------------
+   * Pixel reveal: things appear through a grid of pastel pixels that
+   * blink away in random order.
+   * ------------------------------------------------------------------ */
+  const PIX_COLORS = ["#b4a7dd", "#c1b6e6", "#e3ddf4", "#f6f3fa", "#d7a3bd", "#2e2452"];
+  function pixelCover(el, opts) {
+    if (reduceMotion || !el) return;
+    const o = Object.assign({ cell: 14, dur: 520, delay: 0, fixed: false }, opts || {});
+    const W = o.fixed ? innerWidth : el.offsetWidth, H = o.fixed ? innerHeight : el.offsetHeight;
+    if (!W || !H) return;
+    const cv = h("canvas", "pix-cover");
+    const cols = Math.ceil(W / o.cell), rows = Math.ceil(H / o.cell);
+    cv.width = cols; cv.height = rows;
+    if (o.fixed) cv.classList.add("fixed");
+    else if (getComputedStyle(el).position === "static") el.style.position = "relative";
+    const x = cv.getContext("2d");
+    const cells = [];
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      // mostly the light tones, a few pink and ink pixels
+      const r = Math.random();
+      x.fillStyle = r < 0.04 ? PIX_COLORS[5] : r < 0.14 ? PIX_COLORS[4] : PIX_COLORS[Math.floor(Math.random() * 4)];
+      x.fillRect(i, j, 1, 1);
+      cells.push(i, j);
+    }
+    for (let k = cells.length / 2 - 1; k > 0; k--) {
+      const m = Math.floor(Math.random() * (k + 1));
+      [cells[2 * k], cells[2 * m]] = [cells[2 * m], cells[2 * k]];
+      [cells[2 * k + 1], cells[2 * m + 1]] = [cells[2 * m + 1], cells[2 * k + 1]];
+    }
+    (o.fixed ? document.body : el).appendChild(cv);
+    const n = cells.length / 2;
+    let done = 0, t0 = null;
+    function step(now) {
+      if (t0 === null) t0 = now + o.delay;
+      const p = Math.max(0, Math.min(1, (now - t0) / o.dur));
+      const target = Math.floor(n * p * p * (3 - 2 * p));
+      for (; done < target; done++) x.clearRect(cells[2 * done], cells[2 * done + 1], 1, 1);
+      if (p < 1) requestAnimationFrame(step); else cv.remove();
+    }
+    requestAnimationFrame(step);
+  }
+
+  function zoomFrom(fromRect, toRect, reverse, done) {
+    if (reduceMotion || !fromRect) { done && done(); return; }
+    const z = h("div", "zoom-rect");
+    document.body.appendChild(z);
+    const steps = 6;
+    let i = 0;
+    const a = reverse ? toRect : fromRect, b = reverse ? fromRect : toRect;
+    (function frame() {
+      const t = i / steps;
+      z.style.left = (a.left + (b.left - a.left) * t) + "px";
+      z.style.top = (a.top + (b.top - a.top) * t) + "px";
+      z.style.width = (a.width + (b.width - a.width) * t) + "px";
+      z.style.height = (a.height + (b.height - a.height) * t) + "px";
+      if (i++ < steps) setTimeout(frame, 22);
+      else { z.remove(); done && done(); }
+    })();
+  }
+
+  function focusWin(id) {
+    Object.keys(wins).forEach((k) => {
+      const on = k === id;
+      wins[k].el.classList.toggle("is-active", on);
+      wins[k].task.classList.toggle("is-active", on && !wins[k].el.classList.contains("is-min"));
+    });
+    if (wins[id]) wins[id].el.style.zIndex = String(++zTop);
+  }
+
+  function createWin(o) {
+    const el = h("div", "win" + (o.full ? " app" : ""));
+    el.dataset.win = o.id;
+    el.setAttribute("role", "dialog");
+    el.setAttribute("aria-label", o.title);
+    const bar = h("div", "win-bar");
+    const title = h("span", "win-title");
+    if (o.icon) { const im = h("img"); im.src = o.icon; im.alt = ""; title.appendChild(im); }
+    title.append(o.title);
+    const btns = h("span", "win-btns");
+    const bMin = h("button", null, "_"); bMin.type = "button"; bMin.setAttribute("aria-label", "Minimise");
+    const bMax = h("button", null, "□"); bMax.type = "button"; bMax.setAttribute("aria-label", "Maximise");
+    const bClose = h("button", null, "×"); bClose.type = "button"; bClose.setAttribute("aria-label", "Close");
+    btns.append(bMin, bMax, bClose);
+    bar.append(title, btns);
+    el.appendChild(bar);
+    if (o.menu) {
+      const m = h("div", "win-menu");
+      o.menu.forEach((t) => m.appendChild(h("span", null, t)));
+      el.appendChild(m);
+    }
+    const body = h("div", "win-body" + (o.flat ? " flat" : ""));
+    el.appendChild(body);
+    let status = null;
+    if (o.status) {
+      status = h("div", "win-status");
+      o.status.forEach((t) => status.appendChild(h("span", null, t)));
+      el.appendChild(status);
+    }
+
+    // size + position (cascade from centre)
+    const W = Math.min(o.w || 560, innerWidth - 24);
+    const H = o.h === "auto" ? 0 : Math.min(o.h || 420, innerHeight - 64);
+    const off = isSmall() ? 0 : 1;
+    const x = Math.max(8, Math.min(innerWidth - W - 8, (innerWidth - W) / 2 + ((o.dx || 0) + cascade * 26) * off));
+    const Hc = H || 360;
+    const y = Math.max(8, Math.min(innerHeight - Hc - 48, (innerHeight - 40 - Hc) / 2 + ((o.dy || 0) + cascade * 22) * off));
+    cascade = (cascade + 1) % 6;
+    Object.assign(el.style, { left: x + "px", top: y + "px", width: W + "px", height: H ? H + "px" : "auto", visibility: "hidden" });
+    winLayer.appendChild(el);
+    if (!H) {
+      requestAnimationFrame(() => {
+        const r = el.getBoundingClientRect();
+        if (r.bottom > innerHeight - 48) el.style.top = Math.max(8, innerHeight - 48 - r.height) + "px";
+      });
+    }
+
+    // taskbar button
+    const task = h("button", "task");
+    task.type = "button";
+    if (o.icon) { const im = h("img"); im.src = o.icon; im.alt = ""; im.style.cssText = "width:14px;height:14px"; task.appendChild(im); }
+    task.appendChild(h("span", null, o.title));
+    tasks.appendChild(task);
+
+    const w = { id: o.id, el, body, status, task, onClose: o.onClose };
+    wins[o.id] = w;
+
+    o.fill(body, w);
+
+    const toRect = el.getBoundingClientRect();
+    zoomFrom(o.from, toRect, false, () => { el.style.visibility = ""; pixelCover(el, { cell: 16, dur: 420 }); focusWin(o.id); if (o.after) o.after(w); });
+    sfx.open();
+
+    el.addEventListener("pointerdown", () => focusWin(o.id));
+    bClose.addEventListener("click", (e) => { e.stopPropagation(); closeWin(o.id); });
+    bMin.addEventListener("click", (e) => { e.stopPropagation(); minWin(o.id); });
+    bMax.addEventListener("click", (e) => { e.stopPropagation(); el.classList.toggle("is-max"); sfx.click(); });
+    bar.addEventListener("dblclick", (e) => { if (!e.target.closest("button")) el.classList.toggle("is-max"); });
+    task.addEventListener("click", () => {
+      if (el.classList.contains("is-min")) { el.classList.remove("is-min"); focusWin(o.id); sfx.open(); }
+      else if (el.classList.contains("is-active")) minWin(o.id);
+      else focusWin(o.id);
+    });
+
+    // drag by the title bar (not on phones, where windows are full screen)
+    let drag = null;
+    bar.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button") || isSmall() || el.classList.contains("is-max")) return;
+      drag = { dx: e.clientX - el.offsetLeft, dy: e.clientY - el.offsetTop };
+      bar.setPointerCapture(e.pointerId);
+    });
+    bar.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      const nx = Math.max(-el.offsetWidth + 80, Math.min(innerWidth - 80, e.clientX - drag.dx));
+      const ny = Math.max(0, Math.min(innerHeight - 70, e.clientY - drag.dy));
+      el.style.left = nx + "px";
+      el.style.top = ny + "px";
+    });
+    bar.addEventListener("pointerup", () => { drag = null; });
+    return w;
+  }
+
+  function minWin(id) {
+    const w = wins[id];
+    if (!w) return;
+    sfx.min();
+    zoomFrom(w.el.getBoundingClientRect(), w.task.getBoundingClientRect(), false, null);
+    w.el.classList.add("is-min");
+    w.el.classList.remove("is-active");
+    w.task.classList.remove("is-active");
+  }
+  function closeWin(id) {
+    const w = wins[id];
+    if (!w) return;
+    sfx.close();
+    if (w.onClose) w.onClose();
+    zoomFrom(w.el.getBoundingClientRect(), w.task.getBoundingClientRect(), false, null);
+    w.el.remove();
+    w.task.remove();
+    delete wins[id];
+  }
+
+  /* ------------------------------------------------------------------
+   * Apps
+   * ------------------------------------------------------------------ */
+  function openApp(app, from) {
+    const id = app;
+    if (wins[id]) {
+      wins[id].el.classList.remove("is-min");
+      focusWin(id);
+      return wins[id];
+    }
+    closeStart();
+    const fromRect = from && from.getBoundingClientRect ? from.getBoundingClientRect() : null;
+    if (app.startsWith("project:")) return openProject(parseInt(app.split(":")[1], 10), fromRect);
+    if (app === "about") return openAbout(fromRect);
+    if (app === "archive") return openArchive(fromRect);
+    if (app === "snake") return openSnake(fromRect);
+    if (app === "stars") return openStars(fromRect);
+    if (app === "trash") return openTrash(fromRect);
+    return null;
+  }
+
+  const slug = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+
+  function openProject(i, from) {
     const p = PROJECTS[i];
-    document.getElementById("project-index").textContent = p.index;
-    document.getElementById("project-title").textContent = p.title;
-
-    const meta = document.getElementById("project-meta");
-    meta.innerHTML = "";
-    [
-      ["YEAR", p.year],
-      ["COURSE", p.course],
-      ["ROLE", p.role],
-      ["STATUS", p.status]
-    ].forEach(([label, value]) => {
-      const col = document.createElement("div");
-      col.innerHTML = '<div class="meta-label">' + label + "</div><div>" + value + "</div>";
-      meta.appendChild(col);
-    });
-
-    const chaptersEl = document.getElementById("chapters");
-    chaptersEl.innerHTML = "";
-    p.chapters.forEach((c) => {
-      const section = document.createElement("section");
-      section.className = "chapter";
-
-      const num = document.createElement("div");
-      num.className = "chapter-num";
-      num.textContent = c.n;
-
-      const body = document.createElement("div");
-      body.className = "chapter-body";
-
-      const top = document.createElement("div");
-      top.className = "chapter-top";
-      const h2 = document.createElement("h2");
-      h2.className = "chapter-title";
-      h2.textContent = c.title;
-      const pEl = document.createElement("p");
-      pEl.className = "chapter-text";
-      pEl.textContent = c.text;
-      top.append(h2, pEl);
-      body.appendChild(top);
-
-      if (c.media.length) {
-        const media = document.createElement("div");
-        media.className = "chapter-media";
-        c.media.forEach((m) => {
-          const fig = document.createElement("figure");
-          fig.className = "media-figure";
-          const box = document.createElement("div");
-          box.className = "media-box " + m.kind;
-          if (m.img) {
-            const img = document.createElement("img");
-            img.src = m.img;
-            img.alt = m.label;
-            box.appendChild(img);
-          }
-          const cap = document.createElement("figcaption");
-          cap.className = "media-caption";
-          cap.textContent = m.label;
-          fig.append(box, cap);
-          media.appendChild(fig);
+    if (!p) return null;
+    return createWin({
+      id: "project:" + i,
+      title: p.index + "_" + slug(p.title) + ".doc",
+      icon: "assets/chrome-folder.png",
+      w: 900, h: 640, from, full: true,
+      menu: ["File", "Edit", "View", "Help"],
+      status: [p.chapters.length + " chapters", p.status],
+      fill(body, w) {
+        const doc = h("div", "doc");
+        const head = h("header", "doc-head");
+        head.append(h("div", "doc-index", p.index + " / " + String(PROJECTS.length).padStart(2, "0")), h("h1", "doc-title", p.title));
+        const meta = h("div", "doc-meta");
+        [["YEAR", p.year], ["COURSE", p.course], ["ROLE", p.role], ["STATUS", p.status]].forEach(([l, v]) => {
+          const d = h("div"); d.append(h("b", null, l), document.createTextNode(v)); meta.appendChild(d);
         });
-        body.appendChild(media);
+        head.appendChild(meta);
+        doc.appendChild(head);
+        p.chapters.forEach((c) => {
+          const s = h("section", "chap");
+          const body2 = h("div");
+          body2.append(h("h2", null, c.title), h("p", null, c.text));
+          if (c.media && c.media.length) {
+            const m = h("div", "chap-media");
+            c.media.forEach((md) => {
+              const f = h("figure");
+              const box = h("div", "mb " + md.kind);
+              if (md.img) { const im = h("img"); im.src = md.img; im.alt = md.label; im.loading = "lazy"; box.appendChild(im); }
+              f.append(box, h("figcaption", null, md.label));
+              m.appendChild(f);
+            });
+            body2.appendChild(m);
+          }
+          s.append(h("div", "chap-n", c.n), body2);
+          doc.appendChild(s);
+        });
+        const end = h("div", "doc-end");
+        end.append(h("span", null, "— end of " + p.index + " —"), h("span", null, i < PROJECTS.length - 1 ? "next: " + PROJECTS[i + 1].title : "that's all for now"));
+        doc.appendChild(end);
+        body.appendChild(doc);
+        body.addEventListener("scroll", () => {
+          if (body.scrollTop + body.clientHeight >= body.scrollHeight - 30) {
+            const r = body.getBoundingClientRect();
+            if (collect("reader", r.left + r.width / 2, r.bottom - 30)) end.firstChild.textContent = "✦ you read to the end — star found";
+          }
+        }, { passive: true });
       }
-
-      section.append(num, body);
-      chaptersEl.appendChild(section);
     });
   }
 
-  function openProject(i) {
-    renderProjectDetail(i);
-    setView("project");
-  }
-
-  function renderArchive() {
-    const list = document.getElementById("archive-list");
-    list.innerHTML = "";
-
-    PROJECTS.forEach((p, i) => {
-      const row = document.createElement("div");
-      row.className = "archive-row";
-      row.dataset.action = "open-project";
-      row.dataset.index = String(i);
-      row.innerHTML =
-        "<div>" + p.index + "</div>" +
-        '<div class="archive-project-title">' + p.title + "</div>" +
-        "<div>" + p.course + "</div>" +
-        "<div>" + p.year + "</div>" +
-        '<div class="archive-mark">→</div>';
-      list.appendChild(row);
+  function openAbout(from) {
+    return createWin({
+      id: "about", title: "about_me.txt", icon: "assets/chrome-mark.png", w: 600, h: 600, from, full: true,
+      menu: ["File", "Edit", "Format", "Help"],
+      fill(body) {
+        // a tiny desktop with the tamagotchi hanging on it
+        const desk = h("div", "about-desk");
+        desk.innerHTML = '<div class="ad-grid"></div><i class="ad-spark" style="left:12%;top:18%">✦</i><i class="ad-spark p" style="left:80%;top:62%">✦</i><i class="ad-spark" style="left:72%;top:14%;font-size:12px">✦</i>' +
+          '<div class="ad-icon" style="left:14px;top:14px"><span class="ad-ico">▤</span><span>cv.pdf</span></div>' +
+          '<div class="ad-icon" style="left:14px;top:84px"><span class="ad-ico">✉</span><span>say_hi</span></div>' +
+          '<div class="ad-bubble">hi, it\u2019s me ✦<br>feed me attention</div>' +
+          '<img class="ad-tama" src="assets/tamagotchi-with-me.png" alt="A silver Tamagotchi keychain with my photo on its screen">' +
+          '<div class="ad-bar"><span>✦ start</span><span>sasha_pet.exe</span><span class="ad-clock">♥ 100%</span></div>';
+        const tama = desk.querySelector(".ad-tama");
+        tama.addEventListener("click", () => { tama.classList.remove("boop"); void tama.offsetWidth; tama.classList.add("boop"); sfx.poke(); const r = tama.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height * 0.6, 10, "215,163,189"); });
+        desk.querySelector(".ad-icon").addEventListener("dblclick", () => balloon("cv.pdf", "ask me for it: aleksandraslahova88@gmail.com"));
+        desk.querySelectorAll(".ad-icon")[1].addEventListener("dblclick", () => { location.href = "mailto:aleksandraslahova88@gmail.com"; });
+        body.appendChild(desk);
+        const n = h("div", "notepad");
+        const split = h("div", "about-split");
+        const txt = h("div");
+        txt.append(
+          h("p", null, "hi, I'm Sasha (Aleksandra) ✦"),
+          h("p", null, "Digital & Product Designer with 4+ years across agency, product and freelance work: UI/UX, responsive design, brand and design systems for clients in fintech, gaming, real estate and editorial."),
+          h("p", null, "Currently enrolled in the MA Digital Design / Interaction Design at HvA, using this site to sharpen the practice, communicate it clearly, and open the next role.")
+        );
+        const links = h("p", "links");
+        [["mailto:aleksandraslahova88@gmail.com", "aleksandraslahova88@gmail.com"], ["https://www.instagram.com/aleeeksanndraa/", "Instagram"], ["https://www.linkedin.com/in/aleksandra-slahova-461826264/", "LinkedIn"]].forEach(([href, t]) => {
+          const a = h("a", null, t); a.href = href; if (href.startsWith("http")) { a.target = "_blank"; a.rel = "noopener"; } links.appendChild(a);
+        });
+        txt.appendChild(links);
+        split.append(txt);
+        n.appendChild(split);
+        const tail = h("p", null, "\n\n\n\n");
+        tail.style.cssText = "margin-top:60vh;color:#a9abc9";
+        tail.append("psst. ", got.includes("readme") ? "you already found this one." : "");
+        if (!got.includes("readme")) tail.appendChild(starPick("readme", "inside"));
+        n.appendChild(tail);
+        body.appendChild(n);
+      }
     });
-
-    // slots reserved for projects still to be added
-    for (let n = PROJECTS.length + 1; n <= 3; n++) {
-      const row = document.createElement("div");
-      row.className = "archive-row is-placeholder";
-      row.innerHTML =
-        "<div>" + String(n).padStart(2, "0") + "</div>" +
-        '<div class="archive-project-title">Project —</div>' +
-        "<div>—</div>" +
-        "<div>—</div>" +
-        '<div class="archive-mark">—</div>';
-      list.appendChild(row);
-    }
-
-    const end = document.createElement("div");
-    end.className = "archive-list-end";
-    list.appendChild(end);
   }
 
-  document.addEventListener("click", (e) => {
-    const el = e.target.closest("[data-action]");
-    if (!el) return;
-    const action = el.dataset.action;
-    switch (action) {
-      case "home": scrollToSection(0); break;
-      case "projects": scrollToSection(1); break;
-      case "about": scrollToSection(2); break;
-      case "archive": renderArchive(); setView("archive"); break;
-      case "open-project": openProject(parseInt(el.dataset.index, 10)); break;
+  function openArchive(from) {
+    return createWin({
+      id: "archive", title: "C:\\Projects", icon: "assets/chrome-folder.png", w: 640, h: 360, from, dx: -40, dy: -20, full: true,
+      menu: ["File", "Edit", "View", "Go", "Favorites", "Help"],
+      status: [PROJECTS.length + " object(s)", "process book"],
+      fill(body) {
+        const t = h("table", "explorer");
+        const hr = h("tr");
+        ["Name", "Course", "Year", "Status"].forEach((x) => hr.appendChild(h("th", null, x)));
+        const thead = h("thead"); thead.appendChild(hr); t.appendChild(thead);
+        const tb = h("tbody");
+        PROJECTS.forEach((p, i) => {
+          const tr = h("tr", "row");
+          tr.tabIndex = 0;
+          const td = h("td");
+          const im = h("img"); im.src = "assets/chrome-folder.png"; im.alt = "";
+          td.append(im, p.index + "_" + slug(p.title));
+          tr.append(td, h("td", null, p.course.split("(")[0].trim()), h("td", null, p.year), h("td", null, p.status.split("—")[0].trim()));
+          const go = () => openApp("project:" + i, tr);
+          tr.addEventListener("dblclick", go);
+          tr.addEventListener("click", () => { if (isSmall()) go(); else sfx.click(); });
+          tr.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+          tb.appendChild(tr);
+        });
+        const more = h("tr", "muted");
+        more.append(h("td", null, String(PROJECTS.length + 1).padStart(2, "0") + "_coming_soon"), h("td", null, "—"), h("td", null, "—"), h("td", null, "—"));
+        tb.appendChild(more);
+        t.appendChild(tb);
+        body.appendChild(t);
+        body.appendChild(h("div", "snake-tip", isSmall() ? "  tap a folder to open it" : "  double-click a folder to open it")).style.padding = "10px 8px";
+      }
+    });
+  }
+
+  function fillStars(body) {
+    body.innerHTML = "";
+    const ul = h("ul", "stars-list");
+    STARS.forEach((s) => ul.appendChild(h("li", got.includes(s.id) ? "got" : "", (got.includes(s.id) ? "✦  " : "·  ") + s.hint)));
+    const note = h("div", "stars-note");
+    if (got.length >= STARS.length) {
+      note.append("All found. You clearly have time to spare — ");
+      const a = h("a", null, "say hi");
+      a.href = "mailto:aleksandraslahova88@gmail.com?subject=I%20found%20all%20the%20stars";
+      note.append(a, " and tell me which one was hardest.");
+    } else note.textContent = got.length + " of " + STARS.length + " found. Collect them all to unlock a little something.";
+    body.append(ul, note);
+  }
+  function openStars(from) {
+    return createWin({ id: "stars", title: "stars.txt", w: 380, h: 330, from, dx: 180, dy: -60, fill: fillStars });
+  }
+
+  function openTrash(from) {
+    return createWin({
+      id: "trash", title: "Recycle Bin", w: 420, h: 260, from, dx: -120, dy: 40,
+      status: ["3 object(s)", "Empty Recycle Bin"],
+      fill(body) {
+        const b = h("div", "trash-body");
+        const files = [["▤", "metal_card_v1.fig", () => balloon("metal_card_v1.fig", "The aluminium badge never happened. Acrylic did — see 01 Custom Badge.")], ["▦", "moodboard_old_FINAL_final2.png", () => balloon("Error", "This file is too embarrassing to open.")]];
+        files.forEach(([ico, name, fn]) => {
+          const f = h("button", "file");
+          f.type = "button";
+          f.append(h("i", null, ico), h("span", null, name));
+          f.addEventListener("click", () => { sfx.error(); fn(); });
+          b.appendChild(f);
+        });
+        const s = h("div", "file");
+        if (!got.includes("trash")) s.appendChild(starPick("trash", "inside"));
+        else s.appendChild(h("i", null, "·"));
+        s.appendChild(h("span", null, got.includes("trash") ? "(rescued)" : "star.png"));
+        b.appendChild(s);
+        body.appendChild(b);
+      }
+    });
+  }
+
+  /* ---------- snake ---------- */
+  let snakeApi = null;
+  function openSnake(from) {
+    return createWin({
+      id: "snake", title: "snake.exe", w: 300, h: "auto", from, dx: 220, dy: -40, flat: true,
+      onClose() { if (snakeApi) snakeApi.stop(); snakeApi = null; },
+      fill(body) {
+        const app = h("div", "snake-app");
+        const lcd = h("div", "lcd");
+        const cv = h("canvas"); cv.width = 240; cv.height = 240;
+        const msg = h("div", "lcd-msg"); msg.innerHTML = "PRESS SPACE<br>OR TAP TO START";
+        lcd.append(cv, msg);
+        const sc = h("div", "snake-score");
+        const sS = h("b", null, "0"), sB = h("b", null, String(store.get("snake-best", 0)));
+        const s1 = h("span", null, "SCORE "), s2 = h("span", null, "BEST ");
+        s1.appendChild(sS); s2.appendChild(sB); sc.append(s1, s2);
+        const pad = h("div", "pad");
+        [["up", "▲"], ["left", "◀"], ["down", "▼"], ["right", "▶"]].forEach(([d, t]) => {
+          const b = h("button", null, t); b.type = "button"; b.dataset.dir = d; b.setAttribute("aria-label", d); pad.appendChild(b);
+        });
+        app.append(lcd, sc, pad, h("div", "snake-tip", "EAT 10 ✦ TO EARN A STAR"));
+        body.appendChild(app);
+        snakeApi = makeSnake(cv, msg, sS, sB, pad);
+      }
+    });
+  }
+
+  function makeSnake(cv, msg, scoreEl, bestEl, pad) {
+    const x = cv.getContext("2d");
+    const G = 20, C = cv.width / G;
+    let snake, dir, nextDir, food, score, alive = false, running = false, acc = 0, best = store.get("snake-best", 0);
+    function reset() {
+      snake = [{ x: 8, y: 16 }, { x: 7, y: 16 }, { x: 6, y: 16 }];
+      dir = { x: 1, y: 0 }; nextDir = dir; score = 0; alive = true;
+      placeFood(); scoreEl.textContent = "0"; draw();
     }
+    function placeFood() {
+      do { food = { x: Math.floor(Math.random() * G), y: Math.floor(Math.random() * G) }; }
+      while (snake.some((s) => s.x === food.x && s.y === food.y));
+    }
+    function draw() {
+      x.fillStyle = "#e3ddf4"; x.fillRect(0, 0, cv.width, cv.height);
+      x.fillStyle = "rgba(63,40,113,0.08)";
+      for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) x.fillRect(i * C + 1, j * C + 1, C - 2, C - 2);
+      x.fillStyle = "#2e2452";
+      const fx = food.x * C, fy = food.y * C, u = C / 4;
+      x.fillRect(fx + u * 1.5, fy, u, C); x.fillRect(fx, fy + u * 1.5, C, u);
+      snake.forEach((s, i) => { const p = i === 0 ? 0 : 1; x.fillRect(s.x * C + p, s.y * C + p, C - p * 2, C - p * 2); });
+    }
+    function step() {
+      dir = nextDir;
+      const head = { x: (snake[0].x + dir.x + G) % G, y: (snake[0].y + dir.y + G) % G };
+      if (snake.some((s) => s.x === head.x && s.y === head.y)) {
+        alive = false; running = false; sfx.die();
+        msg.innerHTML = "GAME OVER · " + score + "<br>SPACE / TAP TO RETRY"; msg.hidden = false; return;
+      }
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score++; sfx.eat(); scoreEl.textContent = String(score);
+        if (score > best) { best = score; store.set("snake-best", best); bestEl.textContent = String(best); }
+        if (score === 10) { const r = cv.getBoundingClientRect(); collect("snake", r.left + r.width / 2, r.top + r.height / 2); }
+        placeFood();
+      } else snake.pop();
+      draw();
+    }
+    function start() { if (!alive) reset(); running = true; msg.hidden = true; }
+    function setDir(n) {
+      const m = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } }[n];
+      if (!m || (m.x === -dir.x && m.y === -dir.y)) return;
+      nextDir = m;
+      if (!running) start();
+    }
+    pad.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => setDir(b.dataset.dir)));
+    let sw = null;
+    cv.addEventListener("pointerdown", (e) => { sw = { x: e.clientX, y: e.clientY }; });
+    cv.addEventListener("pointerup", (e) => {
+      if (!sw) return;
+      const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+      if (Math.hypot(dx, dy) < 18) { if (!running) start(); return; }
+      setDir(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"));
+    });
+    reset(); alive = false;
+    return {
+      key(e) {
+        const k = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right" }[e.key];
+        if (k) { e.preventDefault(); setDir(k); return true; }
+        if (e.key === " ") {
+          e.preventDefault();
+          if (running) { running = false; msg.innerHTML = "PAUSED"; msg.hidden = false; } else start();
+          return true;
+        }
+        return false;
+      },
+      tick(dt) {
+        if (!running) { acc = 0; return; }
+        acc += dt;
+        const speed = Math.max(70, 150 - score * 4);
+        while (acc > speed && running) { acc -= speed; step(); }
+      },
+      stop() { running = false; }
+    };
+  }
+
+  /* ---------- welcome dialog (first visit) ---------- */
+  function openWelcome() {
+    createWin({
+      id: "welcome", title: "hello.exe", w: 380, h: "auto", flat: true, dy: -60,
+      fill(body, w) {
+        const d = h("div", "dialog");
+        const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-cutout.webp"; im.alt = ""; face.appendChild(im);
+        const t = h("div");
+        t.append(h("div", "d-tag", "✦ process book · sasha"), h("b", "d-big", "I am not a robot :)"),
+          "This is my process book: the research, sketches, prototypes and reflections behind my HvA Digital Design projects, dressed up as a little desktop. Spin the windows around my head and open a project. " + STARS.length + " ✦ are hidden around.");
+        d.append(face, t);
+        const bar = h("div", "loadbar"); bar.appendChild(h("i"));
+        const act = h("div", "dialog-actions");
+        const snd = h("button", "btn98 primary", "sure ♪"); snd.type = "button"; snd.title = "Enter with sound on";
+        const ok = h("button", "btn98", "idk"); ok.type = "button"; ok.title = "Enter quietly";
+        snd.addEventListener("click", () => { setSound(true); sfx.boot(); closeWin("welcome"); });
+        ok.addEventListener("click", () => closeWin("welcome"));
+        act.append(snd, ok);
+        body.append(d, bar, act);
+        setTimeout(() => snd.focus(), 200);
+      }
+    });
+    store.set("welcomed", true);
+  }
+
+  /* ------------------------------------------------------------------
+   * Start menu
+   * ------------------------------------------------------------------ */
+  const startBtn = $("start-btn");
+  const startMenu = $("start-menu");
+  function renderStartMenu() {
+    const box = $("sm-items");
+    box.innerHTML = "";
+    const item = (ico, label, fn) => {
+      const b = h("button"); b.type = "button"; b.setAttribute("role", "menuitem");
+      b.append(h("span", "sm-ico", ico), label);
+      b.addEventListener("click", (e) => { e.stopPropagation(); closeStart(); fn(b); });
+      box.appendChild(b);
+    };
+    PROJECTS.forEach((p, i) => item("▤", p.index + " " + p.title.charAt(0) + p.title.slice(1).toLowerCase(), (b) => openApp("project:" + i, startBtn)));
+    box.appendChild(h("div", "sm-sep"));
+    item("✎", "About me", () => openApp("about", startBtn));
+    item("▣", "All projects", () => openApp("archive", startBtn));
+    item("▸", "Snake", () => openApp("snake", startBtn));
+    item("✦", "Stars (" + got.length + "/" + STARS.length + ")", () => openApp("stars", startBtn));
+    box.appendChild(h("div", "sm-sep"));
+    item(soundOn ? "🔊" : "🔇", soundOn ? "Turn sound off" : "Turn sound on", () => { setSound(!soundOn); sfx.click(); });
+    item("⏻", "Shut down…", shutDown);
+  }
+  function closeStart() { startMenu.hidden = true; startBtn.setAttribute("aria-expanded", "false"); }
+  startBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = startMenu.hidden;
+    if (open) renderStartMenu();
+    startMenu.hidden = !open;
+    startBtn.setAttribute("aria-expanded", String(open));
+    sfx.click();
+  });
+  function shutDown() {
+    sfx.close();
+    const s = h("div");
+    s.style.cssText = "position:fixed;inset:0;z-index:990;background:#b4a7dd;color:#2e2452;display:flex;align-items:center;justify-content:center;text-align:center;font-family:Silkscreen,monospace;font-size:clamp(14px,2.4vw,26px);line-height:1.6;cursor:pointer;padding:16px";
+    s.innerHTML = "It's now safe to close this tab.<br><span style='font-size:.6em;color:#fff'>(or click anywhere to start again)</span>";
+    s.addEventListener("click", () => { s.remove(); sfx.boot(); });
+    document.body.appendChild(s);
+  }
+
+  /* ------------------------------------------------------------------
+   * Orbit: face window + project windows circling it
+   * ------------------------------------------------------------------ */
+  const COVERS = {
+    "01": { img: "assets/badge-tight.png" },
+    "02": { type: "IN //<br>BETWEEN" },
+    "03": { type: "TAN<br>DEM" },
+    "04": { img: "assets/ei-little-tank-tank.jpg" },
+    "05": { type: "PERS<br>ONAL" }
+  };
+  const CARDS = PROJECTS.map((p, i) => ({ app: "project:" + i, num: p.index, title: p.title, file: p.index + "_" + slug(p.title) + ".doc", meta: p.course.split("(")[0].trim() + " · " + p.year, cover: COVERS[p.index] || { type: p.title } }));
+  CARDS.push({ app: "about", num: "ME", title: "ABOUT", file: "about_me.txt", meta: "who's behind the face", cover: { img: "assets/tamagotchi-with-me.png" } });
+  CARDS.push({ app: "snake", num: "▸", title: "PLAY SNAKE", file: "snake.exe", meta: "eat 10 ✦ for a star", cover: { snake: true } });
+  CARDS.push({ app: "archive", num: "—", title: "ALL PROJECTS", file: "C:\\Projects", meta: "every project as a list", cover: { img: "assets/chrome-folder.png" } });
+
+  const ring = $("ring");
+  const N = CARDS.length, STEP = 360 / N;
+  let angle = 0, targetAngle = 0, front = -1, radius = 420, radiusY = 220;
+  const cardEls = [];
+
+  function drawSnakeIcon(cv, w, hgt) {
+    const x = cv.getContext("2d");
+    x.fillStyle = "#e3ddf4"; x.fillRect(0, 0, w, hgt);
+    x.fillStyle = "#2e2452";
+    const oy = Math.floor((hgt - 8) / 2), ox = Math.floor((w - 13) / 2);
+    [[0, 3], [1, 3], [2, 3], [3, 3], [3, 4], [3, 5], [4, 5], [5, 5], [6, 5], [6, 6], [6, 7], [7, 7], [8, 7]].forEach(([a, b]) => x.fillRect(ox + a, oy + b, 1, 1));
+    x.fillRect(ox + 11, oy, 1, 1); x.fillRect(ox + 10, oy + 1, 3, 1); x.fillRect(ox + 11, oy + 2, 1, 1);
+  }
+  document.querySelectorAll(".icon-snake").forEach((c) => drawSnakeIcon(c, 16, 16));
+
+  /* ---------- desktop icons can be dragged around (positions remembered) ---------- */
+  const iconBox = $("icons");
+  const iconEls = [...iconBox.querySelectorAll(".icon")];
+  let iconsFree = false;
+  function freeIcons(saved) {
+    // switch from the grid to free positions, keeping where everything is now
+    if (iconsFree) return;
+    const box = iconBox.getBoundingClientRect();
+    const pos = iconEls.map((el) => { const r = el.getBoundingClientRect(); return [r.left - box.left, r.top - box.top]; });
+    iconEls.forEach((el, i) => {
+      const p = (saved && saved[el.dataset.open]) || pos[i];
+      el.style.position = "absolute"; el.style.left = p[0] + "px"; el.style.top = p[1] + "px";
+    });
+    iconBox.classList.add("free");
+    iconsFree = true;
+  }
+  function clampIcon(el) {
+    const box = iconBox.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const x = Math.max(-box.left, Math.min(innerWidth - r.width - box.left, parseFloat(el.style.left)));
+    const y = Math.max(-box.top, Math.min(innerHeight - 48 - r.height - box.top, parseFloat(el.style.top)));
+    el.style.left = x + "px"; el.style.top = y + "px";
+  }
+  function saveIcons() {
+    const o = {}; iconEls.forEach((el) => { o[el.dataset.open] = [parseFloat(el.style.left), parseFloat(el.style.top)]; });
+    store.set("icons", o);
+  }
+  const savedIcons = store.get("icons", null);
+  if (savedIcons && !isSmall()) { freeIcons(savedIcons); iconEls.forEach(clampIcon); }
+  iconEls.forEach((el) => {
+    el.addEventListener("pointerdown", (e) => {
+      if (isSmall() || e.button !== 0) return;
+      const sx = e.clientX, sy = e.clientY;
+      let ox = 0, oy = 0, moving = false;
+      const move = (ev) => {
+        if (!moving) {
+          if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+          moving = true; freeIcons();
+          ox = parseFloat(el.style.left) - sx; oy = parseFloat(el.style.top) - sy;
+          el.classList.add("dragging");
+        }
+        el.style.left = ev.clientX + ox + "px"; el.style.top = ev.clientY + oy + "px";
+        clampIcon(el);
+      };
+      const up = () => {
+        removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
+        if (!moving) return;
+        el.classList.remove("dragging");
+        el.dataset.justDragged = "1";
+        setTimeout(() => delete el.dataset.justDragged, 0);
+        saveIcons();
+      };
+      addEventListener("pointermove", move); addEventListener("pointerup", up); addEventListener("pointercancel", up);
+    });
+    el.addEventListener("dragstart", (e) => e.preventDefault());
+  });
+  addEventListener("resize", () => { if (iconsFree) iconEls.forEach(clampIcon); });
+
+  CARDS.forEach((c, i) => {
+    const b = h("button", "ring-card");
+    b.type = "button";
+    b.dataset.card = String(i);
+    b.setAttribute("aria-label", c.title + " — " + c.meta);
+    const bar = h("div", "win-bar");
+    bar.append(h("span", "win-title", c.file));
+    const bt = h("span", "win-btns"); bt.innerHTML = "<i>×</i>"; bar.appendChild(bt);
+    const body = h("div", "rc-body");
+    if (c.cover.img) { const im = h("img"); im.src = c.cover.img; im.alt = ""; body.appendChild(im); }
+    else if (c.cover.snake) { const cv = h("canvas"); cv.width = 16; cv.height = 15; drawSnakeIcon(cv, 16, 15); body.appendChild(cv); }
+    else { const t = h("div", "rc-type"); t.innerHTML = c.cover.type; body.appendChild(t); }
+    b.append(bar, body);
+    ring.appendChild(b);
+    cardEls.push(b);
   });
 
-  let snapTimer = null;
+  function layout() {
+    const w = innerWidth, hh = innerHeight - 40, small = isSmall();
+    const cw = Math.round(Math.max(96, Math.min(180, w * 0.13, hh * 0.21)));
+    radius = small ? Math.min(w * 0.36, 200) : Math.min(w * 0.34, hh * 0.7, 540);
+    radiusY = hh * (small ? 0.27 : 0.315);
+    document.documentElement.style.setProperty("--cw", cw + "px");
+    document.documentElement.style.setProperty("--fw", Math.round(Math.min(hh * 0.4, w * (small ? 0.56 : 0.24), 340)) + "px");
+    sizePixels();
+  }
 
-  function nearestSectionIndex(pos) {
-    let idx = 0;
-    let best = Infinity;
-    sections.forEach((sec, i) => {
-      const d = Math.abs(sec.offsetLeft - pos);
-      if (d < best) { best = d; idx = i; }
+  function renderRing() {
+    cardEls.forEach((el, i) => {
+      const rel = ((((i * STEP - angle) % 360) + 540) % 360) - 180;
+      const rad = rel * Math.PI / 180;
+      const depth = Math.cos(rad);
+      const sc = 0.56 + 0.44 * ((depth + 1) / 2);
+      el.style.transform = "translate(" + (Math.sin(rad) * radius).toFixed(1) + "px," + (depth * radiusY).toFixed(1) + "px) scale(" + sc.toFixed(3) + ") rotate(" + (Math.sin(rad) * -10).toFixed(2) + "deg)";
+      el.style.opacity = depth > -0.05 ? "1" : (0.45 + 0.55 * (depth + 1)).toFixed(3);
+      el.style.zIndex = String(Math.round((depth + 1) * 50));
+      el.style.filter = depth < -0.3 ? "saturate(0.4) blur(1px)" : "none";
     });
-    return idx;
+    const f = ((Math.round(angle / STEP) % N) + N) % N;
+    if (f !== front) {
+      if (front !== -1) sfx.tick();
+      front = f;
+      cardEls.forEach((el, i) => el.classList.toggle("is-front", i === f));
+      const c = CARDS[f];
+      $("cap-index").textContent = c.num;
+      $("cap-title").textContent = c.title;
+      $("cap-meta").textContent = c.meta;
+      const cap = $("card-caption");
+      cap.classList.remove("swap"); void cap.offsetWidth; cap.classList.add("swap");
+    }
   }
-
-  function snapToNearest() {
-    if (!sections.length) return;
-    const idx = nearestSectionIndex(target);
-    target = Math.max(0, Math.min(max, sections[idx].offsetLeft));
+  let snapT = null;
+  function nudge(d) {
+    targetAngle += d;
+    clearTimeout(snapT);
+    snapT = setTimeout(() => { targetAngle = Math.round(targetAngle / STEP) * STEP; }, 140);
   }
+  function spinTo(i) {
+    const cur = Math.round(targetAngle / STEP);
+    let d = ((i - cur) % N + N) % N;
+    if (d > N / 2) d -= N;
+    targetAngle = (cur + d) * STEP;
+  }
+  $("cap-meta").parentElement.querySelector(".cap-hint").textContent = isSmall() ? "tap the front window" : "click the front window to open";
 
   window.addEventListener("wheel", (e) => {
-    if (view !== "home") return;
+    if (e.target.closest(".win.app, #start-menu")) return;
     e.preventDefault();
-    const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    target = Math.max(0, Math.min(max, target + d * 1.15));
-    clearTimeout(snapTimer);
-    snapTimer = setTimeout(snapToNearest, 160);
+    nudge((Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * 0.12);
   }, { passive: false });
 
+  let drag = null;
+  $("orbit").addEventListener("pointerdown", (e) => {
+    if (e.target.closest("#face-win")) return;
+    drag = { x: e.clientX, moved: 0, start: targetAngle };
+  });
+  window.addEventListener("pointermove", (e) => {
+    look = { x: e.clientX, y: e.clientY };
+    lastMove = performance.now();
+    if (e.pointerType === "mouse" && !e.target.closest(".win.app")) trail(e.clientX, e.clientY);
+    if (!drag) return;
+    const dx = e.clientX - drag.x;
+    drag.moved = Math.max(drag.moved, Math.abs(dx));
+    if (drag.moved > 6) targetAngle = drag.start - dx * 0.25;
+  });
+  window.addEventListener("pointerup", () => {
+    if (!drag) return;
+    if (drag.moved > 6) targetAngle = Math.round(targetAngle / STEP) * STEP;
+    setTimeout(() => { drag = null; }, 0);
+  });
+
+  /* ---------- face: a head-turn video cut into a sprite sheet ----------
+     assets/face-turn.webp holds 57 frames (420px each, 10 per row) cut from a
+     turning-head video with the background removed. Each frame is tagged with
+     its head pose [yaw, pitch] in degrees; we show the frame whose pose is
+     closest to "looking at the cursor". */
+  const faceWin = $("face-win");
+  const faceBody = $("face");
+  const hc = $("head-px");
+  const hx = hc.getContext("2d");
+  const SHEET = { src: "assets/face-turn.webp", size: 420, cols: 10, poses: [[0.2,15.8],[3.8,16.4],[7.8,17.0],[11.0,17.9],[14.0,18.5],[18.2,19.3],[20.3,17.3],[22.8,17.5],[25.8,15.0],[27.3,17.2],[29.4,14.9],[34.5,14.9],[36.7,13.2],[39.1,12.3],[36.5,11.7],[32.3,15.0],[-2.7,15.5],[-5.4,15.3],[-8.1,15.1],[-10.4,15.5],[-13.7,17.3],[-16.1,15.5],[-20.7,14.7],[-24.8,14.9],[-30.2,15.9],[-33.1,15.6],[-33.1,13.8],[-23.5,16.5],[-19.3,15.9],[-12.6,15.7],[1.0,12.0],[1.0,9.0],[1.1,6.9],[0.5,4.4],[0.1,1.7],[0.1,-0.9],[0.2,-2.7],[0.3,17.3],[0.8,14.1],[-1.6,3.8],[-5.4,4.8],[-13.1,2.5],[-17.7,4.7],[-23.9,5.0],[-27.8,3.8],[-37.4,7.8],[-43.7,6.0],[32.3,11.7],[27.2,10.8],[27.4,7.5],[22.9,9.3],[19.0,9.9],[14.7,9.0],[12.2,8.8],[7.9,7.5],[5.1,7.0],[0.9,10.5]] };
+  const sheet = new Image(); sheet.src = SHEET.src;
+  // reward skin: after all stars are found she transforms and keeps the star glasses on
+  const GLASSES = { src: "assets/face-glasses-turn.webp", size: 420, cols: 10, yawMax: 22, poses: [[0.2,15.5],[1.0,13.8],[2.9,16.5],[6.1,16.0],[5.8,17.9],[7.9,17.1],[9.2,19.0],[11.6,19.6],[14.2,20.0],[16.3,18.5],[17.6,19.8],[18.0,17.5],[-0.6,17.5],[-1.5,19.6],[-4.6,19.5],[-8.9,20.4],[-8.3,18.8],[-10.8,18.6],[-13.1,18.1],[-1.6,13.4],[-0.4,10.5],[0.5,6.9],[-0.4,8.4],[12.5,17.2],[19.1,23.5],[20.8,21.1],[20.5,18.4],[1.9,18.0],[-4.7,18.0],[14.7,17.4],[4.9,14.5],[9.0,20.6],[10.0,17.6]] };
+  const gsheet = new Image(); gsheet.src = GLASSES.src;
+  let skin = store.get("skin", "plain");
+  const skinSheet = () => skin === "glasses" ? [gsheet, GLASSES] : [sheet, SHEET];
+  const NEUTRAL_PITCH = 16;
+  let look = { x: innerWidth / 2, y: innerHeight };
+  let lastMove = performance.now();   // last time the cursor actually moved
+  let tYaw = 0, tPitch = NEUTRAL_PITCH, shown = -1, pokes = 0, pokeReset = null;
+  function blink() { /* the video has no blink */ }
+  // mosaic: 0 = big blocks, 1 = the clear photo (animated in after loading)
+  let mosaic = 0, lastKey = "";
+  const mc = document.createElement("canvas"), mx = mc.getContext("2d");
+  // draw frame i of a sprite sheet into the head canvas (same size + position for every sheet)
+  function blit(img, sh, i, alpha) {
+    const s = sh.size, sx = (i % sh.cols) * s, sy = Math.floor(i / sh.cols) * s;
+    hx.globalAlpha = alpha == null ? 1 : alpha;
+    if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(img, sx, sy, s, s, 0, 0, hc.width, hc.height); }
+    else {
+      const n = Math.max(8, Math.round(hc.width * mosaic * mosaic));
+      mc.width = n; mc.height = n; mx.clearRect(0, 0, n, n);
+      mx.drawImage(img, sx, sy, s, s, 0, 0, n, n);
+      hx.imageSmoothingEnabled = false;
+      hx.drawImage(mc, 0, 0, n, n, 0, 0, hc.width, hc.height);
+    }
+    hx.globalAlpha = 1;
+  }
+  const ready = (img) => img.complete && img.naturalWidth > 0;
+  // one frame, or a crossfade between two: layers = [[img, sheet, index, alpha], ...]
+  function paint(layers) {
+    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic;
+    if (key === lastKey) return;
+    if (!layers.every((l) => ready(l[0]))) return;
+    lastKey = key;
+    hx.clearRect(0, 0, hc.width, hc.height);
+    layers.forEach((l) => blit(l[0], l[1], l[2], l[3]));
+  }
+  function resolveFace(dur) {
+    if (reduceMotion) { mosaic = 1; return; }
+    const t0 = performance.now();
+    (function step(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      // step through a few chunky resolutions, like an old image loading
+      mosaic = p >= 1 ? 1 : Math.round(p * 7) / 7 * 0.9 + 0.08;
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  // nearest head-turn frame for a pose
+  function turnFrame(yaw, pitch, sh) {
+    let best = 0, bd = Infinity;
+    (sh || SHEET).poses.forEach((p, i) => { const d = (p[0] - yaw) ** 2 + 2.2 * (p[1] - pitch) ** 2; if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+
+  /* ---------- character state system ----------
+     idle      : the head follows the cursor (head-turn sheet)
+     settling  : before an emotion, the head eases back to facing forward
+     emotion   : a registered emotion plays once; cursor-following is paused
+     returning : short crossfade from the emotion's last frame back to idle
+     Only one emotion runs at a time, each has its own cooldown. */
+  const EMOTIONS = {};
+  function registerEmotion(name, def) {
+    const e = Object.assign({ fps: 12, cooldown: 6000, fadeIn: 160, fadeOut: 260 }, def);
+    if (e.src) { e.img = new Image(); e.img.src = e.src; e.sheet = { src: e.src, size: e.size, cols: e.cols }; }
+    e.lastEnd = -Infinity;
+    EMOTIONS[name] = e;
+  }
+  const character = {
+    state: "idle", emotion: null, t0: 0,
+    busy() { return this.state !== "idle"; },
+    play(name) {
+      const e = EMOTIONS[name], now = performance.now();
+      const cur = this.emotion;
+      const interrupting = cur && cur.loop && !e.loop && this.state === "emotion";
+      if (!e || (this.busy() && !interrupting) || mosaic < 1 || now - e.lastEnd < e.cooldown) return false;
+      if (e.img && !ready(e.img)) return false;
+      if (interrupting) cur.lastEnd = now;
+      // coming out of the (front-facing) blink loop, skip the settle step
+      this.emotion = e; this.state = (e.settle === false || interrupting) ? "emotion" : "settling"; this.t0 = now;
+      return true;
+    }
+  };
+  function stepCharacter(now) {
+    const r = faceBody.getBoundingClientRect();
+    if (!r.width) return;
+    const c = character, e = c.emotion;
+    let wantYaw = 0, wantPitch = NEUTRAL_PITCH;
+    if (c.state === "idle") {
+      const dx = look.x - (r.left + r.width / 2), dy = look.y - (r.top + r.height * 0.45);
+      const nx = Math.max(-1, Math.min(1, dx / (innerWidth * 0.45)));
+      const ny = Math.max(-1, Math.min(1, dy / (innerHeight * 0.45)));
+      wantYaw = nx * (skin === "glasses" ? GLASSES.yawMax : 38);
+      wantPitch = ny < 0 ? NEUTRAL_PITCH + ny * 20 : NEUTRAL_PITCH + ny * 3;
+    }
+    const ease = reduceMotion ? 1 : (c.state === "settling" ? 0.2 : 0.12);
+    tYaw += (wantYaw - tYaw) * ease;
+    tPitch += (wantPitch - tPitch) * ease;
+    const [sImg, sSh] = skinSheet();
+    const idleLayer = [sImg, sSh, turnFrame(tYaw, tPitch, sSh), 1];
+
+    // all stars found: transform once the head is free
+    if (c.state === "idle" && pendingGlasses && character.play("glasses_on")) { pendingGlasses = false; magicFx(); }
+
+    // cursor resting (just scrolling / using arrows): look ahead and blink
+    if (c.state === "idle" && skin === "plain" && now - lastMove > IDLE_AFTER && EMOTIONS.idle_blink) character.play("idle_blink");
+
+    if (c.state === "settling") {
+      // wait until the head faces forward (or give up waiting after 700ms)
+      if ((Math.abs(tYaw) < 3 && Math.abs(tPitch - NEUTRAL_PITCH) < 2) || now - c.t0 > 700) { c.state = "emotion"; c.t0 = now; }
+      paint([idleLayer]);
+      return;
+    }
+    if (c.state === "emotion") {
+      const el = now - c.t0;
+      if (reduceMotion) {
+        // no playback: show the expression's key frame as a still, then go back
+        paint([[e.img, e.sheet, e.still, 1]]);
+        if (el > (e.stillFor || 1800)) { c.state = "returning"; c.t0 = now; if (e.onEnd) e.onEnd(); }
+        return;
+      }
+      if (e.loop) {
+        // loops until the cursor moves again, then hands back to following
+        if (lastMove > c.t0) { c.state = "returning"; c.t0 = now; c.loopFrame = Math.floor(el / 1000 * e.fps) % e.frames; return; }
+        const lf = reduceMotion ? 0 : Math.floor(el / 1000 * e.fps) % e.frames;
+        const fade = reduceMotion ? 1 : Math.min(1, el / e.fadeIn);
+        paint(fade < 1 ? [idleLayer, [e.img, e.sheet, lf, fade]] : [[e.img, e.sheet, lf, 1]]);
+        return;
+      }
+      const f = Math.floor(el / 1000 * e.fps);
+      if (f >= e.frames) { c.state = "returning"; c.t0 = now; if (e.onEnd) e.onEnd(); paint([[e.img, e.sheet, e.frames - 1, 1]]); return; }
+      const fade = Math.min(1, el / e.fadeIn);
+      paint(fade < 1 ? [idleLayer, [e.img, e.sheet, f, fade]] : [[e.img, e.sheet, f, 1]]);
+      return;
+    }
+    if (c.state === "returning") {
+      const p = reduceMotion ? 1 : Math.min(1, (now - c.t0) / e.fadeOut);
+      const last = e.loop ? (c.loopFrame || 0) : (reduceMotion ? e.still : e.frames - 1);
+      paint(p < 1 ? [[e.img, e.sheet, last, 1], [idleLayer[0], idleLayer[1], idleLayer[2], p]] : [idleLayer]);
+      if (p >= 1) { e.lastEnd = now; c.state = "idle"; c.emotion = null; }
+      return;
+    }
+    paint([idleLayer]);
+  }
+  // kept under its old name for the main loop
+  function updateEyes() { stepCharacter(performance.now()); }
+
+  // idle: front-facing blink loop while the cursor rests
+  const IDLE_AFTER = 1600;
+  registerEmotion("idle_blink", {
+    src: "assets/face-blink.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    loop: true, cooldown: 0, fadeIn: 220, fadeOut: 160
+  });
+
+  registerEmotion("pout", {
+    // pout clip, calm opening trimmed off (starts as the scrunch builds); plays when you poke her face
+    src: "assets/face-pout.webp", size: 420, cols: 10, frames: 33, fps: 12,
+    still: 21, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
+  });
+
+  // the reward: a full turn, and she comes back round wearing the star glasses
+  registerEmotion("glasses_on", {
+    src: "assets/face-glasses-on.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 48, stillFor: 1200, cooldown: 0, fadeIn: 200, fadeOut: 200,
+    onEnd() { skin = "glasses"; store.set("skin", "glasses"); }
+  });
+  // in glasses, a poke gets a smug little smirk instead of the pout
+  registerEmotion("glasses_smirk", {
+    src: "assets/face-glasses-smirk.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 24, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 300, settle: false
+  });
+  let pendingGlasses = false;
+
+  /* magical-girl transformation effects around the spin: glow + light rays behind the head,
+     a spiral of stars closing in, then a starburst flash as the glasses land and glitter after */
+  function magicFx() {
+    if (reduceMotion) return;
+    const r = faceBody.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height * 0.45, R = Math.max(r.width, r.height);
+    const back = h("div", "mg-back");
+    back.append(h("i", "mg-aura"), h("i", "mg-rays"));
+    faceWin.prepend(back);
+    const front = h("div", "mg-front");
+    front.style.left = cx + "px"; front.style.top = cy + "px"; front.style.setProperty("--R", R * 0.75 + "px");
+    const N = 16;
+    for (let i = 0; i < N; i++) {
+      // outer spins round the head, inner star slides inwards: together a closing spiral
+      const st = h("i", "mg-orbit" + (i % 3 === 0 ? " p" : i % 3 === 1 ? " l" : ""));
+      st.style.setProperty("--a", (360 / N) * i + "deg");
+      st.style.setProperty("--d", (i % 4) * 0.12 + "s");
+      const star = h("b", null, "✦"); star.style.fontSize = 20 + (i % 4) * 9 + "px";
+      st.appendChild(star);
+      front.appendChild(st);
+    }
+    document.body.appendChild(front);
+    const flash = () => {
+      const f = h("div", "mg-flash"); f.style.setProperty("--x", cx + "px"); f.style.setProperty("--y", cy + "px");
+      document.body.appendChild(f); setTimeout(() => f.remove(), 1200);
+      const ring = h("i", "mg-ring"); front.appendChild(ring);
+      burst(cx, cy, 40, "255,255,255"); burst(cx, cy, 30, "215,163,189"); burst(cx, cy, 24, "193,182,230");
+      sfx.star();
+      // glitter drifting down around her
+      for (let i = 0; i < 26; i++) {
+        const g = h("i", "mg-glitter" + (i % 2 ? " p" : ""), i % 3 ? "✦" : "✧");
+        g.style.left = (Math.random() - 0.5) * R * 1.6 + "px";
+        g.style.top = (Math.random() - 0.8) * R * 0.9 + "px";
+        g.style.fontSize = 8 + Math.random() * 16 + "px";
+        g.style.animationDelay = Math.random() * 0.9 + "s";
+        front.appendChild(g);
+      }
+    };
+    // the glasses come round at ~3.3 s into the clip, after up to 0.7 s of settling
+    const sparkleTimer = setInterval(() => burst(cx + (Math.random() - 0.5) * R, cy + (Math.random() - 0.5) * R * 0.9, 4, Math.random() < 0.5 ? "255,255,255" : "215,163,189"), 140);
+    setTimeout(() => { clearInterval(sparkleTimer); flash(); }, 3300);
+    setTimeout(() => { back.classList.add("out"); front.classList.add("out"); }, 5600);
+    setTimeout(() => { back.remove(); front.remove(); }, 6400);
+  }
+  window.addEventListener("sasha:allstars", () => { if (skin !== "glasses") pendingGlasses = true; });
+  if (skin !== "glasses" && got.length >= STARS.length) pendingGlasses = true;
+
+  faceBody.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const pokeAs = skin === "glasses" ? "glasses_smirk" : "pout";
+    // another one-shot emotion is mid-play: don't stack a second one on top
+    if (character.busy() && character.emotion !== EMOTIONS[pokeAs] && !character.emotion.loop) return;
+    character.play(pokeAs);
+    sfx.poke();
+    burst(e.clientX, e.clientY, 10, "215,163,189");
+    faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
+    blink();
+    pokes++;
+    clearTimeout(pokeReset);
+    pokeReset = setTimeout(() => { pokes = 0; }, 2500);
+    if (pokes >= 5) { pokes = 0; if (!collect("poke", e.clientX, e.clientY)) balloon("sasha.exe", "ow. okay. you already have that one."); }
+    else if (pokes === 3 && !got.includes("poke")) balloon("sasha.exe", "hey—");
+  });
+
+  /* ------------------------------------------------------------------
+   * Global input
+   * ------------------------------------------------------------------ */
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#start-menu, #start-btn")) closeStart();
+    const pick = e.target.closest(".star-pick");
+    if (pick) {
+      const r = pick.getBoundingClientRect();
+      collect(pick.dataset.star, r.left + r.width / 2, r.top + r.height / 2);
+      const parent = pick.parentElement;
+      pick.remove();
+      if (parent && parent.classList.contains("file")) parent.querySelector("span").textContent = "(rescued)";
+      return;
+    }
+    const card = e.target.closest(".ring-card");
+    if (card) {
+      if (drag && drag.moved > 6) return;
+      const i = parseInt(card.dataset.card, 10);
+      if (i === front) openApp(CARDS[i].app, card);
+      else { sfx.click(); spinTo(i); }
+      return;
+    }
+    const opener = e.target.closest("[data-open]");
+    if (opener && opener.dataset.justDragged) { delete opener.dataset.justDragged; return; }
+    if (opener) {
+      // desktop icons open on double-click like a real desktop; one tap on phones / keyboard
+      if (opener.classList.contains("icon") && e.detail === 1 && !isSmall()) { sfx.click(); return; }
+      openApp(opener.dataset.open, opener);
+      return;
+    }
+    if (!e.target.closest(".win, #taskbar") && !(drag && drag.moved > 6)) burst(e.clientX, e.clientY, 12);
+  });
   window.addEventListener("keydown", (e) => {
-    if (view !== "home") return;
-    clearTimeout(snapTimer);
-    if (e.key === "ArrowRight") {
-      const idx = Math.min(sections.length - 1, nearestSectionIndex(target) + 1);
-      target = sections[idx].offsetLeft;
+    if (wins.snake && wins.snake.el.classList.contains("is-active") && snakeApi && snakeApi.key(e)) return;
+    if (e.key === "Escape") {
+      if (!startMenu.hidden) { closeStart(); return; }
+      const act = Object.values(wins).find((w) => w.el.classList.contains("is-active") && !w.el.classList.contains("is-min"));
+      if (act) closeWin(act.id);
+      return;
     }
-    if (e.key === "ArrowLeft") {
-      const idx = Math.max(0, nearestSectionIndex(target) - 1);
-      target = sections[idx].offsetLeft;
+    if (e.target.closest && e.target.closest(".win.app")) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); spinTo((front + 1) % N); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); spinTo((front - 1 + N) % N); }
+  });
+  window.addEventListener("touchmove", (e) => { const t = e.touches[0]; if (t) { look = { x: t.clientX, y: t.clientY }; lastMove = performance.now(); } }, { passive: true });
+  window.addEventListener("resize", layout);
+
+  /* ---------- clock ---------- */
+  function clock() {
+    const d = new Date();
+    $("clock").textContent = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  setInterval(clock, 15000);
+
+  /* ------------------------------------------------------------------
+   * Loop
+   * ------------------------------------------------------------------ */
+  const frameLabel = $("frame-label");
+  let wasSpinning = false;
+  let lastNow = performance.now();
+  function tick(now) {
+    const dt = Math.min(64, now - lastNow);
+    lastNow = now;
+    angle += (targetAngle - angle) * (reduceMotion ? 1 : 0.1);
+    if (Math.abs(targetAngle - angle) < 0.01) angle = targetAngle;
+    renderRing();
+    updateEyes();
+    if (snakeApi) snakeApi.tick(dt);
+    const spinning = Math.abs(targetAngle - angle) > 0.5;
+    if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
+    drawPixels();
+    requestAnimationFrame(tick);
+  }
+
+  layout();
+  clock();
+  setSound(soundOn);
+  renderStarCount();
+  placeDesktopStars();
+  renderRing();
+  requestAnimationFrame(tick);
+  boot();
+
+  /* ------------------------------------------------------------------
+   * Boot: a loading screen that waits for the heavy images, then the
+   * desktop appears through pixels.
+   * ------------------------------------------------------------------ */
+  function boot() {
+    const screen = $("boot");
+    const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
+    const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
+    const urls = [SHEET.src, skin === "glasses" ? GLASSES.src : "assets/face-glasses-on.webp", "assets/face-pout.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+      .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
+    let loaded = 0;
+    const uniq = Array.from(new Set(urls));
+    uniq.forEach((u) => { const im = new Image(); im.onload = im.onerror = () => { loaded++; }; im.src = u; });
+    const t0 = performance.now(), MIN = reduceMotion ? 300 : 1900;
+    let shownP = 0, finished = false;
+    (function step(now) {
+      const timeP = Math.min(1, (now - t0) / MIN);
+      const want = Math.min(timeP, (loaded / uniq.length) * 0.97 + (loaded === uniq.length ? 0.03 : 0));
+      shownP += (want - shownP) * 0.18;
+      if (want >= 1 && shownP > 0.995) shownP = 1;
+      const p = Math.round(shownP * 100);
+      bar.style.width = p + "%";
+      pct.textContent = String(p).padStart(3, "0") + "%";
+      line.textContent = LINES[Math.min(LINES.length - 1, Math.floor(shownP * LINES.length))];
+      if (shownP < 1) requestAnimationFrame(step);
+      else if (!finished) { finished = true; setTimeout(done, 250); }
+    })(t0);
+    // never hang on a slow image
+    setTimeout(() => { loaded = uniq.length; }, 9000);
+    function done() {
+      screen.hidden = true;
+      document.body.classList.remove("booting");
+      sfx.boot();
+      pixelCover(document.body, { fixed: true, cell: 22, dur: 900 });
+      cardEls.forEach((el, i) => pixelCover(el, { cell: 12, dur: 500, delay: 500 + i * 70 }));
+      document.querySelectorAll("#icons .icon").forEach((el, i) => pixelCover(el, { cell: 8, dur: 380, delay: 300 + i * 60 }));
+      setTimeout(() => resolveFace(1100), 350);
+      setTimeout(openWelcome, 1500);   // greet on every entry
     }
-  });
-
-  window.addEventListener("resize", () => {
-    if (view === "home") measure();
-  });
-
-  root.classList.add("is-scrolling");
-  measure();
-  raf = requestAnimationFrame(tick);
+  }
 })();

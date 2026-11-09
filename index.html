@@ -8,145 +8,91 @@
 <link rel="apple-touch-icon" href="assets/chrome-mark.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/desktop.css">
 </head>
-<body>
-<div id="root">
-  <div id="noise"></div>
+<body class="booting">
+<div id="desktop">
+  <div id="wallpaper" aria-hidden="true">
+    <div class="wp-grid"></div>
+    <div class="wp-city">
+      <i class="wp-lights l1"></i><i class="wp-lights l2"></i><i class="wp-lights l3"></i>
+      <i class="wp-boat"></i>
+    </div>
+    <img src="assets/chrome-cursor.png" alt="" class="wp-obj" style="right: 7vw; top: 9vh; width: 13vw; transform: rotate(14deg);">
+    <i class="sparkle" style="left: 22%; top: 12%; font-size: 26px;">✦</i>
+    <i class="sparkle p" style="left: 74%; top: 22%; font-size: 18px; animation-delay: -1s;">✦</i>
+    <i class="sparkle" style="left: 84%; top: 58%; font-size: 30px; animation-delay: -2s;">✦</i>
+    <i class="sparkle n" style="left: 12%; top: 66%; font-size: 14px; animation-delay: -0.5s;">✦</i>
+    <i class="sparkle p" style="left: 30%; top: 80%; font-size: 22px; animation-delay: -1.7s;">✦</i>
+    <i class="sparkle" style="left: 63%; top: 8%; font-size: 12px; animation-delay: -2.6s;">✦</i>
+    <i class="sparkle n" style="left: 92%; top: 34%; font-size: 12px; animation-delay: -1.2s;">✦</i>
+  </div>
+  <canvas id="pixels" aria-hidden="true"></canvas>
 
-  <nav id="nav">
-    <div class="nav-top">
-      <div class="nav-logo" data-action="home">
-        <img src="assets/chrome-mark.png" alt="Sasha" width="32" height="32">
-      </div>
-      <div class="nav-links">
-        <div class="nav-link" data-action="projects">Projects</div>
-        <div class="nav-link" data-action="about">About</div>
-        <div class="nav-link" data-action="archive">Archive</div>
-      </div>
-    </div>
-    <div class="nav-footer">
-      <div>HvA</div>
-      <div>Digital Design</div>
-      <div>Interaction Design</div>
-      <div>2026</div>
-    </div>
+  <!-- desktop icons -->
+  <nav id="icons" aria-label="Desktop">
+    <button class="icon" type="button" data-open="archive"><img src="assets/chrome-folder.png" alt=""><span>Projects</span></button>
+    <button class="icon" type="button" data-open="about"><img src="assets/chrome-mark.png" alt=""><span>about_me.txt</span></button>
+    <button class="icon" type="button" data-open="snake"><canvas class="icon-snake" width="16" height="16"></canvas><span>snake.exe</span></button>
+    <button class="icon" type="button" data-open="stars"><i class="icon-glyph">✦</i><span>stars.txt</span></button>
+    <button class="icon" type="button" data-open="trash"><svg viewBox="0 0 32 32" class="icon-svg" aria-hidden="true"><path d="M8 9h16l-1.6 19H9.6z" fill="#e9e9ee" stroke="#111110" stroke-width="1.6"/><path d="M6 9h20M13 9V5h6v4M12.5 13l.6 11M16 13v11M19.5 13l-.6 11" fill="none" stroke="#111110" stroke-width="1.6"/></svg><span>Recycle Bin</span></button>
   </nav>
 
-  <!-- ============ HOME (horizontal scrolling canvas) ============ -->
-  <div id="home-view" class="view">
-    <div id="track-wrap">
-      <div id="track">
-
-        <section class="screen" id="screen-intro" style="width: 100vw;">
-          <div class="deco glyph" data-p="0.12" style="top: 8.11vh; left: 25.13vw; font-size: 44px; transform: rotate(12.19deg);">✦</div>
-          <div class="deco glyph" data-p="-0.1" style="top: 12.97vh; left: 29.58vw; font-size: 41px; transform: rotate(-15deg);">✦</div>
-          <div class="deco glyph" data-p="0.1" style="top: 79vh; left: 76.51vw; font-size: 44px; transform: rotate(12.19deg);">✦</div>
-          <div class="deco glyph" data-p="-0.12" style="top: 83.89vh; left: 80.94vw; font-size: 64px; transform: rotate(15deg);">✦</div>
-          <img src="assets/chrome-cursor.png" alt="" class="deco" data-p="0.09" style="top: 11vh; left: calc(100vw * 0.66); width: 21vw; transform: rotate(14deg);">
-          <div class="reveal" style="position: absolute; left: 11.667vw; top: 31vh; width: 87vw;">
-            <div class="eyebrow">SELECTED WORK &amp; PROCESS — 2026 →</div>
-            <div class="headline">
-              <div>DIGITAL DESIGN</div>
-              <img src="assets/workbook.png" alt="Workbook — Sasha" class="workbook-img" data-p="0.08" style="transform: rotate(-2deg);">
-            </div>
+  <!-- centre: the face, with project windows orbiting -->
+  <section id="orbit" aria-label="Projects">
+    <div id="ring"></div>
+    <div class="face-win" id="face-win">
+      <div class="win-body" id="face" role="img" aria-label="Sasha's iridescent porcelain face, watching your cursor">
+        <div class="face-stage">
+          <div class="head" id="head">
+            <canvas class="head-px" id="head-px" width="420" height="420"></canvas>
           </div>
-          <img src="assets/chrome-folder.png" alt="" class="deco" data-p="-0.05" style="top: 79vh; left: 16.5vw; width: 7vw; transform: rotate(-8deg);">
-          <div class="screen-caption"><div>AMSTERDAM</div></div>
-        </section>
-
-        <section class="screen" id="screen-p0" style="width: 100vw;">
-          <img src="assets/chrome-tama.png" alt="" class="deco" data-p="-0.06" style="top: 65.9vh; left: 32.15vw; width: 20.49vw; transform: rotate(-2.07deg); z-index: 1;">
-          <div class="deco glyph" data-p="-0.13" style="top: 4.44vh; left: 24.67vw; font-size: 44px;">✦</div>
-          <div class="deco glyph" data-p="0.14" style="top: 22vh; left: 90.85vw; font-size: 44px;">✦</div>
-          <div class="deco glyph" data-p="-0.1" style="top: 10.67vh; left: 18.09vw; font-size: 64px;">✦</div>
-          <div class="deco glyph" data-p="0.11" style="top: 79.78vh; left: 81.22vw; font-size: 64px;">✦</div>
-          <div class="reveal" style="position: absolute; left: 17.847vw; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6.667vh;">
-            <div class="index-label">01</div>
-            <div class="proj-title">
-              <div>CUSTOM</div>
-              <div>BADGE</div>
-            </div>
-            <div class="proj-meta" data-action="open-project" data-index="0">
-              <div class="explore-label">explore</div>
-              <div class="proj-arrow">→</div>
-            </div>
-          </div>
-          <div class="deco badge-frame" data-swing="1" style="top: -8vh; left: calc(100vw * 0.316); width: calc(100vw * 0.684); z-index: 2; transform-origin: 50% 4%;">
-            <img src="assets/badge.png" alt="Custom Badge keychain">
-          </div>
-        </section>
-
-        <section class="screen" id="screen-p1" style="width: 100vw;">
-          <div class="deco glyph" data-p="0.13" style="top: 9.11vh; left: 74.67vw; font-size: 44px;">✦</div>
-          <div class="deco glyph" data-p="-0.14" style="top: 18vh; left: 82.85vw; font-size: 44px;">✦</div>
-          <div class="deco glyph" data-p="0.1" style="top: 76vh; left: 22.51vw; font-size: 44px;">✦</div>
-          <div class="deco glyph" data-p="-0.12" style="top: 82.89vh; left: 27.94vw; font-size: 64px;">✦</div>
-          <div class="reveal" style="position: absolute; left: 17.847vw; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6.667vh;">
-            <div class="index-label">02</div>
-            <div class="proj-title">
-              <div>IN //</div>
-              <div>BETWEEN</div>
-            </div>
-            <div class="proj-meta" data-action="open-project" data-index="1">
-              <div class="explore-label">explore</div>
-              <div class="proj-arrow">→</div>
-            </div>
-          </div>
-          <div class="deco tag" style="top: 75vh; left: 17.847vw;">GROUP 22 × FUTURE FRONT ROW 2026</div>
-        </section>
-
-        <section class="screen" id="screen-about" style="width: 100vw;">
-          <div class="reveal about-layer">
-            <div class="about-text">Digital &amp; Product Designer with 4+ years across agency, product and freelance work UI/UX, responsive design, brand and design systems for clients in fintech, gaming, real estate and editorial. Currently enrolled in the MA Digital Design / Interaction Design at HvA, using this site to sharpen the practice, communicate it clearly, and open the next role.</div>
-            <div class="about-contact">
-              <div class="about-contact-label">CONTACT</div>
-              <a href="mailto:aleksandraslahova88@gmail.com">aleksandraslahova88@gmail.com</a>
-              <a href="https://www.instagram.com/aleeeksanndraa/" target="_blank" rel="noopener">Instagram</a>
-              <a href="https://www.linkedin.com/in/aleksandra-slahova-461826264/" target="_blank" rel="noopener">LinkedIn</a>
-            </div>
-          </div>
-          <div class="deco about-watermark" data-p="0.06">ABOUT</div>
-          <img src="assets/pin-silver.png" alt="" class="deco" data-p="0.07" style="top: 54.33vh; left: calc(100vw * 0.7694); width: calc(100vw * 0.1328); z-index: 2;">
-          <div class="deco tama-frame" data-swing="1" style="top: 0vh; left: 72vw; width: 24vw; z-index: 2; transform-origin: 50% 3%;">
-            <img src="assets/tamagotchi-with-me.png" alt="Tamagotchi keychain — with me">
-            <div class="tama-screen-fx"></div>
-          </div>
-        </section>
-
+        </div>
       </div>
     </div>
+    <div id="card-caption" aria-live="polite">
+      <div class="cap-title" id="cap-title">CUSTOM BADGE</div>
+      <div class="cap-meta"><span id="cap-index">01</span> · <span id="cap-meta">Digital Design · 2026</span> · <span class="cap-hint">double-click to open</span></div>
+    </div>
+  </section>
 
-    <div id="counter"><span id="counter-num">01</span></div>
-    <div id="progress"><div id="progress-bar"></div></div>
+  <!-- windows get created here -->
+  <div id="windows"></div>
+
+  <!-- start menu -->
+  <div id="start-menu" hidden role="menu">
+    <div class="sm-side"><span>✦ SASHA OS 2026</span></div>
+    <div class="sm-items" id="sm-items"></div>
   </div>
 
-  <!-- ============ PROJECT DETAIL ============ -->
-  <article id="project-view" class="view" hidden>
-    <header class="project-header">
-      <div class="back-link" data-action="home">← INDEX</div>
-      <div>
-        <div class="project-index" id="project-index"></div>
-        <h1 class="project-title-h1" id="project-title"></h1>
-      </div>
-      <div class="project-meta-row" id="project-meta"></div>
-    </header>
-    <div id="chapters"></div>
-    <footer class="project-footer">
-      <div class="back-link" data-action="home">← INDEX</div>
-    </footer>
-  </article>
+  <!-- taskbar -->
+  <footer id="taskbar">
+    <button id="start-btn" type="button" aria-haspopup="true" aria-expanded="false"><img src="assets/chrome-mark.png" alt="">Start</button>
+    <div id="tasks"></div>
+    <span id="frame-label" class="tray-status">♡ sasha os 2026 · online</span>
+    <div id="tray">
+      <button type="button" id="tray-stars" data-open="stars" title="Stars collected">✦ <span id="stars-count">0</span>/<span id="stars-total">7</span></button>
+      <button type="button" id="tray-sound" aria-pressed="false" title="Sound">🔇</button>
+      <span id="clock">00:00</span>
+    </div>
+  </footer>
 
-  <!-- ============ ARCHIVE / PROJECTS LIST ============ -->
-  <article id="archive-view" class="view" hidden>
-    <div class="back-link" data-action="home">← INDEX</div>
-    <h1 class="archive-title">PROJECTS</h1>
-    <div class="archive-list" id="archive-list"></div>
-    <div class="archive-note">MORE PROJECTS TO BE ADDED</div>
-  </article>
-
+  <div id="balloon" aria-live="polite"></div>
 </div>
+<div id="boot" role="status" aria-live="polite">
+  <div class="boot-box">
+    <div class="win-bar"><span class="win-title">loading sasha_os.exe</span><span class="win-btns"><i>_</i><i>□</i><i>×</i></span></div>
+    <div class="boot-body">
+      <img class="boot-chrome" src="assets/chrome-mark.png" alt="">
+      <div class="boot-logo">SASHA OS</div>
+      <div class="boot-sub">process book · digital design · hva</div>
+      <div class="boot-track"><i id="boot-bar"></i></div>
+      <div class="boot-row"><span id="boot-line">waking up…</span><span id="boot-pct">000%</span></div>
+    </div>
+  </div>
+</div>
+<script src="js/projects.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>
