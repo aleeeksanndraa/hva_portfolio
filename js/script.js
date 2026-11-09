@@ -1643,7 +1643,7 @@
   const COVERS = {
     "01": { img: "assets/badge-tight.png" },
     "02": { type: "IN //<br>BETWEEN" },
-    "03": { img: "assets/tandem-cover.jpg" },
+    "03": { img: "assets/tandem-pixel.png" },
     "04": { img: "assets/ei-little-tank-tank.jpg" },
     "05": { type: "PERS<br>ONAL" },
     "06": { type: "SELF<br>GROW" }
