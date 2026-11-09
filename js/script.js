@@ -657,8 +657,8 @@
         const d = h("div", "dialog");
         const face = h("div", "d-face"); const im = h("img"); im.src = "assets/face-cutout.webp"; im.alt = ""; face.appendChild(im);
         const t = h("div");
-        t.append(h("b", "d-big", "I am not a robot :)"),
-          "Welcome to Sasha OS, my process book. Spin the windows around my head and open a project. " + STARS.length + " ✦ are hidden around.");
+        t.append(h("div", "d-tag", "✦ process book · sasha"), h("b", "d-big", "I am not a robot :)"),
+          "This is my process book: the research, sketches, prototypes and reflections behind my HvA Digital Design projects, dressed up as a little desktop. Spin the windows around my head and open a project. " + STARS.length + " ✦ are hidden around.");
         d.append(face, t);
         const bar = h("div", "loadbar"); bar.appendChild(h("i"));
         const act = h("div", "dialog-actions");
