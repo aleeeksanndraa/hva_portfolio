@@ -92,6 +92,43 @@ button { font: inherit; color: inherit; }
   .wp-lights { animation: none; opacity: 0.6; }
   .wp-boat { animation: none; translate: 62vw 0; }
 }
+/* pixel crescent moon, softly glowing in the corner */
+.wp-moon {
+  position: absolute;
+  left: 17vw; top: 5vh;
+  width: 11vh; height: 11vh;
+  background: url("../assets/moon-pixel.png") no-repeat center / 100% 100%;
+  image-rendering: pixelated;
+  opacity: 0.8;
+  animation: moon-float 9s ease-in-out infinite;
+}
+@keyframes moon-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@media (max-width: 700px) { .wp-moon { width: 7vh; height: 7vh; left: auto; right: 6vw; top: 13vh; } }
+/* shooting stars, spawned now and then from js */
+.wp-shoot {
+  position: absolute;
+  width: 120px; height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(240,214,236,.55) 60%, #fff 100%);
+  filter: drop-shadow(0 0 4px rgba(255,255,255,.9));
+  transform-origin: right center;
+  rotate: 152deg;
+  opacity: 0;
+  animation: shoot 1.4s cubic-bezier(.3,.1,.6,1) forwards;
+  pointer-events: none;
+}
+.wp-shoot::after {
+  content: ""; position: absolute; right: -3px; top: -2px;
+  width: 6px; height: 6px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 8px 2px rgba(255,255,255,.9);
+}
+@keyframes shoot {
+  0% { opacity: 0; translate: 0 0; scale: .3 1; }
+  15% { opacity: 1; scale: 1 1; }
+  80% { opacity: .9; }
+  100% { opacity: 0; translate: -38vw 20vw; scale: .6 1; }
+}
+@media (prefers-reduced-motion: reduce) { .wp-moon { animation: none; } .wp-shoot { display: none; } }
 .wp-obj { position: absolute; height: auto; opacity: 0.95; filter: drop-shadow(0 10px 24px rgba(46, 36, 82, 0.18)); }
 .wp-word {
   position: absolute;
@@ -573,6 +610,11 @@ button { font: inherit; color: inherit; }
 .pad [data-dir="down"] { grid-column: 2; grid-row: 2; }
 .pad [data-dir="right"] { grid-column: 3; grid-row: 2; }
 .snake-tip { font-size: 10px; color: var(--muted); }
+/* mlg_flap.exe */
+.flap-lcd { width: 240px; aspect-ratio: 240 / 340; }
+.flap-lcd .lcd-msg { text-shadow: 0 0 4px #fff; }
+.lcd.mlg-flash { animation: mlg-flash 0.5s steps(2) 3; }
+@keyframes mlg-flash { 50% { filter: invert(1) hue-rotate(180deg); } }
 /* blocks.exe */
 .blocks-row { display: flex; gap: 12px; align-items: flex-start; }
 .blocks-lcd { width: 160px; aspect-ratio: 1 / 2; }
@@ -607,7 +649,7 @@ button { font: inherit; color: inherit; }
   #icons, #icons.free { display: grid; width: auto; height: auto; }
   #icons .icon { position: static !important; }
   #icons { grid-auto-flow: column; left: 50%; transform: translateX(-50%); top: 8px; gap: 2px; }
-  .icon { width: 56px; font-size: 8px; }
+  .icon { width: 50px; font-size: 7px; }
   .icon img, .icon canvas, .icon-svg, .icon-glyph { width: 30px; height: 30px; }
   .icon-glyph { font-size: 26px; line-height: 30px; }
   .win.app { left: 6px !important; top: 6px !important; width: calc(100% - 12px) !important; height: calc(100% - 56px) !important; }

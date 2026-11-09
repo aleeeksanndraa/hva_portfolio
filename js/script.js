@@ -91,6 +91,24 @@
       parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, decay: 0.02 + Math.random() * 0.02, c: color || (Math.random() < 0.5 ? "255,255,255" : (Math.random() < 0.5 ? "215,163,189" : "35,38,79")), g: 0.25 });
     }
   }
+  // shooting stars across the wallpaper sky, every few seconds
+  (function shootingStars() {
+    const wp = document.getElementById("wallpaper");
+    if (reduceMotion || !wp) return;
+    const one = () => {
+      if (!document.hidden) {
+        const st = h("i", "wp-shoot");
+        st.style.left = (35 + Math.random() * 60) + "vw";
+        st.style.top = (2 + Math.random() * 28) + "vh";
+        st.style.width = (80 + Math.random() * 90) + "px";
+        st.style.animationDuration = (1.1 + Math.random() * 0.8) + "s";
+        st.addEventListener("animationend", () => st.remove());
+        wp.appendChild(st);
+      }
+      setTimeout(one, 3500 + Math.random() * 5500);
+    };
+    setTimeout(one, 2500);
+  })();
   function drawPixels() {
     px.clearRect(0, 0, innerWidth, innerHeight);
     for (let i = parts.length - 1; i >= 0; i--) {
@@ -370,6 +388,7 @@
     if (app === "archive") return openArchive(fromRect);
     if (app === "snake") return openSnake(fromRect);
     if (app === "blocks") return openBlocks(fromRect);
+    if (app === "flap") return openFlap(fromRect);
     if (app === "stars") return openStars(fromRect);
     if (app === "trash") return openTrash(fromRect);
     return null;
@@ -846,6 +865,146 @@
     };
   }
 
+  /* ---------- flap.exe: a flappy game, MLG montage edition (her head is the bird) ---------- */
+  const mlg = {
+    // synthesized: no sampled audio, all made on the fly
+    hit() { blip(1800, 0.05, "square", 0.05, 900); blip(2600, 0.03, "square", 0.03); },
+    horn() {
+      if (!soundOn) return;
+      try {
+        actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+        const t = actx.currentTime;
+        [0, 0.28, 0.56].forEach((d, k) => [233, 294, 349].forEach((f) => {
+          const o = actx.createOscillator(), g = actx.createGain();
+          o.type = "sawtooth"; o.frequency.setValueAtTime(f, t + d); o.frequency.linearRampToValueAtTime(f * 0.97, t + d + (k === 2 ? 0.6 : 0.22));
+          g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.035, t + d + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + d + (k === 2 ? 0.65 : 0.24));
+          o.connect(g).connect(actx.destination); o.start(t + d); o.stop(t + d + 0.7);
+        }));
+      } catch (e) { /* audio unavailable */ }
+    },
+    flap() { blip(520, 0.07, "triangle", 0.05, 900); },
+    wow() { seq([392, 523, 784], 60, "square", 0.04); }
+  };
+  const FLAP_WORDS = ["WOW", "+1", "OH BABY", "NICE", "MOM GET THE CAMERA", "SICK", "360", "EZ", "CRISP", "OMG"];
+  let flapApi = null;
+  function openFlap(from) {
+    return createWin({
+      id: "flap", title: "mlg_flap.exe", w: 300, h: "auto", from, dx: 260, dy: 10, flat: true,
+      onClose() { if (flapApi) flapApi.stop(); flapApi = null; },
+      fill(body) {
+        const app = h("div", "snake-app flap-app");
+        const lcd = h("div", "lcd flap-lcd");
+        const cv = h("canvas"); cv.width = 240; cv.height = 340;
+        const msg = h("div", "lcd-msg"); msg.innerHTML = "SPACE / CLICK TO FLAP<br>GET READY TO GET REKT";
+        lcd.append(cv, msg);
+        const sc = h("div", "snake-score");
+        const sS = h("b", null, "0"), sB = h("b", null, String(store.get("flap-best", 0)));
+        const s1 = h("span", null, "SCORE "), s2 = h("span", null, "BEST ");
+        s1.appendChild(sS); s2.appendChild(sB); sc.append(s1, s2);
+        app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"));
+        body.appendChild(app);
+        flapApi = makeFlap(cv, msg, sS, sB, lcd);
+      }
+    });
+  }
+  function makeFlap(cv, msg, scoreEl, bestEl, lcd) {
+    const x = cv.getContext("2d"), W = cv.width, H = cv.height;
+    const head = new Image(); head.src = "assets/face-cutout.webp";
+    const GAP = 96, PW = 40, SPD = 1.6, GRAV = 0.32, JUMP = -5.6;
+    let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
+    let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
+    function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 20); addPipe(W + 20 + 150); draw(); }
+    function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
+    function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
+    function hitmark(X, Y) { fx.push({ hm: true, x: X, y: Y, life: 1 }); }
+    function flap() { if (!running) { start(); return; } vy = JUMP; mlg.flap(); }
+    function start() { if (!alive) { reset(); alive = true; } running = true; msg.hidden = true; vy = JUMP; }
+    function die() {
+      alive = false; running = false; shake = 18; mlg.horn(); sfx.die();
+      pop("GET REKT", W / 2, H / 2 - 30, true); hitmark(60, by); hitmark(70, by - 12);
+      msg.innerHTML = "WASTED · " + score + "<br>SPACE / TAP TO RETRY"; msg.hidden = false;
+      lcd.classList.remove("mlg-flash"); void lcd.offsetWidth; lcd.classList.add("mlg-flash");
+    }
+    function scored() {
+      score++; scoreEl.textContent = String(score);
+      if (score > best) { best = score; store.set("flap-best", best); bestEl.textContent = String(best); }
+      mlg.hit(); hitmark(60 + 18, by - 6); shake = 6; hue = 1;
+      pop(FLAP_WORDS[Math.floor(Math.random() * FLAP_WORDS.length)], 70 + Math.random() * 120, 60 + Math.random() * 200, false);
+      if (score % 5 === 0) { mlg.horn(); pop(score % 10 === 0 ? "WOMBO COMBO" : "OH BABY A TRIPLE", W / 2, 90, true); tri = 1; shake = 14; }
+      if (score === 10) { shades = 1; pop("DEAL WITH IT", W / 2, H - 70, true); }
+    }
+    function drawPipe(px, y0, y1) {
+      const g = x.createLinearGradient(px, 0, px + PW, 0);
+      g.addColorStop(0, "#c3c5d0"); g.addColorStop(0.35, "#fbfbfd"); g.addColorStop(0.55, "#a9abb8"); g.addColorStop(1, "#e6e7ee");
+      x.fillStyle = g; x.fillRect(px, y0, PW, y1 - y0);
+      x.strokeStyle = "#2e2452"; x.lineWidth = 2; x.strokeRect(px + 1, y0 + 1, PW - 2, y1 - y0 - 2);
+    }
+    function draw() {
+      x.save();
+      if (shake > 0) x.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+      // sky: lavender, with a rainbow wash after each point
+      const sky = x.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#cdc3ea"); sky.addColorStop(1, "#e3ddf4");
+      x.fillStyle = sky; x.fillRect(-20, -20, W + 40, H + 40);
+      if (hue > 0) { x.fillStyle = "hsla(" + (frame * 9 % 360) + ",80%,75%," + (hue * 0.35).toFixed(2) + ")"; x.fillRect(-20, -20, W + 40, H + 40); }
+      if (tri > 0) { // the triangle with the eye
+        x.globalAlpha = tri * 0.8; x.fillStyle = "#2e2452";
+        x.beginPath(); x.moveTo(W / 2, 110); x.lineTo(W / 2 - 50, 196); x.lineTo(W / 2 + 50, 196); x.closePath(); x.fill();
+        x.fillStyle = "#f6f3fa"; x.beginPath(); x.ellipse(W / 2, 168, 15, 8, 0, 0, Math.PI * 2); x.fill();
+        x.fillStyle = "#2e2452"; x.beginPath(); x.arc(W / 2, 168, 4, 0, Math.PI * 2); x.fill(); x.globalAlpha = 1;
+      }
+      pipes.forEach((p) => { drawPipe(p.x, -4, p.gy); drawPipe(p.x, p.gy + GAP, H + 4); });
+      x.fillStyle = "#b4a7dd"; x.fillRect(-20, H - 10, W + 40, 14);
+      // her head, tilting with speed
+      x.save(); x.translate(60, by); x.rotate(Math.max(-0.5, Math.min(1.2, vy * 0.08)));
+      if (head.complete && head.naturalWidth) x.drawImage(head, -18, -18, 36, 36); else { x.fillStyle = "#6d1d2b"; x.fillRect(-12, -12, 24, 24); }
+      if (shades > 0) { x.fillStyle = "#111"; x.fillRect(-13, -6 - (1 - shades) * 40, 11, 5); x.fillRect(1, -6 - (1 - shades) * 40, 11, 5); x.fillRect(-2, -5 - (1 - shades) * 40, 4, 2); }
+      x.restore();
+      fx.forEach((f) => {
+        x.globalAlpha = Math.max(0, f.life);
+        if (f.hm) { // hitmarker
+          x.strokeStyle = "#fff"; x.lineWidth = 3; const s = 6, g = 3;
+          [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => { x.beginPath(); x.moveTo(f.x + a * g, f.y + b * g); x.lineTo(f.x + a * (g + s), f.y + b * (g + s)); x.stroke(); });
+          x.strokeStyle = "#2e2452"; x.lineWidth = 1;
+          [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => { x.beginPath(); x.moveTo(f.x + a * g, f.y + b * g); x.lineTo(f.x + a * (g + s), f.y + b * (g + s)); x.stroke(); });
+        } else {
+          x.save(); x.translate(f.x, f.y); x.rotate(f.r); const sz = f.big ? 22 : 15;
+          x.font = "900 " + sz + "px Impact, Archivo, sans-serif"; x.textAlign = "center";
+          x.lineWidth = 4; x.strokeStyle = "#2e2452"; x.strokeText(f.t, 0, 0);
+          x.fillStyle = f.big ? "#fff200" : "hsl(" + (frame * 12 % 360) + ",90%,70%)"; x.fillText(f.t, 0, 0); x.restore();
+        }
+        x.globalAlpha = 1;
+      });
+      x.font = "900 34px Impact, Archivo, sans-serif"; x.textAlign = "center"; x.lineWidth = 5; x.strokeStyle = "#2e2452";
+      x.strokeText(String(score), W / 2, 44); x.fillStyle = "#fff"; x.fillText(String(score), W / 2, 44);
+      x.restore();
+    }
+    function step() {
+      frame++;
+      if (running) {
+        vy += GRAV; by += vy;
+        if (by < 14) { by = 14; vy = Math.max(vy, 0); }   // soft ceiling
+        pipes.forEach((p) => { p.x -= SPD + Math.min(1.4, score * 0.05); if (!p.done && p.x + PW < 60 - 14) { p.done = true; scored(); } });
+        if (pipes[0].x < -PW) { pipes.shift(); addPipe(pipes[pipes.length - 1].x + 150); }
+        const hitPipe = pipes.some((p) => 60 + 14 > p.x && 60 - 14 < p.x + PW && (by - 14 < p.gy || by + 14 > p.gy + GAP));
+        if (by > H - 24 || hitPipe) die();
+      }
+      fx.forEach((f) => { f.life -= f.hm ? 0.05 : 0.018; if (!f.hm) f.y -= 0.6; });
+      fx = fx.filter((f) => f.life > 0);
+      shake *= 0.85; if (shake < 0.5) shake = 0;
+      hue *= 0.93; tri *= 0.97; if (shades > 0 && shades < 1) shades = Math.min(1, shades + 0.05);
+      draw();
+    }
+    cv.addEventListener("pointerdown", (e) => { e.preventDefault(); flap(); });
+    reset(); draw();
+    return {
+      key(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") { e.preventDefault(); flap(); return true; } return false; },
+      tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
+      stop() { running = false; }
+    };
+  }
+
   /* ---------- welcome dialog (first visit) ---------- */
   function openWelcome() {
     createWin({
@@ -891,6 +1050,7 @@
     item("▣", "All projects", () => openApp("archive", startBtn));
     item("▸", "Snake", () => openApp("snake", startBtn));
     item("▦", "Blocks", () => openApp("blocks", startBtn));
+    item("✈", "MLG Flap", () => openApp("flap", startBtn));
     item("✦", "Stars (" + got.length + "/" + STARS.length + ")", () => openApp("stars", startBtn));
     box.appendChild(h("div", "sm-sep"));
     item(soundOn ? "🔊" : "🔇", soundOn ? "Turn sound off" : "Turn sound on", () => { setSound(!soundOn); sfx.click(); });
@@ -1372,6 +1532,7 @@
   window.addEventListener("keydown", (e) => {
     if (wins.snake && wins.snake.el.classList.contains("is-active") && snakeApi && snakeApi.key(e)) return;
     if (wins.blocks && wins.blocks.el.classList.contains("is-active") && blocksApi && blocksApi.key(e)) return;
+    if (wins.flap && wins.flap.el.classList.contains("is-active") && flapApi && flapApi.key(e)) return;
     if (e.key === "Escape") {
       if (!startMenu.hidden) { closeStart(); return; }
       const act = Object.values(wins).find((w) => w.el.classList.contains("is-active") && !w.el.classList.contains("is-min"));
@@ -1407,6 +1568,7 @@
     updateEyes();
     if (snakeApi) snakeApi.tick(dt);
     if (blocksApi) blocksApi.tick(dt);
+    if (flapApi) flapApi.tick(dt);
     const spinning = Math.abs(targetAngle - angle) > 0.5;
     if (spinning !== wasSpinning) { wasSpinning = spinning; frameLabel.textContent = spinning ? "✦ sasha os 2026 · spinning…" : "♡ sasha os 2026 · online"; }
     drawPixels();
