@@ -824,6 +824,7 @@
   });
   window.addEventListener("pointermove", (e) => {
     look = { x: e.clientX, y: e.clientY };
+    lastMove = performance.now();
     if (e.pointerType === "mouse" && !e.target.closest(".win.app")) trail(e.clientX, e.clientY);
     if (!drag) return;
     const dx = e.clientX - drag.x;
@@ -849,6 +850,7 @@
   const sheet = new Image(); sheet.src = SHEET.src;
   const NEUTRAL_PITCH = 16;
   let look = { x: innerWidth / 2, y: innerHeight };
+  let lastMove = performance.now();   // last time the cursor actually moved
   let tYaw = 0, tPitch = NEUTRAL_PITCH, shown = -1, pokes = 0, pokeReset = null;
   function blink() { /* the video has no blink */ }
   // mosaic: 0 = big blocks, 1 = the clear photo (animated in after loading)
@@ -913,9 +915,13 @@
     busy() { return this.state !== "idle"; },
     play(name) {
       const e = EMOTIONS[name], now = performance.now();
-      if (!e || this.busy() || mosaic < 1 || now - e.lastEnd < e.cooldown) return false;
+      const cur = this.emotion;
+      const interrupting = cur && cur.loop && !e.loop && this.state === "emotion";
+      if (!e || (this.busy() && !interrupting) || mosaic < 1 || now - e.lastEnd < e.cooldown) return false;
       if (e.img && !ready(e.img)) return false;
-      this.emotion = e; this.state = e.settle === false ? "emotion" : "settling"; this.t0 = now;
+      if (interrupting) cur.lastEnd = now;
+      // coming out of the (front-facing) blink loop, skip the settle step
+      this.emotion = e; this.state = (e.settle === false || interrupting) ? "emotion" : "settling"; this.t0 = now;
       return true;
     }
   };
@@ -936,6 +942,9 @@
     tPitch += (wantPitch - tPitch) * ease;
     const idleLayer = [sheet, SHEET, turnFrame(tYaw, tPitch), 1];
 
+    // cursor resting (just scrolling / using arrows): look ahead and blink
+    if (c.state === "idle" && now - lastMove > IDLE_AFTER && EMOTIONS.idle_blink) character.play("idle_blink");
+
     if (c.state === "settling") {
       // wait until the head faces forward (or give up waiting after 700ms)
       if ((Math.abs(tYaw) < 3 && Math.abs(tPitch - NEUTRAL_PITCH) < 2) || now - c.t0 > 700) { c.state = "emotion"; c.t0 = now; }
@@ -950,6 +959,14 @@
         if (el > (e.stillFor || 1800)) { c.state = "returning"; c.t0 = now; }
         return;
       }
+      if (e.loop) {
+        // loops until the cursor moves again, then hands back to following
+        if (lastMove > c.t0) { c.state = "returning"; c.t0 = now; c.loopFrame = Math.floor(el / 1000 * e.fps) % e.frames; return; }
+        const lf = reduceMotion ? 0 : Math.floor(el / 1000 * e.fps) % e.frames;
+        const fade = reduceMotion ? 1 : Math.min(1, el / e.fadeIn);
+        paint(fade < 1 ? [idleLayer, [e.img, e.sheet, lf, fade]] : [[e.img, e.sheet, lf, 1]]);
+        return;
+      }
       const f = Math.floor(el / 1000 * e.fps);
       if (f >= e.frames) { c.state = "returning"; c.t0 = now; paint([[e.img, e.sheet, e.frames - 1, 1]]); return; }
       const fade = Math.min(1, el / e.fadeIn);
@@ -958,7 +975,8 @@
     }
     if (c.state === "returning") {
       const p = reduceMotion ? 1 : Math.min(1, (now - c.t0) / e.fadeOut);
-      paint(p < 1 ? [[e.img, e.sheet, reduceMotion ? e.still : e.frames - 1, 1], [sheet, SHEET, idleLayer[2], p]] : [idleLayer]);
+      const last = e.loop ? (c.loopFrame || 0) : (reduceMotion ? e.still : e.frames - 1);
+      paint(p < 1 ? [[e.img, e.sheet, last, 1], [sheet, SHEET, idleLayer[2], p]] : [idleLayer]);
       if (p >= 1) { e.lastEnd = now; c.state = "idle"; c.emotion = null; }
       return;
     }
@@ -971,6 +989,13 @@
     // 4 s clip: side-eye, mischievous smirk, back to looking forward
     src: "assets/face-smirk.webp", size: 420, cols: 10, frames: 49, fps: 12,
     still: 30, stillFor: 1800, cooldown: 8000
+  });
+
+  // idle: front-facing blink loop while the cursor rests
+  const IDLE_AFTER = 1600;
+  registerEmotion("idle_blink", {
+    src: "assets/face-blink.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    loop: true, cooldown: 0, fadeIn: 220, fadeOut: 160
   });
 
   registerEmotion("pout", {
@@ -994,7 +1019,7 @@
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
     // another emotion (the smirk) is mid-play: don't stack a second one on top
-    if (character.busy() && character.emotion !== EMOTIONS.pout) return;
+    if (character.busy() && character.emotion !== EMOTIONS.pout && !character.emotion.loop) return;
     character.play("pout");
     sfx.poke();
     burst(e.clientX, e.clientY, 10, "215,163,189");
@@ -1050,7 +1075,7 @@
     if (e.key === "ArrowRight") { e.preventDefault(); spinTo((front + 1) % N); }
     if (e.key === "ArrowLeft") { e.preventDefault(); spinTo((front - 1 + N) % N); }
   });
-  window.addEventListener("touchmove", (e) => { const t = e.touches[0]; if (t) look = { x: t.clientX, y: t.clientY }; }, { passive: true });
+  window.addEventListener("touchmove", (e) => { const t = e.touches[0]; if (t) { look = { x: t.clientX, y: t.clientY }; lastMove = performance.now(); } }, { passive: true });
   window.addEventListener("resize", layout);
 
   /* ---------- clock ---------- */
@@ -1097,7 +1122,7 @@
     const screen = $("boot");
     const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
     const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
-    const urls = [SHEET.src, "assets/face-smirk.webp", "assets/face-pout.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+    const urls = [SHEET.src, "assets/face-smirk.webp", "assets/face-pout.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
       .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
     let loaded = 0;
     const uniq = Array.from(new Set(urls));
