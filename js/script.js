@@ -973,10 +973,10 @@
     still: 30, stillFor: 1800, cooldown: 8000
   });
 
-  registerEmotion("annoyed", {
-    // 4 s clip: neutral, nose scrunch, then a cold glare; plays when you poke her face
-    src: "assets/face-annoyed.webp", size: 420, cols: 10, frames: 49, fps: 12,
-    still: 34, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
+  registerEmotion("pout", {
+    // 4 s clip: neutral, then a scrunched-up pout; plays when you poke her face
+    src: "assets/face-pout.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 40, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
   });
 
   // trigger: hover a project card for 2 s; once per hover
@@ -994,8 +994,8 @@
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
     // another emotion (the smirk) is mid-play: don't stack a second one on top
-    if (character.busy() && character.emotion !== EMOTIONS.annoyed) return;
-    character.play("annoyed");
+    if (character.busy() && character.emotion !== EMOTIONS.pout) return;
+    character.play("pout");
     sfx.poke();
     burst(e.clientX, e.clientY, 10, "215,163,189");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
@@ -1097,7 +1097,7 @@
     const screen = $("boot");
     const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
     const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
-    const urls = [SHEET.src, "assets/face-smirk.webp", "assets/face-annoyed.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+    const urls = [SHEET.src, "assets/face-smirk.webp", "assets/face-pout.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
       .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
     let loaded = 0;
     const uniq = Array.from(new Set(urls));
