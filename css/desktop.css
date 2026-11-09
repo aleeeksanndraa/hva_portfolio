@@ -141,7 +141,7 @@ button { font: inherit; color: inherit; }
   display: grid;
   grid-auto-flow: row;
   gap: 8px;
-  z-index: 5;
+  z-index: 99;   /* above the orbiting cards, below opened windows (101+) */
 }
 .icon {
   all: unset;
@@ -170,6 +170,9 @@ button { font: inherit; color: inherit; }
 .icon span { padding: 1px 6px; line-height: 1.35; border-radius: 4px; background: rgba(238, 236, 240, 0.7); }
 .icon:hover span, .icon:focus-visible span { background: var(--pink); }
 .icon:focus-visible { outline: none; }
+#icons.free { display: block; width: 0; height: 0; }
+.icon.dragging { cursor: grabbing; z-index: 2; }
+.icon.dragging img, .icon.dragging canvas, .icon.dragging .icon-svg, .icon.dragging .icon-glyph { transform: scale(1.08) rotate(-4deg); }
 
 /* ---------- windows ---------- */
 .win {
@@ -589,6 +592,8 @@ button { font: inherit; color: inherit; }
 
 /* ---------- phones ---------- */
 @media (max-width: 760px) {
+  #icons, #icons.free { display: grid; width: auto; height: auto; }
+  #icons .icon { position: static !important; }
   #icons { grid-auto-flow: column; left: 50%; transform: translateX(-50%); top: 8px; gap: 2px; }
   .icon { width: 64px; font-size: 9px; }
   .icon img, .icon canvas, .icon-svg, .icon-glyph { width: 30px; height: 30px; }

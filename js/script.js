@@ -746,6 +746,63 @@
   }
   document.querySelectorAll(".icon-snake").forEach((c) => drawSnakeIcon(c, 16, 16));
 
+  /* ---------- desktop icons can be dragged around (positions remembered) ---------- */
+  const iconBox = $("icons");
+  const iconEls = [...iconBox.querySelectorAll(".icon")];
+  let iconsFree = false;
+  function freeIcons(saved) {
+    // switch from the grid to free positions, keeping where everything is now
+    if (iconsFree) return;
+    const box = iconBox.getBoundingClientRect();
+    const pos = iconEls.map((el) => { const r = el.getBoundingClientRect(); return [r.left - box.left, r.top - box.top]; });
+    iconEls.forEach((el, i) => {
+      const p = (saved && saved[el.dataset.open]) || pos[i];
+      el.style.position = "absolute"; el.style.left = p[0] + "px"; el.style.top = p[1] + "px";
+    });
+    iconBox.classList.add("free");
+    iconsFree = true;
+  }
+  function clampIcon(el) {
+    const box = iconBox.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const x = Math.max(-box.left, Math.min(innerWidth - r.width - box.left, parseFloat(el.style.left)));
+    const y = Math.max(-box.top, Math.min(innerHeight - 48 - r.height - box.top, parseFloat(el.style.top)));
+    el.style.left = x + "px"; el.style.top = y + "px";
+  }
+  function saveIcons() {
+    const o = {}; iconEls.forEach((el) => { o[el.dataset.open] = [parseFloat(el.style.left), parseFloat(el.style.top)]; });
+    store.set("icons", o);
+  }
+  const savedIcons = store.get("icons", null);
+  if (savedIcons && !isSmall()) { freeIcons(savedIcons); iconEls.forEach(clampIcon); }
+  iconEls.forEach((el) => {
+    el.addEventListener("pointerdown", (e) => {
+      if (isSmall() || e.button !== 0) return;
+      const sx = e.clientX, sy = e.clientY;
+      let ox = 0, oy = 0, moving = false;
+      const move = (ev) => {
+        if (!moving) {
+          if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+          moving = true; freeIcons();
+          ox = parseFloat(el.style.left) - sx; oy = parseFloat(el.style.top) - sy;
+          el.classList.add("dragging");
+        }
+        el.style.left = ev.clientX + ox + "px"; el.style.top = ev.clientY + oy + "px";
+        clampIcon(el);
+      };
+      const up = () => {
+        removeEventListener("pointermove", move); removeEventListener("pointerup", up); removeEventListener("pointercancel", up);
+        if (!moving) return;
+        el.classList.remove("dragging");
+        el.dataset.justDragged = "1";
+        setTimeout(() => delete el.dataset.justDragged, 0);
+        saveIcons();
+      };
+      addEventListener("pointermove", move); addEventListener("pointerup", up); addEventListener("pointercancel", up);
+    });
+    el.addEventListener("dragstart", (e) => e.preventDefault());
+  });
+  addEventListener("resize", () => { if (iconsFree) iconEls.forEach(clampIcon); });
+
   CARDS.forEach((c, i) => {
     const b = h("button", "ring-card");
     b.type = "button";
@@ -1037,6 +1094,7 @@
       return;
     }
     const opener = e.target.closest("[data-open]");
+    if (opener && opener.dataset.justDragged) { delete opener.dataset.justDragged; return; }
     if (opener) {
       // desktop icons open on double-click like a real desktop; one tap on phones / keyboard
       if (opener.classList.contains("icon") && e.detail === 1 && !isSmall()) { sfx.click(); return; }
