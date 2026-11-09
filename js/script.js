@@ -999,9 +999,9 @@
   });
 
   registerEmotion("pout", {
-    // 4 s clip: neutral, then a scrunched-up pout; plays when you poke her face
-    src: "assets/face-pout.webp", size: 420, cols: 10, frames: 49, fps: 12,
-    still: 40, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
+    // pout clip, calm opening trimmed off (starts as the scrunch builds); plays when you poke her face
+    src: "assets/face-pout.webp", size: 420, cols: 10, frames: 33, fps: 12,
+    still: 21, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
   });
 
   // trigger: hover a project card for 2 s; once per hover
