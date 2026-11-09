@@ -1344,7 +1344,10 @@
   const DASH = { T0: 0.2177, BEAT: 60 / 175.15, PPS: 252, END: 85,
     // loudness per beat, 0-9 (measured from the track)
     E: "95893991000000853976799759883987496879894958498859699979696949597979997978575607474987596969686857488769687978796899999966885389679989996599637112110200321023200102010022202330010201002221233022232252244343479797969996929699969296939699949997929799" };
-  // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases, then night phrases for the loud parts
+  // the drops of the track, in beats: the first hits ~5% into the run, the second after the breakdown
+  const DASH_DROPS = [[12, 143], [209, 1e9]];
+  const dashInDrop = (b) => DASH_DROPS.some(([a, z]) => b >= a && b < z);
+  // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases outside the drops, night phrases inside them
   const DASH_THEMES = [
     ["#b9aee3", "#e7e1f6", "rgba(255,255,255,A)", "s"], ["#d9b3cf", "#f4e3ee", "rgba(255,255,255,A)", "o"],
     ["#a9bde6", "#e1e8f7", "rgba(255,255,255,A)", "d"], ["#c6b5ea", "#f1e6f6", "rgba(255,255,255,A)", "t"],
@@ -1385,7 +1388,7 @@
       get on() { return !song.paused; }
     };
     const GRAV = 0.92, JUMP = -10.2, PAD = -15, LEN = DASH.END * DASH.PPS;
-    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false, t = 0;
+    let cy, vy, rot, ground, cam, obs, parts, trail, alive = false, running = false, held = false, t = 0, wasDrop = false, dropHit = 0;
     let attempt = 1, best = store.get("dash-best", 0), acc = 0, frame = 0, dead = 0, spd = DASH.PPS / 60, won = 0;
     function build() { obs = dashLevel(GY, C, PX); }
     function reset() { cy = GY - C; vy = 0; rot = 0; ground = true; cam = 0; t = 0; parts = []; trail = []; dead = 0; won = 0; build(); }
@@ -1445,14 +1448,20 @@
       // the world changes every 16 beats (a phrase); loud phrases get the night palette
       const phrase = Math.max(0, Math.floor(bt / 16)), pb = bt - phrase * 16;
       let loudSum = 0; for (let k = phrase * 16; k < phrase * 16 + 16; k++) loudSum += +(DASH.E[k] || 0);
-      const th = running ? DASH_THEMES[(loudSum / 16 >= 7 ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
+      const drop = running && dashInDrop(Math.floor(bt));
+      if (drop && !wasDrop) dropHit = 1;   // the drop lands: instant scene swap + big flash + shake
+      wasDrop = drop; dropHit *= 0.93;
+      const th = running ? DASH_THEMES[(drop ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
+      x.save();
+      if (dropHit > 0.05) x.translate((Math.random() - 0.5) * 14 * dropHit, (Math.random() - 0.5) * 14 * dropHit);
       const sky = x.createLinearGradient(0, 0, 0, H);
       sky.addColorStop(0, th[0]); sky.addColorStop(1, th[1]);
       x.fillStyle = sky; x.fillRect(0, 0, W, H);
       // background shapes that pulse with the kick (the shape changes with the phrase)
-      x.strokeStyle = th[2].replace("A", (0.22 + kick * 0.35).toFixed(2)); x.fillStyle = x.strokeStyle; x.lineWidth = 2;
-      for (let i = 0; i < 10; i++) {
-        const bx = ((i * 61 - cam * 0.25) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 110, sz = 16 + (i % 3) * 10 + kick * 6;
+      x.strokeStyle = th[2].replace("A", (0.22 + kick * 0.35).toFixed(2)); x.fillStyle = x.strokeStyle; x.lineWidth = drop ? 3 : 2;
+      for (let i = 0; i < (drop ? 16 : 10); i++) {
+        const bx = ((i * 61 - cam * (drop ? 0.5 : 0.25)) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 110, sz = (16 + (i % 3) * 10) * (drop ? 1.4 : 1) + kick * (drop ? 14 : 6);
+        if (drop) { x.strokeStyle = "hsla(" + Math.round((i * 47 + bt * 40) % 360) + ",90%,72%," + (0.45 + kick * 0.5).toFixed(2) + ")"; x.fillStyle = x.strokeStyle; }
         x.save(); x.translate(bx, by); x.rotate((th[3] === "d" ? Math.PI / 4 : 0) + (th[3] === "x" ? bt * 0.4 : 0));
         if (th[3] === "o") { x.beginPath(); x.arc(0, 0, sz / 2, 0, 6.29); x.stroke(); }
         else if (th[3] === "t") { x.beginPath(); x.moveTo(0, -sz / 2); x.lineTo(sz / 2, sz / 2); x.lineTo(-sz / 2, sz / 2); x.closePath(); x.stroke(); }
@@ -1461,10 +1470,18 @@
         x.restore();
       }
       // a flash as each new phrase comes in
+      if (drop) {   // rainbow speed lines rushing past during the drop
+        for (let i = 0; i < 7; i++) {
+          const ly = 12 + i * 21, lx = ((i * 137 - cam * 1.6) % (W + 200) + W + 200) % (W + 200) - 100;
+          x.fillStyle = "hsla(" + Math.round((i * 51 + bt * 30) % 360) + ",95%,70%," + (0.35 + kick * 0.4).toFixed(2) + ")";
+          x.fillRect(Math.floor(lx), ly, 90, 3);
+        }
+      }
       if (running && pb < 1) { x.fillStyle = "rgba(255,255,255," + ((1 - pb) * 0.45).toFixed(2) + ")"; x.fillRect(0, 0, W, H); }
       // ground: chrome tiles
       const gg = x.createLinearGradient(0, GY, 0, H);
-      gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8");
+      if (drop) { gg.addColorStop(0, "#d7a3bd"); gg.addColorStop(0.3, "#5b4a8f"); gg.addColorStop(1, "#1a1233"); }
+      else { gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8"); }
       x.fillStyle = gg; x.fillRect(0, GY, W, H - GY);
       x.fillStyle = "#2e2452"; x.fillRect(0, GY, W, 2);
       // floor seams sit exactly on the beat grid: when a seam reaches the cube, that's the beat
@@ -1512,8 +1529,10 @@
       const pr = Math.min(1, cam / LEN);
       x.fillStyle = "rgba(46,36,82,.35)"; x.fillRect(W / 2 - 80, 8, 160, 6);
       x.fillStyle = "#fff"; x.fillRect(W / 2 - 80, 8, 160 * pr, 6);
-      x.font = "700 9px 'Space Mono', monospace"; x.textAlign = "center"; x.fillStyle = "#2e2452";
+      x.font = "700 9px 'Space Mono', monospace"; x.textAlign = "center"; x.fillStyle = drop ? "#fff" : "#2e2452";
       x.fillText(Math.floor(pr * 100) + "%", W / 2, 26);
+      x.restore();
+      if (dropHit > 0.05) { x.fillStyle = "rgba(255,255,255," + (dropHit * 0.9).toFixed(2) + ")"; x.fillRect(0, 0, W, H); }
       if (dead) { x.fillStyle = "rgba(255,255,255," + (0.5 * dead).toFixed(2) + ")"; x.fillRect(0, 0, W, H); dead = Math.max(0.01, dead * 0.9); }
     }
     cv.addEventListener("pointerdown", (e) => { e.preventDefault(); press(); });
@@ -1526,14 +1545,11 @@
       },
       keyup(e) { if (e.key === " " || e.key === "ArrowUp" || e.key === "w") held = false; },
       tick(dt) { acc += dt; let n = 0; while (acc > 16.7 && n < 4) { acc -= 16.7; step(); n++; } if (n === 4) acc = 0; },
-      // laser eyes only during the drops: a beat counts if the 9 beats around it are loud on average
+      // laser eyes only during the drops (beat ranges of the track: first drop hits ~5% into the run, second after the breakdown)
       level() {
         if (!running) return 0;
         const b = Math.floor((t - DASH.T0) / DASH.BEAT);
-        if (b < 0 || b >= DASH.E.length) return 0;
-        let sum = 0, n = 0;
-        for (let i = Math.max(0, b - 4); i <= Math.min(DASH.E.length - 1, b + 4); i++) { sum += +DASH.E[i]; n++; }
-        return sum / n >= 6 ? 9 : 0;
+        return dashInDrop(b) ? 9 : 0;
       },
       stop() { running = false; music.stop(); }
     };
