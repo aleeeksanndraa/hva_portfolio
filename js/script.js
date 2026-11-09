@@ -444,13 +444,13 @@
           doc.appendChild(s);
         });
         const end = h("div", "doc-end");
-        end.append(h("span", null, "— end of " + p.index + " —"), h("span", null, i < PROJECTS.length - 1 ? "next: " + PROJECTS[i + 1].title : "that's all for now"));
+        end.append(h("span", null, "· end of " + p.index + " ·"), h("span", null, i < PROJECTS.length - 1 ? "next: " + PROJECTS[i + 1].title : "that's all for now"));
         doc.appendChild(end);
         body.appendChild(doc);
         body.addEventListener("scroll", () => {
           if (body.scrollTop + body.clientHeight >= body.scrollHeight - 30) {
             const r = body.getBoundingClientRect();
-            if (collect("reader", r.left + r.width / 2, r.bottom - 30)) end.firstChild.textContent = "✦ you read to the end — star found";
+            if (collect("reader", r.left + r.width / 2, r.bottom - 30)) end.firstChild.textContent = "✦ you read to the end, star found";
           }
         }, { passive: true });
       }
@@ -517,7 +517,7 @@
           const td = h("td");
           const im = h("img"); im.src = "assets/chrome-folder.png"; im.alt = "";
           td.append(im, p.index + "_" + slug(p.title));
-          tr.append(td, h("td", null, p.course.split("(")[0].trim()), h("td", null, p.year), h("td", null, p.status.split("—")[0].trim()));
+          tr.append(td, h("td", null, p.course.split("(")[0].trim()), h("td", null, p.year), h("td", null, p.status.split(/[—,:]/)[0].trim()));
           const go = () => openApp("project:" + i, tr);
           tr.addEventListener("dblclick", go);
           tr.addEventListener("click", () => { if (isSmall()) go(); else sfx.click(); });
@@ -525,7 +525,7 @@
           tb.appendChild(tr);
         });
         const more = h("tr", "muted");
-        more.append(h("td", null, String(PROJECTS.length + 1).padStart(2, "0") + "_coming_soon"), h("td", null, "—"), h("td", null, "—"), h("td", null, "—"));
+        more.append(h("td", null, String(PROJECTS.length + 1).padStart(2, "0") + "_coming_soon"), h("td", null, "·"), h("td", null, "·"), h("td", null, "·"));
         tb.appendChild(more);
         t.appendChild(tb);
         body.appendChild(t);
@@ -540,7 +540,7 @@
     STARS.forEach((s) => ul.appendChild(h("li", got.includes(s.id) ? "got" : "", (got.includes(s.id) ? "✦  " : "·  ") + s.hint)));
     const note = h("div", "stars-note");
     if (got.length >= STARS.length) {
-      note.append("All found. You clearly have time to spare — ");
+      note.append("All found. You clearly have time to spare. ");
       const a = h("a", null, "say hi");
       a.href = "mailto:aleksandraslahova88@gmail.com?subject=I%20found%20all%20the%20stars";
       note.append(a, " and tell me which one was hardest.");
@@ -557,7 +557,7 @@
       status: ["3 object(s)", "Empty Recycle Bin"],
       fill(body) {
         const b = h("div", "trash-body");
-        const files = [["▤", "metal_card_v1.fig", () => balloon("metal_card_v1.fig", "The aluminium badge never happened. Acrylic did — see 01 Custom Badge.")], ["▦", "moodboard_old_FINAL_final2.png", () => balloon("Error", "This file is too embarrassing to open.")]];
+        const files = [["▤", "metal_card_v1.fig", () => balloon("metal_card_v1.fig", "The aluminium badge never happened. Acrylic did, see 01 Custom Badge.")], ["▦", "moodboard_old_FINAL_final2.png", () => balloon("Error", "This file is too embarrassing to open.")]];
         files.forEach(([ico, name, fn]) => {
           const f = h("button", "file");
           f.type = "button";
@@ -1726,7 +1726,7 @@
     const b = h("button", "ring-card");
     b.type = "button";
     b.dataset.card = String(i);
-    b.setAttribute("aria-label", c.title + " — " + c.meta);
+    b.setAttribute("aria-label", c.title + ", " + c.meta);
     const bar = h("div", "win-bar");
     bar.append(h("span", "win-title", c.file));
     const bt = h("span", "win-btns"); bt.innerHTML = "<i>×</i>"; bar.appendChild(bt);
@@ -2161,7 +2161,7 @@
     clearTimeout(pokeReset);
     pokeReset = setTimeout(() => { pokes = 0; }, 2500);
     if (pokes >= 5) { pokes = 0; if (!collect("poke", e.clientX, e.clientY)) balloon("sasha.exe", "ow. okay. you already have that one."); }
-    else if (pokes === 3 && !got.includes("poke")) balloon("sasha.exe", "hey—");
+    else if (pokes === 3 && !got.includes("poke")) balloon("sasha.exe", "hey…");
   });
 
   /* ------------------------------------------------------------------
