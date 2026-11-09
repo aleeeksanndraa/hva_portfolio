@@ -756,7 +756,7 @@
       const side = i ? 1 : -1, sway = Math.sin(now / 260 + i) * 9;
       b.style.left = (ex + side * 46 * k) + "px"; b.style.top = ey + "px";
       b.style.rotate = (side < 0 ? 160 + sway : 20 + sway) + tYaw * 0.8 + "deg";   // out and slightly down from each eye
-      b.style.filter = "hue-rotate(" + Math.round(now / 4 % 360) + "deg)";
+      b.style.backgroundPosition = "0 0, " + Math.round(now / 12 % 80) + "px 0";   // colours run outward
     });
   }
   // while blocks.exe is open the big head bops along to the 144 bpm tune

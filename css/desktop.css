@@ -820,10 +820,13 @@ body.booting #desktop { visibility: hidden; }
 /* beat_dash drop: rainbow beams from her eyes */
 .eye-beams { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; z-index: 2; }
 .eye-beams .beam {
-  position: absolute; width: 140vmax; height: 14px; margin-top: -7px;
+  /* pixel beam: hard rainbow blocks along the length, a bright 4px core, no blur */
+  position: absolute; width: 140vmax; height: 16px; margin-top: -8px;
   transform-origin: 0 50%;
-  background: linear-gradient(90deg, #fff 0%, #ff6ad5 8%, #ffd36a 22%, #8affc1 38%, #6ad8ff 55%, #b48aff 72%, rgba(180,138,255,0) 100%);
-  filter: blur(0.5px);
-  box-shadow: 0 0 18px 6px rgba(255, 255, 255, 0.35);
-  border-radius: 7px;
+  background:
+    linear-gradient(180deg, transparent 0 6px, rgba(255,255,255,.95) 6px 10px, transparent 10px),
+    repeating-linear-gradient(90deg, #ff6ad5 0 16px, #ffd36a 16px 32px, #8affc1 32px 48px, #6ad8ff 48px 64px, #b48aff 64px 80px);
+  -webkit-mask: linear-gradient(90deg, #000 0 70%, transparent);
+          mask: linear-gradient(90deg, #000 0 70%, transparent);
+  image-rendering: pixelated;
 }
