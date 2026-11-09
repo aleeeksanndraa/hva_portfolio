@@ -752,7 +752,7 @@
   function openBlocks(from) {
     return createWin({
       id: "blocks", title: "blocks.exe", w: 320, h: "auto", from, dx: -240, dy: -30, flat: true,
-      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; setPixelFace(false); },
+      onClose() { if (blocksApi) blocksApi.stop(); blocksApi = null; if (!flapApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app blocks-app");
         const row = h("div", "blocks-row");
@@ -915,7 +915,7 @@
   function openFlap(from) {
     return createWin({
       id: "flap", title: "mlg_flap.exe", w: 300, h: "auto", from, dx: 260, dy: 10, flat: true,
-      onClose() { if (flapApi) flapApi.stop(); flapApi = null; },
+      onClose() { if (flapApi) flapApi.stop(); flapApi = null; setShades(false); if (!blocksApi) setPixelFace(false); },
       fill(body) {
         const app = h("div", "snake-app flap-app");
         const lcd = h("div", "lcd flap-lcd");
@@ -929,13 +929,14 @@
         app.append(lcd, sc, h("div", "snake-tip", "SPACE / CLICK / TAP · SOUND ON FOR MAX MLG"), h("div", "snake-tip", "♪ Bytesize – Dig Dug")); 
         body.appendChild(app);
         flapApi = makeFlap(cv, msg, sS, sB, lcd);
+        setPixelFace(true); setTimeout(() => setShades(true), 500);
       }
     });
   }
   function makeFlap(cv, msg, scoreEl, bestEl, lcd) {
     const x = cv.getContext("2d"), W = cv.width, H = cv.height;
     const head = new Image(); head.src = "assets/face-cutout.webp";
-    const GAP = 96, PW = 40, SPD = 1.6, GRAV = 0.32, JUMP = -5.6;
+    const GAP = 122, PW = 40, SPD = 1.5, GRAV = 0.28, JUMP = -5.2;
     let by, vy, pipes, score, alive = false, running = false, acc = 0, best = store.get("flap-best", 0);
     let fx = [], shake = 0, hue = 0, shades = 0, tri = 0, frame = 0;
     // Bytesize – Dig Dug (Sasha's Monstercat Gold license), from 0:55
@@ -944,7 +945,7 @@
       play() { if (!soundOn) return; song.currentTime = 0; const pr = song.play(); if (pr && pr.catch) pr.catch(() => {}); },
       stop() { song.pause(); }
     };
-    function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 20); addPipe(W + 20 + 150); draw(); }
+    function reset() { by = H / 2; vy = 0; pipes = []; score = 0; fx = []; shake = 0; shades = 0; hue = 0; scoreEl.textContent = "0"; addPipe(W + 40); addPipe(W + 40 + 175); draw(); }
     function addPipe(px) { pipes.push({ x: px, gy: 60 + Math.random() * (H - 120 - GAP - 40), done: false }); }
     function pop(text, X, Y, big) { fx.push({ t: text, x: X, y: Y, life: 1, big, hm: false, r: (Math.random() - 0.5) * 0.5 }); }
     function hitmark(X, Y) { fx.push({ hm: true, x: X, y: Y, life: 1 }); }
@@ -1015,9 +1016,9 @@
       if (running) {
         vy += GRAV; by += vy;
         if (by < 14) { by = 14; vy = Math.max(vy, 0); }   // soft ceiling
-        pipes.forEach((p) => { p.x -= SPD + Math.min(1.4, score * 0.05); if (!p.done && p.x + PW < 60 - 14) { p.done = true; scored(); } });
-        if (pipes[0].x < -PW) { pipes.shift(); addPipe(pipes[pipes.length - 1].x + 150); }
-        const hitPipe = pipes.some((p) => 60 + 14 > p.x && 60 - 14 < p.x + PW && (by - 14 < p.gy || by + 14 > p.gy + GAP));
+        pipes.forEach((p) => { p.x -= SPD + Math.min(0.8, score * 0.03); if (!p.done && p.x + PW < 60 - 14) { p.done = true; scored(); } });
+        if (pipes[0].x < -PW) { pipes.shift(); addPipe(pipes[pipes.length - 1].x + 175); }
+        const hitPipe = pipes.some((p) => 60 + 11 > p.x && 60 - 11 < p.x + PW && (by - 11 < p.gy || by + 11 > p.gy + GAP));   // forgiving hitbox
         if (by > H - 24 || hitPipe) die();
       }
       fx.forEach((f) => { f.life -= f.hm ? 0.05 : 0.018; if (!f.hm) f.y -= 0.6; });
@@ -1279,6 +1280,13 @@
   const DASH = { T0: 0.2177, BEAT: 60 / 175.15, PPS: 252, END: 85,
     // loudness per beat, 0-9 (measured from the track)
     E: "95893991000000853976799759883987496879894958498859699979696949597979997978575607474987596969686857488769687978796899999966885389679989996599637112110200321023200102010022202330010201002221233022232252244343479797969996929699969296939699949997929799" };
+  // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases, then night phrases for the loud parts
+  const DASH_THEMES = [
+    ["#b9aee3", "#e7e1f6", "rgba(255,255,255,A)", "s"], ["#d9b3cf", "#f4e3ee", "rgba(255,255,255,A)", "o"],
+    ["#a9bde6", "#e1e8f7", "rgba(255,255,255,A)", "d"], ["#c6b5ea", "#f1e6f6", "rgba(255,255,255,A)", "t"],
+    ["#2e2452", "#6d5aa8", "rgba(215,163,189,A)", "x"], ["#3a1f45", "#a0607f", "rgba(255,255,255,A)", "d"],
+    ["#1f2a52", "#5a74b4", "rgba(180,167,221,A)", "o"], ["#2e2452", "#8a6fc4", "rgba(255,242,0,A)", "t"]
+  ];
   function dashLevel(GY, C, PX) {
     let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
     const obs = [], bx = (i) => (DASH.T0 + i * DASH.BEAT) * DASH.PPS + PX;
@@ -1370,15 +1378,26 @@
     const COL = ["#2e2452", "#d7a3bd", "#ffffff"];
     function draw() {
       const bt = (t - DASH.T0) / DASH.BEAT, beat = running ? bt - Math.floor(bt) : (frame % 24) / 24, kick = Math.pow(1 - beat, 3);
+      // the world changes every 16 beats (a phrase); loud phrases get the night palette
+      const phrase = Math.max(0, Math.floor(bt / 16)), pb = bt - phrase * 16;
+      let loudSum = 0; for (let k = phrase * 16; k < phrase * 16 + 16; k++) loudSum += +(DASH.E[k] || 0);
+      const th = running ? DASH_THEMES[(loudSum / 16 >= 7 ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
       const sky = x.createLinearGradient(0, 0, 0, H);
-      sky.addColorStop(0, "#b9aee3"); sky.addColorStop(1, "#e7e1f6");
+      sky.addColorStop(0, th[0]); sky.addColorStop(1, th[1]);
       x.fillStyle = sky; x.fillRect(0, 0, W, H);
-      // background squares that pulse with the kick
-      x.strokeStyle = "rgba(255,255,255," + (0.18 + kick * 0.3).toFixed(2) + ")"; x.lineWidth = 2;
-      for (let i = 0; i < 9; i++) {
-        const bx = ((i * 61 - cam * 0.25) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 100, s = 18 + (i % 3) * 10 + kick * 4;
-        x.strokeRect(bx - s / 2, by - s / 2, s, s);
+      // background shapes that pulse with the kick (the shape changes with the phrase)
+      x.strokeStyle = th[2].replace("A", (0.22 + kick * 0.35).toFixed(2)); x.fillStyle = x.strokeStyle; x.lineWidth = 2;
+      for (let i = 0; i < 10; i++) {
+        const bx = ((i * 61 - cam * 0.25) % (W + 80) + W + 80) % (W + 80) - 40, by = 20 + (i * 37) % 110, sz = 16 + (i % 3) * 10 + kick * 6;
+        x.save(); x.translate(bx, by); x.rotate((th[3] === "d" ? Math.PI / 4 : 0) + (th[3] === "x" ? bt * 0.4 : 0));
+        if (th[3] === "o") { x.beginPath(); x.arc(0, 0, sz / 2, 0, 6.29); x.stroke(); }
+        else if (th[3] === "t") { x.beginPath(); x.moveTo(0, -sz / 2); x.lineTo(sz / 2, sz / 2); x.lineTo(-sz / 2, sz / 2); x.closePath(); x.stroke(); }
+        else if (th[3] === "x") { x.font = (sz + 6) + "px sans-serif"; x.textAlign = "center"; x.fillText("✦", 0, sz / 3); }
+        else x.strokeRect(-sz / 2, -sz / 2, sz, sz);
+        x.restore();
       }
+      // a flash as each new phrase comes in
+      if (running && pb < 1) { x.fillStyle = "rgba(255,255,255," + ((1 - pb) * 0.45).toFixed(2) + ")"; x.fillRect(0, 0, W, H); }
       // ground: chrome tiles
       const gg = x.createLinearGradient(0, GY, 0, H);
       gg.addColorStop(0, "#fbfbfd"); gg.addColorStop(0.3, "#c3c5d0"); gg.addColorStop(1, "#8f8aa8");
@@ -1780,12 +1799,42 @@
   const ready = (img) => img.complete && img.naturalWidth > 0;
   // one frame, or a crossfade between two: layers = [[img, sheet, index, alpha], ...]
   function paint(layers) {
-    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix;
+    const key = layers.map((l) => l[1].src + l[2] + ":" + (l[3] == null ? 1 : l[3].toFixed(2))).join("|") + "@" + mosaic + "/" + pix + "/" + shadesP.toFixed(2) + "/" + Math.round(tYaw);
     if (key === lastKey) return;
     if (!layers.every((l) => ready(l[0]))) return;
     lastKey = key;
     hx.clearRect(0, 0, hc.width, hc.height);
     layers.forEach((l) => blit(l[0], l[1], l[2], l[3]));
+    if (shadesP > 0) drawShades();
+  }
+  // meme pixel shades for mlg_flap.exe: they drop down from above onto her eyes
+  const SHADES = [
+    "XXXXXXXXXXXXXXXXXXXXXX",
+    "XWWXXXXXXXXXXWWXXXXXXX",
+    ".XWWXXXXX..XXXWWXXXXX.",
+    "..XXXXXX....XXXXXX...."
+  ];
+  let shadesP = 0, shadesAnim = 0;
+  function drawShades() {
+    const cell = 11 * hc.width / 420, w = SHADES[0].length * cell;
+    const cx = hc.width / 2 + tYaw * 1.6 * hc.width / 420, y0 = hc.height * 0.455 - (1 - shadesP) * hc.height * 0.6;
+    hx.globalAlpha = Math.min(1, shadesP * 1.5);
+    SHADES.forEach((row, r) => [...row].forEach((ch, c) => {
+      if (ch === ".") return;
+      hx.fillStyle = ch === "W" ? "#ffffff" : "#0b0b0f";
+      hx.fillRect(Math.round(cx - w / 2 + c * cell), Math.round(y0 + r * cell), Math.ceil(cell), Math.ceil(cell));
+    }));
+    hx.globalAlpha = 1;
+  }
+  function setShades(on) {
+    const id = ++shadesAnim, from = shadesP, to = on ? 1 : 0, t0 = performance.now();
+    if (reduceMotion) { shadesP = to; return; }
+    (function step(now) {
+      if (id !== shadesAnim) return;
+      const p = Math.min(1, (now - t0) / (on ? 900 : 300));
+      shadesP = from + (to - from) * (on ? 1 - Math.pow(1 - p, 3) : p);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
   }
   function resolveFace(dur) {
     if (reduceMotion) { mosaic = 1; return; }
