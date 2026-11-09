@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/desktop.css">
 </head>
-<body>
+<body class="booting">
 <div id="desktop">
   <div id="wallpaper" aria-hidden="true">
     <div class="wp-grid"></div>
@@ -77,6 +77,18 @@
   </footer>
 
   <div id="balloon" aria-live="polite"></div>
+</div>
+<div id="boot" role="status" aria-live="polite">
+  <div class="boot-box">
+    <div class="win-bar"><span class="win-title">loading sasha_os.exe</span><span class="win-btns"><i>_</i><i>□</i><i>×</i></span></div>
+    <div class="boot-body">
+      <img class="boot-chrome" src="assets/chrome-mark.png" alt="">
+      <div class="boot-logo">SASHA OS</div>
+      <div class="boot-sub">process book · digital design · hva</div>
+      <div class="boot-track"><i id="boot-bar"></i></div>
+      <div class="boot-row"><span id="boot-line">waking up…</span><span id="boot-pct">000%</span></div>
+    </div>
+  </div>
 </div>
 <script src="js/projects.js"></script>
 <script src="js/script.js"></script>

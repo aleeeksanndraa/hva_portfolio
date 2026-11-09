@@ -587,3 +587,83 @@ button { font: inherit; color: inherit; }
 .head { filter: drop-shadow(5px 5px 0 rgba(46, 36, 82, 0.35)); }
 @keyframes hover-float { 50% { transform: translateY(-12px); } }
 @media (prefers-reduced-motion: reduce) { .face-stage { animation: none; } }
+
+/* ---------- about me: a tiny desktop with the tamagotchi ---------- */
+.about-desk {
+  position: relative;
+  height: 320px;
+  margin: 10px;
+  border: var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: radial-gradient(60% 60% at 50% 40%, rgba(255, 255, 255, 0.45), transparent 70%), linear-gradient(180deg, #c6bbe9, var(--sky));
+}
+.ad-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1.4px); background-size: 16px 16px; }
+.ad-spark { position: absolute; font-style: normal; color: #fff; font-size: 18px; animation: twinkle 3s ease-in-out infinite; }
+.ad-spark.p { color: var(--pink); animation-delay: -1.4s; }
+.ad-icon { position: absolute; width: 64px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; cursor: pointer; user-select: none; }
+.ad-icon .ad-ico { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--paper); border: var(--line); border-radius: 6px; box-shadow: 2px 2px 0 var(--navy); }
+.ad-icon span:last-child { background: rgba(255, 255, 255, 0.6); border-radius: 3px; padding: 0 4px; }
+.ad-tama {
+  position: absolute;
+  left: 50%;
+  top: -34px;
+  height: 330px;
+  width: auto;
+  transform-origin: 50% 0;
+  translate: -50% 0;
+  animation: tama-swing 4.5s ease-in-out infinite;
+  filter: drop-shadow(5px 6px 0 rgba(46, 36, 82, 0.28));
+  cursor: pointer;
+}
+.ad-tama.boop { animation: tama-boop 0.6s ease, tama-swing 4.5s ease-in-out 0.6s infinite; }
+@keyframes tama-swing { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
+@keyframes tama-boop { 30% { rotate: 12deg; scale: 1.04; } 65% { rotate: -9deg; } }
+.ad-bubble {
+  position: absolute;
+  right: 6%;
+  top: 22%;
+  padding: 8px 12px;
+  background: var(--paper);
+  border: var(--line);
+  border-radius: 12px 12px 12px 2px;
+  box-shadow: 3px 3px 0 var(--navy);
+  font-family: var(--pix);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.ad-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 24px; display: flex; align-items: center; gap: 6px; padding: 0 6px; background: var(--silver); border-top: var(--line); font-family: var(--pix); font-size: 9px; }
+.ad-bar span { padding: 1px 8px; border: 1.5px solid var(--navy); border-radius: 999px; background: var(--paper); }
+.ad-bar span:first-child { background: var(--pink); }
+.ad-bar .ad-clock { margin-left: auto; }
+@media (max-width: 760px) { .about-desk { height: 260px; } .ad-tama { height: 270px; } .ad-bubble { right: 3%; top: 10%; } }
+@media (prefers-reduced-motion: reduce) { .ad-tama, .ad-spark { animation: none; } }
+
+/* ---------- boot / loading screen ---------- */
+#boot {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background:
+    radial-gradient(50vw 46vh at 50% 46%, rgba(255, 255, 255, 0.45), transparent 70%),
+    linear-gradient(180deg, #c0b4e6, var(--sky) 60%, #a294d3);
+}
+#boot::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255, 255, 255, 0.45) 1.2px, transparent 1.6px); background-size: 22px 22px; }
+.boot-box { position: relative; width: min(420px, 100%); background: var(--paper); border: var(--line); border-radius: var(--r); box-shadow: 6px 6px 0 var(--navy); overflow: hidden; }
+.boot-box .win-bar { background: var(--pink); }
+.boot-body { display: flex; flex-direction: column; align-items: center; padding: 26px 26px 20px; text-align: center; }
+.boot-chrome { width: 56px; height: 56px; animation: boot-spin 2.4s linear infinite; filter: drop-shadow(3px 3px 0 rgba(46, 36, 82, 0.3)); }
+@keyframes boot-spin { to { rotate: 360deg; } }
+.boot-logo { margin-top: 12px; font-family: var(--type); font-weight: 800; font-size: 40px; letter-spacing: -0.06em; line-height: 1; color: var(--paper); -webkit-text-stroke: 2px var(--navy); text-shadow: 3px 3px 0 var(--navy); }
+.boot-sub { margin-top: 8px; font-size: 11px; color: var(--muted); }
+.boot-track { width: 100%; height: 18px; margin-top: 22px; border: var(--line); border-radius: 999px; background: #fff; overflow: hidden; padding: 2px; }
+.boot-track i { display: block; height: 100%; width: 0; border-radius: 999px; background: repeating-linear-gradient(90deg, var(--pink) 0 10px, var(--peri) 10px 20px); }
+.boot-row { width: 100%; display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--pix); font-size: 10px; color: var(--navy); }
+body.booting #desktop { visibility: hidden; }
+.pix-cover { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; z-index: 30; }
+.pix-cover.fixed { position: fixed; z-index: 1500; }
+@media (prefers-reduced-motion: reduce) { .boot-chrome { animation: none; } }

@@ -172,6 +172,48 @@
   const winLayer = $("windows");
   const tasks = $("tasks");
 
+  /* ------------------------------------------------------------------
+   * Pixel reveal: things appear through a grid of pastel pixels that
+   * blink away in random order.
+   * ------------------------------------------------------------------ */
+  const PIX_COLORS = ["#b4a7dd", "#c1b6e6", "#e3ddf4", "#f6f3fa", "#d7a3bd", "#2e2452"];
+  function pixelCover(el, opts) {
+    if (reduceMotion || !el) return;
+    const o = Object.assign({ cell: 14, dur: 520, delay: 0, fixed: false }, opts || {});
+    const W = o.fixed ? innerWidth : el.offsetWidth, H = o.fixed ? innerHeight : el.offsetHeight;
+    if (!W || !H) return;
+    const cv = h("canvas", "pix-cover");
+    const cols = Math.ceil(W / o.cell), rows = Math.ceil(H / o.cell);
+    cv.width = cols; cv.height = rows;
+    if (o.fixed) cv.classList.add("fixed");
+    else if (getComputedStyle(el).position === "static") el.style.position = "relative";
+    const x = cv.getContext("2d");
+    const cells = [];
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      // mostly the light tones, a few pink and ink pixels
+      const r = Math.random();
+      x.fillStyle = r < 0.04 ? PIX_COLORS[5] : r < 0.14 ? PIX_COLORS[4] : PIX_COLORS[Math.floor(Math.random() * 4)];
+      x.fillRect(i, j, 1, 1);
+      cells.push(i, j);
+    }
+    for (let k = cells.length / 2 - 1; k > 0; k--) {
+      const m = Math.floor(Math.random() * (k + 1));
+      [cells[2 * k], cells[2 * m]] = [cells[2 * m], cells[2 * k]];
+      [cells[2 * k + 1], cells[2 * m + 1]] = [cells[2 * m + 1], cells[2 * k + 1]];
+    }
+    (o.fixed ? document.body : el).appendChild(cv);
+    const n = cells.length / 2;
+    let done = 0, t0 = null;
+    function step(now) {
+      if (t0 === null) t0 = now + o.delay;
+      const p = Math.max(0, Math.min(1, (now - t0) / o.dur));
+      const target = Math.floor(n * p * p * (3 - 2 * p));
+      for (; done < target; done++) x.clearRect(cells[2 * done], cells[2 * done + 1], 1, 1);
+      if (p < 1) requestAnimationFrame(step); else cv.remove();
+    }
+    requestAnimationFrame(step);
+  }
+
   function zoomFrom(fromRect, toRect, reverse, done) {
     if (reduceMotion || !fromRect) { done && done(); return; }
     const z = h("div", "zoom-rect");
@@ -259,7 +301,7 @@
     o.fill(body, w);
 
     const toRect = el.getBoundingClientRect();
-    zoomFrom(o.from, toRect, false, () => { el.style.visibility = ""; focusWin(o.id); if (o.after) o.after(w); });
+    zoomFrom(o.from, toRect, false, () => { el.style.visibility = ""; pixelCover(el, { cell: 16, dur: 420 }); focusWin(o.id); if (o.after) o.after(w); });
     sfx.open();
 
     el.addEventListener("pointerdown", () => focusWin(o.id));
@@ -388,9 +430,22 @@
 
   function openAbout(from) {
     return createWin({
-      id: "about", title: "about_me.txt — Notepad", icon: "assets/chrome-mark.png", w: 560, h: 460, from, full: true,
+      id: "about", title: "about_me.txt", icon: "assets/chrome-mark.png", w: 600, h: 600, from, full: true,
       menu: ["File", "Edit", "Format", "Help"],
       fill(body) {
+        // a tiny desktop with the tamagotchi hanging on it
+        const desk = h("div", "about-desk");
+        desk.innerHTML = '<div class="ad-grid"></div><i class="ad-spark" style="left:12%;top:18%">✦</i><i class="ad-spark p" style="left:80%;top:62%">✦</i><i class="ad-spark" style="left:72%;top:14%;font-size:12px">✦</i>' +
+          '<div class="ad-icon" style="left:14px;top:14px"><span class="ad-ico">▤</span><span>cv.pdf</span></div>' +
+          '<div class="ad-icon" style="left:14px;top:84px"><span class="ad-ico">✉</span><span>say_hi</span></div>' +
+          '<div class="ad-bubble">hi, it\u2019s me ✦<br>feed me attention</div>' +
+          '<img class="ad-tama" src="assets/tamagotchi-with-me.png" alt="A silver Tamagotchi keychain with my photo on its screen">' +
+          '<div class="ad-bar"><span>✦ start</span><span>sasha_pet.exe</span><span class="ad-clock">♥ 100%</span></div>';
+        const tama = desk.querySelector(".ad-tama");
+        tama.addEventListener("click", () => { tama.classList.remove("boop"); void tama.offsetWidth; tama.classList.add("boop"); sfx.poke(); const r = tama.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height * 0.6, 10, "215,163,189"); });
+        desk.querySelector(".ad-icon").addEventListener("dblclick", () => balloon("cv.pdf", "ask me for it: aleksandraslahova88@gmail.com"));
+        desk.querySelectorAll(".ad-icon")[1].addEventListener("dblclick", () => { location.href = "mailto:aleksandraslahova88@gmail.com"; });
+        body.appendChild(desk);
         const n = h("div", "notepad");
         const split = h("div", "about-split");
         const txt = h("div");
@@ -404,8 +459,7 @@
           const a = h("a", null, t); a.href = href; if (href.startsWith("http")) { a.target = "_blank"; a.rel = "noopener"; } links.appendChild(a);
         });
         txt.appendChild(links);
-        const img = h("img"); img.src = "assets/tamagotchi-with-me.png"; img.alt = "Tamagotchi keychain — with me";
-        split.append(txt, img);
+        split.append(txt);
         n.appendChild(split);
         const tail = h("p", null, "\n\n\n\n");
         tail.style.cssText = "margin-top:60vh;color:#a9abc9";
@@ -668,8 +722,8 @@
   const COVERS = {
     "01": { img: "assets/badge-tight.png" },
     "02": { type: "IN //<br>BETWEEN" },
-    "03": { img: "assets/ei-little-tank-tank.jpg" },
-    "04": { type: "TAN<br>DEM" },
+    "03": { type: "TAN<br>DEM" },
+    "04": { img: "assets/ei-little-tank-tank.jpg" },
     "05": { type: "PERS<br>ONAL" }
   };
   const CARDS = PROJECTS.map((p, i) => ({ app: "project:" + i, num: p.index, title: p.title, file: p.index + "_" + slug(p.title) + ".doc", meta: p.course.split("(")[0].trim() + " · " + p.year, cover: COVERS[p.index] || { type: p.title } }));
@@ -797,12 +851,31 @@
   let look = { x: innerWidth / 2, y: innerHeight };
   let tYaw = 0, tPitch = NEUTRAL_PITCH, shown = -1, pokes = 0, pokeReset = null;
   function blink() { /* the video has no blink */ }
+  // mosaic: 0 = big blocks, 1 = the clear photo (animated in after loading)
+  let mosaic = 0, lastMosaic = -1;
+  const mc = document.createElement("canvas"), mx = mc.getContext("2d");
   function drawFrame(i) {
-    if (i === shown || !sheet.complete || !sheet.naturalWidth) return;
-    shown = i;
+    if ((i === shown && mosaic === lastMosaic) || !sheet.complete || !sheet.naturalWidth) return;
+    shown = i; lastMosaic = mosaic;
     const s = SHEET.size, sx = (i % SHEET.cols) * s, sy = Math.floor(i / SHEET.cols) * s;
     hx.clearRect(0, 0, hc.width, hc.height);
-    hx.drawImage(sheet, sx, sy, s, s, 0, 0, hc.width, hc.height);
+    if (mosaic >= 1) { hx.imageSmoothingEnabled = true; hx.drawImage(sheet, sx, sy, s, s, 0, 0, hc.width, hc.height); return; }
+    const n = Math.max(8, Math.round(hc.width * mosaic * mosaic));
+    mc.width = n; mc.height = n;
+    mx.clearRect(0, 0, n, n);
+    mx.drawImage(sheet, sx, sy, s, s, 0, 0, n, n);
+    hx.imageSmoothingEnabled = false;
+    hx.drawImage(mc, 0, 0, n, n, 0, 0, hc.width, hc.height);
+  }
+  function resolveFace(dur) {
+    if (reduceMotion) { mosaic = 1; return; }
+    const t0 = performance.now();
+    (function step(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      // step through a few chunky resolutions, like an old image loading
+      mosaic = p >= 1 ? 1 : Math.round(p * 7) / 7 * 0.9 + 0.08;
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
   }
   function updateEyes() {
     const r = faceBody.getBoundingClientRect();
@@ -912,5 +985,46 @@
   placeDesktopStars();
   renderRing();
   requestAnimationFrame(tick);
-  if (!store.get("welcomed", false)) setTimeout(openWelcome, 500);
+  boot();
+
+  /* ------------------------------------------------------------------
+   * Boot: a loading screen that waits for the heavy images, then the
+   * desktop appears through pixels.
+   * ------------------------------------------------------------------ */
+  function boot() {
+    const screen = $("boot");
+    const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
+    const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
+    const urls = [SHEET.src, "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+      .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
+    let loaded = 0;
+    const uniq = Array.from(new Set(urls));
+    uniq.forEach((u) => { const im = new Image(); im.onload = im.onerror = () => { loaded++; }; im.src = u; });
+    const t0 = performance.now(), MIN = reduceMotion ? 300 : 1900;
+    let shownP = 0, finished = false;
+    (function step(now) {
+      const timeP = Math.min(1, (now - t0) / MIN);
+      const want = Math.min(timeP, (loaded / uniq.length) * 0.97 + (loaded === uniq.length ? 0.03 : 0));
+      shownP += (want - shownP) * 0.18;
+      if (want >= 1 && shownP > 0.995) shownP = 1;
+      const p = Math.round(shownP * 100);
+      bar.style.width = p + "%";
+      pct.textContent = String(p).padStart(3, "0") + "%";
+      line.textContent = LINES[Math.min(LINES.length - 1, Math.floor(shownP * LINES.length))];
+      if (shownP < 1) requestAnimationFrame(step);
+      else if (!finished) { finished = true; setTimeout(done, 250); }
+    })(t0);
+    // never hang on a slow image
+    setTimeout(() => { loaded = uniq.length; }, 9000);
+    function done() {
+      screen.hidden = true;
+      document.body.classList.remove("booting");
+      sfx.boot();
+      pixelCover(document.body, { fixed: true, cell: 22, dur: 900 });
+      cardEls.forEach((el, i) => pixelCover(el, { cell: 12, dur: 500, delay: 500 + i * 70 }));
+      document.querySelectorAll("#icons .icon").forEach((el, i) => pixelCover(el, { cell: 8, dur: 380, delay: 300 + i * 60 }));
+      setTimeout(() => resolveFace(1100), 350);
+      if (!store.get("welcomed", false)) setTimeout(openWelcome, 1500);
+    }
+  }
 })();

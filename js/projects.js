@@ -29,7 +29,16 @@
       ]
     },
     {
-      index: "03", title: "FEELING OF HOME", year: "2026", course: "Emerging Interactions (MDD playground project)", role: "Group project with Rasika, Sohail & Valentyn — research, cognitive dimension, prototyping", status: "In progress — week 2 of 8",
+      index: "03", title: "TANDEM", year: "2026", course: "Accessibility project", role: "To be filled in", status: "Draft — content coming",
+      chapters: [
+        { n: "OVERVIEW", title: "An accessibility project", text: "Placeholder. This page is waiting for Sasha's material: what Tandem is, who it was for, and what she made.", media: [] },
+        { n: "BRIEF", title: "Brief", text: "Placeholder for the brief.", media: [] },
+        { n: "PROCESS", title: "Process", text: "Placeholder for research, iterations and testing.", media: [] },
+        { n: "OUTCOME", title: "Outcome", text: "Placeholder for the final result and reflection.", media: [] }
+      ]
+    },
+    {
+      index: "04", title: "FEELING OF HOME", year: "2026", course: "Emerging Interactions (MDD playground project)", role: "Group project with Rasika, Sohail & Valentyn — research, cognitive dimension, prototyping", status: "In progress — week 2 of 8",
       chapters: [
         { n: "OVERVIEW", title: "Keeping your inner child alive", text: "An eight-week playground project in the Master Digital Design: design an immersive experience that nurtures a feeling of home. Our team narrowed \"home\" down to the inner child — how might stressed, pressured adults feel at home within themselves? — and I've been testing that question through two small, playful prototypes: Little Rooms and Little Tank.", media: [{ label: "FIG. 01 — LITTLE TANK, SHARED FISH TANK", kind: "wide", img: "assets/ei-little-tank-tank.jpg" }] },
         { n: "BRIEF", title: "Brief", text: "\"Emerging Interactions: Designing for the feeling of home\". Home as a place where our senses are aligned, a place to be safe, to act from intuition, to welcome others, to grow. The brief cares more about the strength of the execution than the concept — the how and why, not the what — and asks us to work through Alina Goldwoman's Odyssey Heuristics: technical, physical, cognitive, social, emotional and narrative dimensions. The outcome is an experienceable prototype, plus a documented process that turns users into voyagers.", media: [] },
@@ -42,15 +51,6 @@
         { n: "CONCEPT 2", title: "Little Tank", text: "The rooms felt very screen-bound, and the Odyssey framework kept pointing at the physical dimension we were weakest on. So the second concept starts on paper: you colour a fish on a printed stencil with crayons, the way you did when you were small, photograph it with your phone, and it swims into a shared digital tank on a big screen. It borrows directly from teamLab's Sketch Aquarium, but the tank is ours — a pixel-art castle, a duck and ABC blocks on the sand.", media: [{ label: "FIG. 05 — PRINTABLE FISH STENCILS", kind: "wide", img: "assets/ei-little-tank-stencils.jpg" }] },
         { n: "PROTOTYPE 2", title: "Building Little Tank", text: "Three A4 stencils (Classic, Puffer, Angel), each with four black corner squares so the phone can find the sheet, correct the perspective and cut the fish out cleanly. The big screen shows the tank with a QR code; the phone view takes the photo, a fish name and an optional note that appears when someone taps the fish. Every fish lands in one shared tank, and I restyled it to match Little Rooms so both prototypes read as one family.", media: [{ label: "FIG. 06 — PHONE: ADD YOUR FISH", kind: "tall", img: "assets/ei-little-tank-phone.jpg" }] },
         { n: "NEXT STEPS", title: "Next steps", text: "Test both prototypes with classmates and people outside the course, using the survey results to decide what to measure. Questions to answer: does making something with your hands (the fish) feel more like home than arranging something on a screen (the room)? Do letters from strangers feel warm or intrusive? Then bring the findings to Romar for the concept crit and choose one direction to take to the week 8 hand-in.", media: [] }
-      ]
-    },
-    {
-      index: "04", title: "TANDEM", year: "2026", course: "Accessibility project", role: "To be filled in", status: "Draft — content coming",
-      chapters: [
-        { n: "OVERVIEW", title: "An accessibility project", text: "Placeholder. This page is waiting for Sasha's material: what Tandem is, who it was for, and what she made.", media: [] },
-        { n: "BRIEF", title: "Brief", text: "Placeholder for the brief.", media: [] },
-        { n: "PROCESS", title: "Process", text: "Placeholder for research, iterations and testing.", media: [] },
-        { n: "OUTCOME", title: "Outcome", text: "Placeholder for the final result and reflection.", media: [] }
       ]
     },
     {
