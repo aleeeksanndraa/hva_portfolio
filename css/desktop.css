@@ -608,3 +608,12 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .face-win.poked .head, #tray-stars.bump, .bubble { animation: none; }
 }
+
+/* ---------- the face: no window, just a floating head ---------- */
+.face-win { position: absolute; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; width: calc(var(--fw, 300px) * 1.1); }
+.face-win .win-body { margin: 0; background: none; border-radius: 0; overflow: visible; }
+.face-win .win-body::after { content: none; }
+.face-stage { inset: 0; animation: hover-float 6s ease-in-out infinite; }
+.head { filter: drop-shadow(0 40px 40px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 60px rgba(123, 92, 245, 0.25)); }
+@keyframes hover-float { 50% { transform: translateY(-14px); } }
+@media (prefers-reduced-motion: reduce) { .face-stage { animation: none; } }
