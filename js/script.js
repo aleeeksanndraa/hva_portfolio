@@ -430,7 +430,11 @@
             c.media.forEach((md) => {
               const f = h("figure");
               const box = h("div", "mb " + md.kind);
-              if (md.img) { const im = h("img"); im.src = md.img; im.alt = md.label; im.loading = "lazy"; box.appendChild(im); }
+              if (md.video) {
+                const v = h("video"); v.src = md.video; if (md.img) v.poster = md.img;
+                v.controls = true; v.muted = true; v.loop = true; v.playsInline = true; v.preload = "none"; v.setAttribute("aria-label", md.label);
+                box.appendChild(v);
+              } else if (md.img) { const im = h("img"); im.src = md.img; im.alt = md.label; im.loading = "lazy"; box.appendChild(im); }
               f.append(box, h("figcaption", null, md.label));
               m.appendChild(f);
             });
@@ -440,13 +444,13 @@
           doc.appendChild(s);
         });
         const end = h("div", "doc-end");
-        end.append(h("span", null, "— end of " + p.index + " —"), h("span", null, i < PROJECTS.length - 1 ? "next: " + PROJECTS[i + 1].title : "that's all for now"));
+        end.append(h("span", null, "· end of " + p.index + " ·"), h("span", null, i < PROJECTS.length - 1 ? "next: " + PROJECTS[i + 1].title : "that's all for now"));
         doc.appendChild(end);
         body.appendChild(doc);
         body.addEventListener("scroll", () => {
           if (body.scrollTop + body.clientHeight >= body.scrollHeight - 30) {
             const r = body.getBoundingClientRect();
-            if (collect("reader", r.left + r.width / 2, r.bottom - 30)) end.firstChild.textContent = "✦ you read to the end — star found";
+            if (collect("reader", r.left + r.width / 2, r.bottom - 30)) end.firstChild.textContent = "✦ you read to the end, star found";
           }
         }, { passive: true });
       }
@@ -513,7 +517,7 @@
           const td = h("td");
           const im = h("img"); im.src = "assets/chrome-folder.png"; im.alt = "";
           td.append(im, p.index + "_" + slug(p.title));
-          tr.append(td, h("td", null, p.course.split("(")[0].trim()), h("td", null, p.year), h("td", null, p.status.split("—")[0].trim()));
+          tr.append(td, h("td", null, p.course.split("(")[0].trim()), h("td", null, p.year), h("td", null, p.status.split(/[—,:]/)[0].trim()));
           const go = () => openApp("project:" + i, tr);
           tr.addEventListener("dblclick", go);
           tr.addEventListener("click", () => { if (isSmall()) go(); else sfx.click(); });
@@ -521,7 +525,7 @@
           tb.appendChild(tr);
         });
         const more = h("tr", "muted");
-        more.append(h("td", null, String(PROJECTS.length + 1).padStart(2, "0") + "_coming_soon"), h("td", null, "—"), h("td", null, "—"), h("td", null, "—"));
+        more.append(h("td", null, String(PROJECTS.length + 1).padStart(2, "0") + "_coming_soon"), h("td", null, "·"), h("td", null, "·"), h("td", null, "·"));
         tb.appendChild(more);
         t.appendChild(tb);
         body.appendChild(t);
@@ -536,7 +540,7 @@
     STARS.forEach((s) => ul.appendChild(h("li", got.includes(s.id) ? "got" : "", (got.includes(s.id) ? "✦  " : "·  ") + s.hint)));
     const note = h("div", "stars-note");
     if (got.length >= STARS.length) {
-      note.append("All found. You clearly have time to spare — ");
+      note.append("All found. You clearly have time to spare. ");
       const a = h("a", null, "say hi");
       a.href = "mailto:aleksandraslahova88@gmail.com?subject=I%20found%20all%20the%20stars";
       note.append(a, " and tell me which one was hardest.");
@@ -553,7 +557,7 @@
       status: ["3 object(s)", "Empty Recycle Bin"],
       fill(body) {
         const b = h("div", "trash-body");
-        const files = [["▤", "metal_card_v1.fig", () => balloon("metal_card_v1.fig", "The aluminium badge never happened. Acrylic did — see 01 Custom Badge.")], ["▦", "moodboard_old_FINAL_final2.png", () => balloon("Error", "This file is too embarrassing to open.")]];
+        const files = [["▤", "metal_card_v1.fig", () => balloon("metal_card_v1.fig", "The aluminium badge never happened. Acrylic did, see 01 Custom Badge.")], ["▦", "moodboard_old_FINAL_final2.png", () => balloon("Error", "This file is too embarrassing to open.")]];
         files.forEach(([ico, name, fn]) => {
           const f = h("button", "file");
           f.type = "button";
@@ -1345,7 +1349,7 @@
     // loudness per beat, 0-9 (measured from the track)
     E: "95893991000000853976799759883987496879894958498859699979696949597979997978575607474987596969686857488769687978796899999966885389679989996599637112110200321023200102010022202330010201002221233022232252244343479797969996929699969296939699949997929799" };
   // the drops of the track, in beats: the first hits ~5% into the run, the second after the breakdown
-  const DASH_DROPS = [[12, 143], [209, 1e9]];
+  const DASH_DROPS = [[13.5, 144.5], [210.5, 1e9]];   // fractional beats: 1.5 beats ≈ 0.5 s later than the measured hit, as Sasha asked
   const dashInDrop = (b) => DASH_DROPS.some(([a, z]) => b >= a && b < z);
   // [sky top, sky bottom, shape colour (A = alpha), shape] — pastel phrases outside the drops, night phrases inside them
   const DASH_THEMES = [
@@ -1448,7 +1452,7 @@
       // the world changes every 16 beats (a phrase); loud phrases get the night palette
       const phrase = Math.max(0, Math.floor(bt / 16)), pb = bt - phrase * 16;
       let loudSum = 0; for (let k = phrase * 16; k < phrase * 16 + 16; k++) loudSum += +(DASH.E[k] || 0);
-      const drop = running && dashInDrop(Math.floor(bt));
+      const drop = running && dashInDrop(bt);
       if (drop && !wasDrop) dropHit = 1;   // the drop lands: instant scene swap + big flash + shake
       wasDrop = drop; dropHit *= 0.93;
       const th = running ? DASH_THEMES[(drop ? 4 : 0) + (phrase % 4)] : DASH_THEMES[0];
@@ -1548,8 +1552,7 @@
       // laser eyes only during the drops (beat ranges of the track: first drop hits ~5% into the run, second after the breakdown)
       level() {
         if (!running) return 0;
-        const b = Math.floor((t - DASH.T0) / DASH.BEAT);
-        return dashInDrop(b) ? 9 : 0;
+        return dashInDrop((t - DASH.T0) / DASH.BEAT) ? 9 : 0;
       },
       stop() { running = false; music.stop(); }
     };
@@ -1638,12 +1641,12 @@
    * Orbit: face window + project windows circling it
    * ------------------------------------------------------------------ */
   const COVERS = {
-    "01": { img: "assets/badge-tight.png" },
-    "02": { type: "IN //<br>BETWEEN" },
-    "03": { type: "TAN<br>DEM" },
+    "01": { img: "assets/badge-pixel.png" },
+    "02": { type: "MIRROR<br>&amp; DOME" },
+    "03": { img: "assets/tandem-pixel.png" },
     "04": { img: "assets/ei-little-tank-tank.jpg" },
     "05": { type: "PERS<br>ONAL" },
-    "06": { type: "SELF<br>GROW" }
+    "06": { type: "SELF<br>GROW", mini: "assets/face-mini-pixel.png" }
   };
   const CARDS = PROJECTS.map((p, i) => ({ app: "project:" + i, num: p.index, title: p.title, file: p.index + "_" + slug(p.title) + ".doc", meta: p.course.split("(")[0].trim() + " · " + p.year, cover: COVERS[p.index] || { type: p.title } }));
 
@@ -1723,14 +1726,19 @@
     const b = h("button", "ring-card");
     b.type = "button";
     b.dataset.card = String(i);
-    b.setAttribute("aria-label", c.title + " — " + c.meta);
+    b.setAttribute("aria-label", c.title + ", " + c.meta);
     const bar = h("div", "win-bar");
     bar.append(h("span", "win-title", c.file));
     const bt = h("span", "win-btns"); bt.innerHTML = "<i>×</i>"; bar.appendChild(bt);
     const body = h("div", "rc-body");
     if (c.cover.img) { const im = h("img"); im.src = c.cover.img; im.alt = ""; body.appendChild(im); }
     else if (c.cover.snake) { const cv = h("canvas"); cv.width = 16; cv.height = 15; drawSnakeIcon(cv, 16, 15); body.appendChild(cv); }
-    else { const t = h("div", "rc-type"); t.innerHTML = c.cover.type; body.appendChild(t); }
+    else {
+      const t = h("div", "rc-type" + (c.cover.mini ? " has-mini" : ""));
+      if (c.cover.mini) { const im = h("img", "rc-mini"); im.src = c.cover.mini; im.alt = ""; const sp = h("span"); sp.innerHTML = c.cover.type; t.append(im, sp); }
+      else t.innerHTML = c.cover.type;
+      body.appendChild(t);
+    }
     b.append(bar, body);
     ring.appendChild(b);
     cardEls.push(b);
@@ -2158,7 +2166,7 @@
     clearTimeout(pokeReset);
     pokeReset = setTimeout(() => { pokes = 0; }, 2500);
     if (pokes >= 5) { pokes = 0; if (!collect("poke", e.clientX, e.clientY)) balloon("sasha.exe", "ow. okay. you already have that one."); }
-    else if (pokes === 3 && !got.includes("poke")) balloon("sasha.exe", "hey—");
+    else if (pokes === 3 && !got.includes("poke")) balloon("sasha.exe", "hey…");
   });
 
   /* ------------------------------------------------------------------
