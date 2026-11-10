@@ -2065,6 +2065,13 @@
     still: 21, stillFor: 1500, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
   });
 
+  // second poke reaction: a slow frown that builds into a full scowl; alternates with the pout
+  registerEmotion("frown", {
+    src: "assets/face-frown.webp", size: 420, cols: 10, frames: 49, fps: 12,
+    still: 34, stillFor: 1200, cooldown: 1500, fadeIn: 120, fadeOut: 420, settle: false
+  });
+  let pokeFlip = false;
+
   // the reward: a full turn, and she comes back round wearing the star glasses
   registerEmotion("glasses_on", {
     src: "assets/face-glasses-on.webp", size: 420, cols: 10, frames: 49, fps: 12,
@@ -2146,10 +2153,12 @@
 
   faceBody.addEventListener("click", (e) => {
     e.stopPropagation();
-    const pokeAs = skin === "glasses" ? "glasses_smirk" : "pout";
+    // plain skin: pokes take turns between the pout and the frown
+    const pokeAs = skin === "glasses" ? "glasses_smirk" : (pokeFlip ? "frown" : "pout");
     // another one-shot emotion is mid-play: don't stack a second one on top
-    if (character.busy() && character.emotion !== EMOTIONS[pokeAs] && !character.emotion.loop) return;
-    character.play(pokeAs);
+    const pokeFaces = [EMOTIONS.pout, EMOTIONS.frown, EMOTIONS.glasses_smirk];
+    if (character.busy() && !pokeFaces.includes(character.emotion) && !character.emotion.loop) return;
+    if (character.play(pokeAs) && skin !== "glasses") pokeFlip = !pokeFlip;
     sfx.poke();
     burst(e.clientX, e.clientY, 10, "215,163,189");
     faceWin.classList.remove("poked"); void faceWin.offsetWidth; faceWin.classList.add("poked");
@@ -2260,7 +2269,7 @@
     const screen = $("boot");
     const bar = $("boot-bar"), pct = $("boot-pct"), line = $("boot-line");
     const LINES = ["waking up…", "polishing the chrome…", "brushing my hair…", "loading projects…", "feeding the tamagotchi…", "almost there ✦"];
-    const urls = [SHEET.src, skin === "glasses" ? GLASSES.src : "assets/face-glasses-on.webp", "assets/face-pout.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
+    const urls = [SHEET.src, skin === "glasses" ? GLASSES.src : "assets/face-glasses-on.webp", "assets/face-pout.webp", "assets/face-frown.webp", "assets/face-blink.webp", "assets/face-cutout.webp", "assets/tamagotchi-with-me.png", "assets/chrome-folder.png", "assets/chrome-cursor.png", "assets/pin-silver.png"]
       .concat(CARDS.filter((c) => c.cover.img).map((c) => c.cover.img));
     let loaded = 0;
     const uniq = Array.from(new Set(urls));
